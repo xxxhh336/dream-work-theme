@@ -1,0 +1,95 @@
+{
+  "name": "dream-work-theme",
+  "version": "0.1.0",
+  "private": true,
+  "author": "Dream Work Theme",
+  "description": "适用于 Electron Work 应用的跨平台主题切换器（如 WorkBuddy、TRAE Work 等）。Cross-platform theme switcher for Electron work apps (WorkBuddy, TRAE Work, etc.).",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "vite --port 5173",
+    "electron:dev": "node scripts/electron-dev.cjs",
+    "build": "tsc && vite build && node scripts/copy-electron-dist.js && node scripts/build-electron.cjs",
+    "build:win": "pnpm build:app && node scripts/build-electron.cjs --win nsis",
+    "build:win:x64": "pnpm build:app && node scripts/build-electron.cjs --win nsis --x64",
+    "build:mac": "pnpm build:app && node scripts/build-electron.cjs --mac dmg zip",
+    "build:mac:arm64": "pnpm build:app && node scripts/build-electron.cjs --mac dmg zip --arm64",
+    "build:mac:x64": "pnpm build:app && node scripts/build-electron.cjs --mac dmg zip --x64",
+    "build:linux": "pnpm build:app && node scripts/package-linux.cjs",
+    "build:linux:arm64": "pnpm build:app && node scripts/package-linux.cjs --arch arm64",
+    "build:linux:x64": "pnpm build:app && node scripts/package-linux.cjs --arch x64",
+    "build:linux:appimage:arm64": "pnpm build:app && node scripts/package-linux.cjs --arch arm64 --appimage-only",
+    "build:linux:appimage:x64": "pnpm build:app && node scripts/package-linux.cjs --arch x64 --appimage-only",
+    "build:app": "tsc && vite build && node scripts/copy-electron-dist.js",
+    "themes:import-codex": "node scripts/import-codex-dream-skin-themes.cjs",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "7zip-bin": "^5.2.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "undici": "^8.9.0",
+    "ws": "^8.21.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "concurrently": "^8.2.0",
+    "electron": "^33.0.0",
+    "electron-builder": "^24.13.3",
+    "lru-cache": "10.4.3",
+    "typescript": "^5.6.0",
+    "vite": "^5.4.0",
+    "vite-plugin-electron": "^0.28.0",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.dreamwork.theme",
+    "productName": "Dream Work Theme",
+    "files": [
+      "renderer/dist/**/*",
+      "dist-electron/**/*",
+      "themes/**/*"
+    ],
+    "asarUnpack": [
+      "node_modules/7zip-bin/**/*"
+    ],
+    "forceCodeSigning": false,
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.developer-tools",
+      "artifactName": "Dream-Work-Theme-${version}-mac-${arch}.${ext}"
+    },
+    "win": {
+      "target": "nsis",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "artifactName": "Dream-Work-Theme-${version}-win-${arch}.${ext}",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "include": "build/installer.nsh"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "tar.gz"
+      ],
+      "artifactName": "Dream-Work-Theme-${version}-linux-${arch}.${ext}",
+      "category": "Utility",
+      "maintainer": "Dream Work Theme"
+    }
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild"
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "1-0",
+  "name": "流萤：星穹下的凝望",
+  "author": "luochen0097",
+  "hero": "hero.png",
+  "colors": {
+    "accent": "#5c6bc0",
+    "secondary": "#606db1",
+    "surface": "#27282d",
+    "text": "#eeeff1"
+  },
+  "copy": null,
+  "apps": {
+    "workbuddy": {
+      "compat": true
+    },
+    "codex": {
+      "compat": true
+    },
+    "trae-work": {
+      "compat": true
+    },
+    "qoder-work": {
+      "compat": true
+    },
+    "catpaw": {
+      "compat": true
+    },
+    "zcode": {
+      "compat": true
+    },
+    "qwen-office": {
+      "compat": true
+    }
+  }
+}

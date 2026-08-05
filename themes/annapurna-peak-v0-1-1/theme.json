@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "annapurna-peak-v0-1-1",
+  "name": "月色安纳普尔纳",
+  "author": "zZze",
+  "hero": "hero.jpg",
+  "colors": {
+    "accent": "#417c87",
+    "secondary": "#4b7b84",
+    "surface": "#272c2d",
+    "text": "#eef1f1"
+  },
+  "copy": null,
+  "apps": {
+    "workbuddy": {
+      "compat": true
+    },
+    "codex": {
+      "compat": true
+    },
+    "trae-work": {
+      "compat": true
+    },
+    "qoder-work": {
+      "compat": true
+    },
+    "catpaw": {
+      "compat": true
+    },
+    "zcode": {
+      "compat": true
+    },
+    "qwen-office": {
+      "compat": true
+    }
+  }
+}

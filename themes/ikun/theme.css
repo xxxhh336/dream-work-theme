@@ -1,0 +1,15 @@
+[data-ds-part="sidebar"] {
+  background-color: var(--ds-theme-color-panel);
+  border-color: var(--ds-theme-color-line);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(18px);
+  transition-property: background-color, border-color, box-shadow;
+  transition-duration: 180ms;
+}
+
+[data-ds-part="dialog"]:focus-visible {
+  border-color: var(--ds-theme-color-accent);
+}

@@ -1,0 +1,24 @@
+[data-ds-part="root"] {
+  color: var(--ds-theme-color-text);
+}
+
+[data-ds-part="sidebar"] {
+  background-color: var(--ds-theme-color-panel);
+  border-color: var(--ds-theme-color-line);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+}
+
+[data-ds-part="header"] {
+  background-color: transparent;
+  border-color: var(--ds-theme-color-line);
+  border-width: 1px;
+  border-style: solid;
+}
+
+[data-ds-part="message"] {
+  color: var(--ds-theme-color-text);
+  border-radius: 12px;
+}

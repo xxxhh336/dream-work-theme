@@ -1,0 +1,53 @@
+[data-ds-part="root"] {
+  color: #edf8ff;
+}
+
+[data-ds-part="sidebar"] {
+  background-color: rgba(5, 9, 18, 0.78);
+  backdrop-filter: blur(18px) saturate(1.15);
+  border-right-color: rgba(85, 223, 255, 0.24);
+  border-right-width: 1px;
+  border-right-style: solid;
+}
+
+[data-ds-part="header"] {
+  background-color: rgba(9, 18, 34, 0.68);
+  backdrop-filter: blur(14px) saturate(1.12);
+  border-bottom-color: rgba(140, 125, 255, 0.22);
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+}
+
+[data-ds-part="composer"] {
+  background-color: rgba(9, 18, 34, 0.86);
+  backdrop-filter: blur(20px) saturate(1.18);
+  border-color: rgba(85, 223, 255, 0.34);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 16px;
+  box-shadow: 0 12px 38px rgba(0, 0, 0, 0.36);
+}
+
+[data-ds-part="composer"]:focus-visible {
+  border-color: #55dfff;
+  box-shadow: 0 0 24px rgba(85, 223, 255, 0.28);
+}
+
+[data-ds-part="composer-toolbar"] {
+  color: #9ee84d;
+}
+
+[data-ds-part="message"] {
+  border-left-color: rgba(140, 125, 255, 0.34);
+  border-left-width: 2px;
+  border-left-style: solid;
+}
+
+[data-ds-part="dialog"] {
+  background-color: rgba(9, 18, 34, 0.96);
+  backdrop-filter: blur(24px) saturate(1.12);
+  border-color: rgba(85, 223, 255, 0.28);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 18px;
+}

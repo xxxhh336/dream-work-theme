@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "preset-aegean-citadel",
+  "name": "银石堡向你致意——混沌止步，秩序由此降临。",
+  "author": "mmmoos",
+  "hero": "hero.png",
+  "colors": {
+    "accent": "#d4a95f",
+    "secondary": "#47a6b6",
+    "surface": "#132b3a",
+    "text": "#f4ead8"
+  },
+  "copy": null,
+  "apps": {
+    "workbuddy": {
+      "compat": true
+    },
+    "codex": {
+      "compat": true
+    },
+    "trae-work": {
+      "compat": true
+    },
+    "qoder-work": {
+      "compat": true
+    },
+    "catpaw": {
+      "compat": true
+    },
+    "zcode": {
+      "compat": true
+    },
+    "qwen-office": {
+      "compat": true
+    }
+  }
+}

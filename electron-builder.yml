@@ -1,0 +1,30 @@
+appId: com.dreamwork.theme
+productName: Dream Work Theme
+directories:
+  output: release
+  buildResources: assets
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - themes/**/*
+  - node_modules/**/*
+  - package.json
+asarUnpack:
+  - node_modules/7zip-bin/**/*
+mac:
+  target:
+    - dmg
+    - zip
+  category: public.app-category.developer-tools
+  hardenedRuntime: false
+win:
+  target:
+    - nsis
+    - portable
+  signAndEditExecutable: false
+linux:
+  target:
+    - AppImage
+    - deb
+  icon: assets/icon.png
+  category: Development

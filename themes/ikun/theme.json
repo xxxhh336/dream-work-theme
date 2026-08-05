@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "ikun",
+  "name": "Forever Kun",
+  "author": "Joker Pan",
+  "hero": "hero.png",
+  "colors": {
+    "accent": "#b8d8c0",
+    "secondary": "#5d7b75",
+    "surface": "#172330",
+    "text": "#edf3ef"
+  },
+  "copy": null,
+  "apps": {
+    "workbuddy": {
+      "compat": true
+    },
+    "codex": {
+      "compat": true
+    },
+    "trae-work": {
+      "compat": true
+    },
+    "qoder-work": {
+      "compat": true
+    },
+    "catpaw": {
+      "compat": true
+    },
+    "zcode": {
+      "compat": true
+    },
+    "qwen-office": {
+      "compat": true
+    }
+  }
+}

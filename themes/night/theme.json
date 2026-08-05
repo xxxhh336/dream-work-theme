@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "night",
+  "name": "night",
+  "author": "YOUNG KANG",
+  "hero": "hero.jpg",
+  "colors": {
+    "accent": "#ca9036",
+    "secondary": "#4d7891",
+    "surface": "#2c2a28",
+    "text": "#f1f0ef"
+  },
+  "copy": null,
+  "apps": {
+    "workbuddy": {
+      "compat": true
+    },
+    "codex": {
+      "compat": true
+    },
+    "trae-work": {
+      "compat": true
+    },
+    "qoder-work": {
+      "compat": true
+    },
+    "catpaw": {
+      "compat": true
+    },
+    "zcode": {
+      "compat": true
+    },
+    "qwen-office": {
+      "compat": true
+    }
+  }
+}

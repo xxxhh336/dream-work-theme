@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "custom-faceless-void-arcana",
+  "name": "虚空假面至宝 · 时间裂变",
+  "author": "牛丸",
+  "hero": "hero.png",
+  "colors": {
+    "accent": "#55dfff",
+    "secondary": "#9ee84d",
+    "surface": "#101d35",
+    "text": "#edf8ff"
+  },
+  "copy": null,
+  "apps": {
+    "workbuddy": {
+      "compat": true
+    },
+    "codex": {
+      "compat": true
+    },
+    "trae-work": {
+      "compat": true
+    },
+    "qoder-work": {
+      "compat": true
+    },
+    "catpaw": {
+      "compat": true
+    },
+    "zcode": {
+      "compat": true
+    },
+    "qwen-office": {
+      "compat": true
+    }
+  }
+}

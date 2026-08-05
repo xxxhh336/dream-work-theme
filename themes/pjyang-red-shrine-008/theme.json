@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "pjyang-red-shrine-008",
+  "name": "菲伦的芙莉莲",
+  "author": "pj yang",
+  "hero": "hero.png",
+  "colors": {
+    "accent": "#ffffff",
+    "secondary": "#9372e1",
+    "surface": "#e9e9ea",
+    "text": "#1c1b1d"
+  },
+  "copy": null,
+  "apps": {
+    "workbuddy": {
+      "compat": true
+    },
+    "codex": {
+      "compat": true
+    },
+    "trae-work": {
+      "compat": true
+    },
+    "qoder-work": {
+      "compat": true
+    },
+    "catpaw": {
+      "compat": true
+    },
+    "zcode": {
+      "compat": true
+    },
+    "qwen-office": {
+      "compat": true
+    }
+  }
+}

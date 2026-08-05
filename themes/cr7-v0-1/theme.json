@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "cr7-v0-1",
+  "name": "CR7-01",
+  "author": "zZze",
+  "hero": "hero.jpg",
+  "colors": {
+    "accent": "#ac5863",
+    "secondary": "#a25e67",
+    "surface": "#2c2828",
+    "text": "#f1efef"
+  },
+  "copy": null,
+  "apps": {
+    "workbuddy": {
+      "compat": true
+    },
+    "codex": {
+      "compat": true
+    },
+    "trae-work": {
+      "compat": true
+    },
+    "qoder-work": {
+      "compat": true
+    },
+    "catpaw": {
+      "compat": true
+    },
+    "zcode": {
+      "compat": true
+    },
+    "qwen-office": {
+      "compat": true
+    }
+  }
+}

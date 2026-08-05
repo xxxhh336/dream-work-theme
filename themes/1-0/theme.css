@@ -1,0 +1,68 @@
+[data-ds-part="root"] {
+  background-color: #0b0e0b;
+  color: #b0f0b0;
+  font-family: monospace;
+}
+[data-ds-part="sidebar"] {
+  background-color: #0f140f;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #2a5a2a;
+}
+[data-ds-part="main"] {
+  background-color: #080c08;
+}
+[data-ds-part="header"] {
+  background-color: #0f140f;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-bottom-color: #1a3a1a;
+  color: #39ff14;
+}
+[data-ds-part="home"] {
+  background-color: #080c08;
+}
+[data-ds-part="home-hero"] {
+  background-color: #0a140a;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #1a3a1a;
+}
+[data-ds-part="project-list"] {
+  background-color: #080c08;
+}
+[data-ds-part="thread"] {
+  background-color: #080c08;
+}
+[data-ds-part="message"] {
+  background-color: #0c180c;
+  border-left-style: solid;
+  border-left-width: 3px;
+  border-left-color: #39ff14;
+  color: #c8f0c8;
+}
+[data-ds-part="message"]:hover {
+  background-color: #142014;
+  border-left-color: #66ff44;
+}
+[data-ds-part="composer"] {
+  background-color: #0f140f;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #1a3a1a;
+}
+[data-ds-part="composer-toolbar"] {
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-bottom-color: #1a3a1a;
+}
+[data-ds-part="dialog"] {
+  background-color: #0a120a;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #2a5a2a;
+}
+[data-ds-part="dialog"]:focus-visible {
+  background-color: #0a120a;
+  border-color: #39ff14;
+}

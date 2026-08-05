@@ -1,0 +1,144 @@
+[data-ds-part="root"] {
+  background-color: var(--ds-theme-color-background);
+  color: var(--ds-theme-color-text);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.55;
+  letter-spacing: 0.2px;
+  transition-property: background-color, color;
+  transition-duration: 180ms;
+}
+
+[data-ds-part="sidebar"] {
+  background-color: var(--ds-theme-color-panel);
+  color: var(--ds-theme-color-muted);
+  border-right-color: var(--ds-theme-color-line);
+  border-right-width: 1px;
+  border-right-style: solid;
+  backdrop-filter: blur(var(--ds-theme-surface-blur)) saturate(1.12);
+  box-shadow: 8px 0 24px rgba(0, 0, 0, 0.18);
+  transition-property: background-color, border-right-color, box-shadow;
+  transition-duration: 180ms;
+}
+
+[data-ds-part="sidebar"]:hover {
+  background-color: var(--ds-theme-color-panel-alt);
+  color: var(--ds-theme-color-text);
+  border-right-color: var(--ds-theme-color-accent);
+  box-shadow: 12px 0 32px rgba(0, 0, 0, 0.22);
+}
+
+[data-ds-part="main"] {
+  color: var(--ds-theme-color-text);
+  line-height: 1.6;
+  transition-property: color;
+  transition-duration: 180ms;
+}
+
+[data-ds-part="header"] {
+  background-color: var(--ds-theme-color-panel);
+  color: var(--ds-theme-color-text);
+  border-bottom-color: var(--ds-theme-color-line);
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  backdrop-filter: blur(var(--ds-theme-surface-blur)) saturate(1.08);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+  transition-property: background-color, border-bottom-color, box-shadow;
+  transition-duration: 180ms;
+}
+
+[data-ds-part="home"] {
+  color: var(--ds-theme-color-text);
+  line-height: 1.6;
+  letter-spacing: 0.1px;
+}
+
+[data-ds-part="home-hero"] {
+  color: var(--ds-theme-color-highlight);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.4px;
+}
+
+[data-ds-part="project-list"] {
+  color: var(--ds-theme-color-text);
+  gap: 14px;
+  border-top-color: var(--ds-theme-color-line);
+  border-top-width: 1px;
+  border-top-style: solid;
+}
+
+[data-ds-part="thread"] {
+  color: var(--ds-theme-color-text);
+  line-height: 1.65;
+  letter-spacing: 0.1px;
+  transition-property: color;
+  transition-duration: 180ms;
+}
+
+[data-ds-part="message"] {
+  background-color: var(--ds-theme-color-panel);
+  color: var(--ds-theme-color-text);
+  border-color: var(--ds-theme-color-line);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: var(--ds-theme-surface-radius);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+  transition-property: background-color, border-color, box-shadow, color;
+  transition-duration: 180ms;
+}
+
+[data-ds-part="message"]:hover {
+  background-color: var(--ds-theme-color-panel-alt);
+  color: var(--ds-theme-color-highlight);
+  border-color: var(--ds-theme-color-accent);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+}
+
+[data-ds-part="composer"] {
+  background-color: var(--ds-theme-color-panel-alt);
+  color: var(--ds-theme-color-text);
+  border-color: var(--ds-theme-color-accent-alt);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: var(--ds-theme-surface-radius);
+  backdrop-filter: blur(var(--ds-theme-surface-blur)) saturate(1.15);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
+  transition-property: background-color, border-color, box-shadow;
+  transition-duration: 180ms;
+}
+
+[data-ds-part="composer"]:focus-visible {
+  background-color: var(--ds-theme-color-panel);
+  border-color: var(--ds-theme-color-highlight);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.16);
+}
+
+[data-ds-part="composer-toolbar"] {
+  color: var(--ds-theme-color-muted);
+  border-top-color: var(--ds-theme-color-line);
+  border-top-width: 1px;
+  border-top-style: solid;
+  gap: 8px;
+  transition-property: color, border-top-color;
+  transition-duration: 180ms;
+}
+
+[data-ds-part="composer-toolbar"]:hover {
+  color: var(--ds-theme-color-accent-alt);
+  border-top-color: var(--ds-theme-color-accent);
+}
+
+[data-ds-part="dialog"] {
+  background-color: var(--ds-theme-color-panel-alt);
+  color: var(--ds-theme-color-text);
+  border-color: var(--ds-theme-color-accent);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: var(--ds-theme-surface-radius);
+  backdrop-filter: blur(var(--ds-theme-surface-blur)) saturate(1.18);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.30);
+  transition-property: background-color, border-color, box-shadow;
+  transition-duration: 180ms;
+}

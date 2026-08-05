@@ -1,0 +1,55 @@
+[data-ds-part="root"] {
+  background-color: var(--ds-theme-color-background);
+}
+
+[data-ds-part="sidebar"] {
+  background-color: var(--ds-theme-color-panel);
+  border-color: var(--ds-theme-color-line);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: var(--ds-theme-surface-radius);
+  backdrop-filter: blur(var(--ds-theme-surface-blur)) saturate(1.2);
+  transition-property: background-color, border-color;
+  transition-duration: 180ms;
+}
+
+[data-ds-part="main"] {
+  background-color: var(--ds-theme-color-background);
+}
+
+[data-ds-part="header"] {
+  background-color: var(--ds-theme-color-panel-alt);
+  border-color: var(--ds-theme-color-line);
+  border-width: 1px;
+  border-style: solid;
+  backdrop-filter: blur(var(--ds-theme-surface-blur)) brightness(1.1);
+}
+
+[data-ds-part="message"] {
+  background-color: var(--ds-theme-color-panel);
+  border-color: var(--ds-theme-color-muted);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: var(--ds-theme-surface-radius);
+  transition-property: background-color, border-color;
+  transition-duration: 200ms;
+}
+
+[data-ds-part="message"]:hover {
+  background-color: var(--ds-theme-color-panel-alt);
+  border-color: var(--ds-theme-color-secondary);
+}
+
+[data-ds-part="composer"] {
+  background-color: var(--ds-theme-color-panel-alt);
+  border-color: var(--ds-theme-color-line);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: var(--ds-theme-surface-radius);
+  transition-property: border-color;
+  transition-duration: 180ms;
+}
+
+[data-ds-part="composer"]:focus-visible {
+  border-color: var(--ds-theme-color-accent);
+}

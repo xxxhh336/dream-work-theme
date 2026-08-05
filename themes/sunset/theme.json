@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "sunset",
+  "name": "长河落日圆",
+  "author": "Jensen",
+  "hero": "hero.jpg",
+  "colors": {
+    "accent": "#f6908c",
+    "secondary": "#fbb9b7",
+    "surface": "#2e2e2e",
+    "text": "#ffffff"
+  },
+  "copy": null,
+  "apps": {
+    "workbuddy": {
+      "compat": true
+    },
+    "codex": {
+      "compat": true
+    },
+    "trae-work": {
+      "compat": true
+    },
+    "qoder-work": {
+      "compat": true
+    },
+    "catpaw": {
+      "compat": true
+    },
+    "zcode": {
+      "compat": true
+    },
+    "qwen-office": {
+      "compat": true
+    }
+  }
+}

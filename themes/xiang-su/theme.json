@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "xiang-su",
+  "name": "像素未来",
+  "author": "alex zheng",
+  "hero": "hero.png",
+  "colors": {
+    "accent": "#645cf1",
+    "secondary": "#6861de",
+    "surface": "#29292b",
+    "text": "#efeff0"
+  },
+  "copy": null,
+  "apps": {
+    "workbuddy": {
+      "compat": true
+    },
+    "codex": {
+      "compat": true
+    },
+    "trae-work": {
+      "compat": true
+    },
+    "qoder-work": {
+      "compat": true
+    },
+    "catpaw": {
+      "compat": true
+    },
+    "zcode": {
+      "compat": true
+    },
+    "qwen-office": {
+      "compat": true
+    }
+  }
+}

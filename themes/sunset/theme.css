@@ -1,0 +1,95 @@
+[data-ds-part="root"] {
+  color: var(--ds-theme-color-text);
+}
+
+[data-ds-part="sidebar"] {
+  background-color: rgba(0, 0, 0, 0);
+  border-width: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+[data-ds-part="main"] {
+  background-color: rgba(0, 0, 0, 0);
+  color: var(--ds-theme-color-text);
+}
+
+[data-ds-part="header"] {
+  background-color: rgba(0, 0, 0, 0);
+  border-width: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+[data-ds-part="home"] {
+  background-color: rgba(0, 0, 0, 0);
+  color: var(--ds-theme-color-text);
+}
+
+[data-ds-part="home-hero"] {
+  background-color: rgba(0, 0, 0, 0);
+  border-width: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+[data-ds-part="project-list"] {
+  background-color: rgba(0, 0, 0, 0);
+  border-width: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+[data-ds-part="project-list"]:hover {
+  background-color: rgba(0, 0, 0, 0);
+  border-width: 0;
+  box-shadow: none;
+}
+
+[data-ds-part="thread"] {
+  background-color: rgba(0, 0, 0, 0);
+  color: var(--ds-theme-color-text);
+}
+
+[data-ds-part="message"] {
+  background-color: rgba(0, 0, 0, 0);
+  color: var(--ds-theme-color-text);
+  border-width: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+[data-ds-part="message"]:hover {
+  background-color: rgba(0, 0, 0, 0);
+  border-width: 0;
+}
+
+[data-ds-part="composer"] {
+  background-color: rgba(0, 0, 0, 0);
+  color: var(--ds-theme-color-text);
+  border-width: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+[data-ds-part="composer"]:focus-visible {
+  background-color: rgba(0, 0, 0, 0);
+  border-width: 0;
+  box-shadow: none;
+}
+
+[data-ds-part="composer-toolbar"] {
+  background-color: rgba(0, 0, 0, 0);
+  color: var(--ds-theme-color-muted);
+  border-width: 0;
+  box-shadow: none;
+}
+
+[data-ds-part="dialog"] {
+  background-color: var(--ds-theme-color-panel);
+  color: var(--ds-theme-color-text);
+  border-color: var(--ds-theme-color-line);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: var(--ds-theme-surface-radius);
+}

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "my-wei-123",
+  "name": "为为",
+  "author": "王123",
+  "hero": "hero.png",
+  "colors": {
+    "accent": "#1d6fda",
+    "secondary": "#e7bfad",
+    "surface": "#28292d",
+    "text": "#efeff1"
+  },
+  "copy": null,
+  "apps": {
+    "workbuddy": {
+      "compat": true
+    },
+    "codex": {
+      "compat": true
+    },
+    "trae-work": {
+      "compat": true
+    },
+    "qoder-work": {
+      "compat": true
+    },
+    "catpaw": {
+      "compat": true
+    },
+    "zcode": {
+      "compat": true
+    },
+    "qwen-office": {
+      "compat": true
+    }
+  }
+}

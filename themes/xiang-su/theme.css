@@ -1,0 +1,182 @@
+[data-ds-part="root"] {
+  font-family: system-ui, ui-sans-serif, sans-serif;
+  color: var(--ds-theme-color-text);
+  letter-spacing: 0;
+  transition-property: color, background-color, border-color, box-shadow;
+  transition-duration: 180ms;
+}
+
+[data-ds-part="sidebar"] {
+  background-color: rgba(3, 3, 7, 0.84);
+  color: var(--ds-theme-color-text);
+  border-color: rgba(87, 91, 255, 0.48);
+  border-right-width: 1px;
+  border-right-style: solid;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 0 28px rgba(75, 77, 255, 0.2);
+}
+
+[data-ds-part="main"] {
+  background-color: rgba(0, 0, 0, 0.34);
+  color: var(--ds-theme-color-text);
+  backdrop-filter: blur(4px);
+}
+
+[data-ds-part="header"] {
+  color: var(--ds-theme-color-text);
+  border-color: rgba(87, 91, 255, 0.28);
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+}
+
+[data-ds-part="home"] {
+  background-color: rgba(0, 0, 0, 0.18);
+  color: var(--ds-theme-color-text);
+}
+
+[data-ds-part="home-hero"] {
+  color: #f8f8ff;
+  font-family: system-ui, ui-sans-serif, sans-serif;
+  letter-spacing: 0.3px;
+  border-color: transparent;
+  border-width: 0;
+  border-style: none;
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+[data-ds-part="project-list"] {
+  background-color: rgba(6, 7, 18, 0.82);
+  color: var(--ds-theme-color-text);
+  border-color: rgba(87, 91, 255, 0.56);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 16px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 0 22px rgba(75, 77, 255, 0.16);
+}
+
+[data-ds-part="thread"] {
+  background-color: rgba(3, 3, 7, 0.48);
+  color: var(--ds-theme-color-text);
+  border-color: rgba(87, 91, 255, 0.26);
+  border-width: 1px;
+  border-style: solid;
+  backdrop-filter: blur(10px);
+}
+
+[data-ds-part="message"] {
+  background-color: rgba(8, 9, 22, 0.78);
+  color: var(--ds-theme-color-text);
+  border-color: rgba(248, 248, 255, 0.18);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+[data-ds-part="composer"] {
+  background-color: rgba(5, 6, 16, 0.9);
+  color: var(--ds-theme-color-text);
+  border-color: rgba(87, 91, 255, 0.62);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 16px;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 0 30px rgba(75, 77, 255, 0.28);
+}
+
+[data-ds-part="composer-toolbar"] {
+  background-color: rgba(3, 3, 8, 0.66);
+  color: var(--ds-theme-color-muted);
+  border-color: rgba(248, 248, 255, 0.18);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 14px;
+  gap: 8px;
+}
+
+[data-ds-part="dialog"] {
+  background-color: rgba(3, 3, 8, 0.94);
+  color: var(--ds-theme-color-text);
+  border-color: rgba(87, 91, 255, 0.68);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 16px;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 0 34px rgba(75, 77, 255, 0.3);
+}
+
+[data-ds-part="composer"]:focus-visible {
+  border-color: #8d8cff;
+  box-shadow: 0 0 34px rgba(141, 140, 255, 0.38);
+}
+
+[data-ds-part="message"]:hover {
+  background-color: rgba(12, 13, 29, 0.86);
+  border-color: rgba(141, 140, 255, 0.36);
+}
+
+[data-ds-part="project-list"]:hover {
+  border-color: rgba(141, 140, 255, 0.72);
+  box-shadow: 0 0 26px rgba(75, 77, 255, 0.24);
+}
+
+[data-ds-part="main"] {
+  background-color: transparent;
+  border-color: transparent;
+  border-width: 0;
+  border-style: none;
+  border-radius: 0;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+[data-ds-part="home"] {
+  background-color: transparent;
+  border-color: transparent;
+  border-width: 0;
+  border-style: none;
+  border-radius: 0;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+[data-ds-part="header"] {
+  background-color: transparent;
+  border-color: transparent;
+  border-width: 0;
+  border-style: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+[data-ds-part="thread"] {
+  background-color: transparent;
+  border-color: transparent;
+  border-width: 0;
+  border-style: none;
+  border-radius: 0;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+[data-ds-part="sidebar"] {
+  background-color: rgba(0, 0, 0, 0.62);
+  border-color: transparent;
+  border-width: 0;
+  border-style: none;
+  border-radius: 0;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+[data-ds-part="home-hero"] {
+  background-color: transparent;
+  border-color: transparent;
+  border-width: 0;
+  border-style: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}

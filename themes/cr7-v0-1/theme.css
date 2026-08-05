@@ -1,0 +1,110 @@
+[data-ds-part="root"] {
+  background-color: var(--ds-theme-color-background);
+  color: var(--ds-theme-color-text);
+  line-height: 1.6;
+}
+
+
+[data-ds-part="sidebar"] {
+  background-color: var(--ds-theme-color-panel);
+  color: var(--ds-theme-color-text);
+  border-right-color: var(--ds-theme-color-line);
+  border-right-width: 1px;
+  border-right-style: solid;
+}
+
+
+[data-ds-part="sidebar"]:hover {
+  background-color: var(--ds-theme-color-panel-alt);
+  color: var(--ds-theme-color-highlight);
+}
+
+
+[data-ds-part="header"] {
+  background-color: var(--ds-theme-color-panel);
+  color: var(--ds-theme-color-highlight);
+  border-bottom-color: var(--ds-theme-color-line);
+  border-bottom-width:1px;
+  border-bottom-style:solid;
+}
+
+
+[data-ds-part="main"] {
+  color:var(--ds-theme-color-text);
+}
+
+
+[data-ds-part="home"] {
+  color:var(--ds-theme-color-text);
+}
+
+
+[data-ds-part="home-hero"] {
+  color:var(--ds-theme-color-highlight);
+  font-weight:700;
+}
+
+
+[data-ds-part="project-list"] {
+  color:var(--ds-theme-color-text);
+}
+
+
+[data-ds-part="thread"] {
+  color:var(--ds-theme-color-text);
+}
+
+
+[data-ds-part="message"] {
+  background-color:var(--ds-theme-color-panel);
+  color:var(--ds-theme-color-text);
+  border-color:var(--ds-theme-color-line);
+  border-width:1px;
+  border-style:solid;
+  border-radius:var(--ds-theme-surface-radius);
+}
+
+
+[data-ds-part="message"]:hover {
+  background-color:var(--ds-theme-color-panel-alt);
+  border-color:var(--ds-theme-color-accent);
+}
+
+
+[data-ds-part="composer"] {
+  background-color:var(--ds-theme-color-panel-alt);
+  color:var(--ds-theme-color-text);
+  border-color:var(--ds-theme-color-accent);
+  border-width:1px;
+  border-style:solid;
+  border-radius:var(--ds-theme-surface-radius);
+}
+
+
+[data-ds-part="composer"]:focus-visible {
+  background-color:var(--ds-theme-color-panel);
+  border-color:var(--ds-theme-color-highlight);
+}
+
+
+[data-ds-part="composer-toolbar"] {
+  color:var(--ds-theme-color-muted);
+  border-top-color:var(--ds-theme-color-line);
+  border-top-width:1px;
+  border-top-style:solid;
+}
+
+
+[data-ds-part="composer-toolbar"]:hover {
+  color:var(--ds-theme-color-accent-alt);
+}
+
+
+[data-ds-part="dialog"] {
+  background-color:var(--ds-theme-color-panel-alt);
+  color:var(--ds-theme-color-text);
+  border-color:var(--ds-theme-color-accent);
+  border-width:1px;
+  border-style:solid;
+  border-radius:var(--ds-theme-surface-radius);
+}

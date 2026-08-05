@@ -1,0 +1,109 @@
+[data-ds-part="root"] {
+  background-color: var(--ds-theme-color-background);
+}
+
+[data-ds-part="sidebar"] {
+  background-color: var(--ds-theme-color-panel);
+  border-color: rgba(124, 255, 70, 0.28);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(18px) saturate(1.2);
+  transition-property: background-color, border-color, box-shadow;
+  transition-duration: 180ms;
+}
+
+[data-ds-part="sidebar"]:hover {
+  background-color: var(--ds-theme-color-panel-alt);
+  border-color: rgba(124, 255, 70, 0.5);
+}
+
+[data-ds-part="main"] {
+  background-color: transparent;
+}
+
+[data-ds-part="header"] {
+  background-color: var(--ds-theme-color-panel);
+  border-color: rgba(255, 255, 255, 0.08);
+  border-width: 1px;
+  border-style: solid;
+  backdrop-filter: blur(12px) saturate(1.4);
+  transition-property: background-color, border-color;
+  transition-duration: 180ms;
+}
+
+[data-ds-part="home"] {
+  background-color: transparent;
+}
+
+[data-ds-part="home-hero"] {
+  background-color: transparent;
+  border-radius: 16px;
+}
+
+[data-ds-part="project-list"] {
+  background-color: var(--ds-theme-color-panel);
+  border-color: rgba(255, 255, 255, 0.1);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(16px) saturate(1.1) brightness(0.95);
+}
+
+[data-ds-part="thread"] {
+  background-color: transparent;
+}
+
+[data-ds-part="message"] {
+  background-color: transparent;
+  border-color: rgba(255, 255, 255, 0.08);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2), 0 0 0 4px rgba(0, 0, 0, 0);
+  backdrop-filter: blur(10px) saturate(1.1);
+  transition-property: background-color, border-color, box-shadow;
+  transition-duration: 160ms;
+}
+
+[data-ds-part="message"]:hover {
+  background-color: transparent;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-ds-part="composer"] {
+  background-color: var(--ds-theme-color-panel);
+  border-color: rgba(255, 255, 255, 0.15);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 16px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(18px) saturate(1.3);
+  transition-property: background-color, border-color, box-shadow;
+  transition-duration: 180ms;
+}
+
+[data-ds-part="composer"]:focus-visible {
+  border-color: rgba(124, 255, 70, 0.6);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+}
+
+[data-ds-part="composer-toolbar"] {
+  background-color: var(--ds-theme-color-panel-alt);
+  border-color: rgba(255, 255, 255, 0.08);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 12px;
+}
+
+[data-ds-part="dialog"] {
+  background-color: var(--ds-theme-color-panel);
+  border-color: rgba(255, 255, 255, 0.1);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(20px) saturate(1.5) contrast(0.95);
+}

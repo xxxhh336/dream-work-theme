@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "10000vosts2-0",
+  "name": "十万伏特",
+  "author": "inwelove",
+  "hero": "hero.jpg",
+  "colors": {
+    "accent": "#e3128f",
+    "secondary": "#d63194",
+    "surface": "#2c282b",
+    "text": "#f1eff0"
+  },
+  "copy": null,
+  "apps": {
+    "workbuddy": {
+      "compat": true
+    },
+    "codex": {
+      "compat": true
+    },
+    "trae-work": {
+      "compat": true
+    },
+    "qoder-work": {
+      "compat": true
+    },
+    "catpaw": {
+      "compat": true
+    },
+    "zcode": {
+      "compat": true
+    },
+    "qwen-office": {
+      "compat": true
+    }
+  }
+}

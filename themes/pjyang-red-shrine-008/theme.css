@@ -1,0 +1,15 @@
+[data-ds-part="message"] {
+  opacity: 0.65;
+}
+
+[data-ds-part="composer"] {
+  opacity: 0.65;
+}
+
+[data-ds-part="project-list"] {
+  opacity: 0.65;
+}
+
+[data-ds-part="dialog"] {
+  opacity: 0.65;
+}
