@@ -26,7 +26,9 @@ Dream Work Theme is a desktop theme manager for supported Electron work applicat
 <details>
 <summary><b>Click to expand the screenshot for display</b></summary>
 
-![Dream Work Theme Interface preview](preview.png)
+![Dream Work Theme Interface preview](preview1.png)
+
+![Dream Work Theme Interface preview](preview2.png)
 
 </details>
 
@@ -283,6 +285,10 @@ dream-work-theme/
 - https://github.com/freestylefly/codex-themes
 - https://github.com/Fei-Away/Codex-Dream-Skin
 - https://github.com/shaozhengmao/workbuddy-dream-theme
+
+## AI Assistance
+
+GLM、Codex、DeepSeek
 
 ## License
 
