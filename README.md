@@ -30,6 +30,18 @@ Dream Work Theme 是面向 Electron Work 类桌面应用的主题管理器。它
 
 ![Dream Work Theme 界面预览](preview2.png)
 
+![Dream Work Theme 界面预览](preview3.png)
+
+![Dream Work Theme 界面预览](preview4.png)
+
+![Dream Work Theme 界面预览](preview5.png)
+
+![Dream Work Theme 界面预览](preview6.png)
+
+![Dream Work Theme 界面预览](preview7.png)
+
+![Dream Work Theme 界面预览](preview8.png)
+
 </details>
 
 ## 支持的应用

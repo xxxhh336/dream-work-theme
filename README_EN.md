@@ -30,6 +30,18 @@ Dream Work Theme is a desktop theme manager for supported Electron work applicat
 
 ![Dream Work Theme Interface preview](preview2.png)
 
+![Dream Work Theme Interface preview](preview3.png)
+
+![Dream Work Theme Interface preview](preview4.png)
+
+![Dream Work Theme Interface preview](preview5.png)
+
+![Dream Work Theme Interface preview](preview6.png)
+
+![Dream Work Theme Interface preview](preview7.png)
+
+![Dream Work Theme Interface preview](preview8.png)
+
 </details>
 
 ## Supported Applications
