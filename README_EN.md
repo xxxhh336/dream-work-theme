@@ -256,6 +256,8 @@ The repository includes `.github/workflows/release.yml`:
 - Push a `v*` tag: create the matching stable Release, for example `v0.1.0`.
 - Manual dispatch: leave the tag empty for `nightly`, or enter a tag for a stable Release.
 
+For a manual run, select `main` in **Use workflow from**, then enter a value such as `v0.1.2` in `release_tag`. The workflow builds main and temporarily sets the package version from that input. Do not select an old release tag in **Use workflow from**.
+
 Stable release example:
 
 ```bash

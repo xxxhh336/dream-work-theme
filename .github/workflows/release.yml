@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Release tag. Leave empty to update nightly.'
+        description: 'Stable release tag such as v0.1.2. Leave empty to update nightly. Select main under Use workflow from.'
         required: false
         type: string
 
@@ -27,6 +27,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'main' || github.ref }}
       - uses: actions/setup-node@v5
         with:
           node-version: 22
@@ -36,13 +38,10 @@ jobs:
           corepack enable
           corepack prepare pnpm@10.33.0 --activate
           pnpm --version
-      - name: Validate release version
-        shell: pwsh
-        run: |
-          $version = node -p "require('./package.json').version"
-          if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -ne "v$version") {
-            throw "Tag $env:GITHUB_REF_NAME does not match package version v$version."
-          }
+      - name: Prepare release version
+        env:
+          INPUT_RELEASE_TAG: ${{ inputs.release_tag }}
+        run: node scripts/prepare-release-version.cjs
       - run: pnpm install --frozen-lockfile
       - name: Build Windows x64
         env:
@@ -63,6 +62,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'main' || github.ref }}
       - uses: actions/setup-node@v5
         with:
           node-version: 22
@@ -72,15 +73,10 @@ jobs:
           corepack enable
           corepack prepare pnpm@10.33.0 --activate
           pnpm --version
-      - name: Validate release version
-        shell: bash
-        run: |
-          set -euo pipefail
-          version="$(node -p "require('./package.json').version")"
-          if [[ "$GITHUB_REF_TYPE" == "tag" && "$GITHUB_REF_NAME" != "v${version}" ]]; then
-            echo "Tag $GITHUB_REF_NAME does not match package version v${version}."
-            exit 1
-          fi
+      - name: Prepare release version
+        env:
+          INPUT_RELEASE_TAG: ${{ inputs.release_tag }}
+        run: node scripts/prepare-release-version.cjs
       - name: Install deb packaging tools
         run: sudo gem install --no-document fpm
       - run: pnpm install --frozen-lockfile
@@ -111,6 +107,8 @@ jobs:
       CSC_IDENTITY_AUTO_DISCOVERY: 'false'
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'main' || github.ref }}
       - uses: actions/setup-node@v5
         with:
           node-version: 22
@@ -120,17 +118,16 @@ jobs:
           corepack enable
           corepack prepare pnpm@10.33.0 --activate
           pnpm --version
-      - name: Validate native architecture and release version
+      - name: Validate native architecture
         shell: bash
         run: |
           set -euo pipefail
           expected_arch="${{ matrix.arch }}"
           test "$(node -p 'process.arch')" = "$expected_arch"
-          version="$(node -p "require('./package.json').version")"
-          if [[ "$GITHUB_REF_TYPE" == "tag" && "$GITHUB_REF_NAME" != "v${version}" ]]; then
-            echo "Tag $GITHUB_REF_NAME does not match package version v${version}."
-            exit 1
-          fi
+      - name: Prepare release version
+        env:
+          INPUT_RELEASE_TAG: ${{ inputs.release_tag }}
+        run: node scripts/prepare-release-version.cjs
       - run: pnpm install --frozen-lockfile
       - run: pnpm run build:mac:${{ matrix.arch }}
       - uses: actions/upload-artifact@v6
@@ -152,6 +149,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'main' || github.ref }}
       - name: Download platform artifacts
         env:
           GH_TOKEN: ${{ github.token }}
@@ -170,40 +169,46 @@ jobs:
           INPUT_RELEASE_TAG: ${{ inputs.release_tag }}
         shell: bash
         run: |
-          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            tag="${GITHUB_REF_NAME}"
-            prerelease=false
-          elif [[ -n "$INPUT_RELEASE_TAG" ]]; then
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" && -n "$INPUT_RELEASE_TAG" ]]; then
             tag="$INPUT_RELEASE_TAG"
+            prerelease=false
+          elif [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            tag="nightly"
+            prerelease=true
+          elif [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            tag="${GITHUB_REF_NAME}"
             prerelease=false
           else
             tag="nightly"
             prerelease=true
           fi
+          build_sha="$(git rev-parse HEAD)"
           echo "tag=${tag}" >> "$GITHUB_OUTPUT"
           echo "prerelease=${prerelease}" >> "$GITHUB_OUTPUT"
+          echo "build_sha=${build_sha}" >> "$GITHUB_OUTPUT"
       - name: Create or update nightly release
         if: steps.metadata.outputs.tag == 'nightly'
         env:
           GH_TOKEN: ${{ github.token }}
+          BUILD_SHA: ${{ steps.metadata.outputs.build_sha }}
         shell: bash
         run: |
           if gh release view nightly >/dev/null 2>&1; then
             gh api \
               --method PATCH \
               "repos/$GITHUB_REPOSITORY/git/refs/tags/nightly" \
-              -f sha="$GITHUB_SHA" \
+              -f sha="$BUILD_SHA" \
               -F force=true
             gh release edit nightly \
-              --target "$GITHUB_SHA" \
+              --target "$BUILD_SHA" \
               --title "Nightly Build" \
-              --notes "Automated build from commit $GITHUB_SHA." \
+              --notes "Automated build from commit $BUILD_SHA." \
               --prerelease
           else
             gh release create nightly \
-              --target "$GITHUB_SHA" \
+              --target "$BUILD_SHA" \
               --title "Nightly Build" \
-              --notes "Automated build from commit $GITHUB_SHA." \
+              --notes "Automated build from commit $BUILD_SHA." \
               --prerelease
           fi
       - name: Create stable release when missing
@@ -211,11 +216,27 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ steps.metadata.outputs.tag }}
+          BUILD_SHA: ${{ steps.metadata.outputs.build_sha }}
         shell: bash
         run: |
           if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+              if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+                gh api \
+                  --method PATCH \
+                  "repos/$GITHUB_REPOSITORY/git/refs/tags/$RELEASE_TAG" \
+                  -f sha="$BUILD_SHA" \
+                  -F force=true
+              else
+                gh api \
+                  --method POST \
+                  "repos/$GITHUB_REPOSITORY/git/refs" \
+                  -f ref="refs/tags/$RELEASE_TAG" \
+                  -f sha="$BUILD_SHA"
+              fi
+            fi
             gh release create "$RELEASE_TAG" \
-              --target "$GITHUB_SHA" \
+              --target "$BUILD_SHA" \
               --title "$RELEASE_TAG" \
               --generate-notes
           fi

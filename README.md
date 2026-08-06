@@ -256,6 +256,8 @@ Linux 打包会同时产生 `linux-unpacked`、约 700 MB 的中间 tar 和最�
 - 推送 `v*` 标签：创建对应正式 Release，例如 `v0.1.0`。
 - Actions 页面手动运行：不填写标签时更新 `nightly`；填写标签时创建或更新指定正式 Release。
 
+手动运行时，GitHub 页面顶部的 **Use workflow from** 必须选择 `main`，然后在 `release_tag` 中填写例如 `v0.1.2`。工作流会从 main 构建，并临时将构建版本设置为输入标签对应的版本；不要在 **Use workflow from** 中选择旧版本标签。
+
 正式发布示例：
 
 ```bash
