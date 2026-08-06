@@ -20,28 +20,38 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  ELECTRON_MIRROR: https://npmmirror.com/mirrors/electron/
-  ELECTRON_BUILDER_BINARIES_MIRROR: https://npmmirror.com/mirrors/electron-builder-binaries/
-
 jobs:
   build-windows:
     name: Windows x64
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.33.0
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: pnpm
+      - name: Set up pnpm
+        shell: pwsh
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.33.0 --activate
+          pnpm --version
+      - name: Validate release version
+        shell: pwsh
+        run: |
+          $version = node -p "require('./package.json').version"
+          if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -ne "v$version") {
+            throw "Tag $env:GITHUB_REF_NAME does not match package version v$version."
+          }
       - run: pnpm install --frozen-lockfile
-      - run: pnpm run build:win:x64
-      - uses: actions/upload-artifact@v4
+      - name: Build Windows x64
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: pnpm run build:win:x64
+      - uses: actions/upload-artifact@v6
         with:
           name: windows-x64
+          compression-level: 0
+          retention-days: 14
           path: |
             dist/Dream-Work-Theme-*-win-x64.exe
             dist/Dream-Work-Theme-*-win-x64.exe.blockmap
@@ -51,21 +61,34 @@ jobs:
     name: Linux x64
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.33.0
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: pnpm
+      - name: Set up pnpm
+        shell: bash
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.33.0 --activate
+          pnpm --version
+      - name: Validate release version
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./package.json').version")"
+          if [[ "$GITHUB_REF_TYPE" == "tag" && "$GITHUB_REF_NAME" != "v${version}" ]]; then
+            echo "Tag $GITHUB_REF_NAME does not match package version v${version}."
+            exit 1
+          fi
       - name: Install deb packaging tools
         run: sudo gem install --no-document fpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm run build:linux:x64
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: linux-x64
+          compression-level: 0
+          retention-days: 14
           path: |
             dist/Dream-Work-Theme-*-linux-x86_64.AppImage
             dist/Dream-Work-Theme-*-linux-amd64.deb
@@ -80,25 +103,40 @@ jobs:
         include:
           - runner: macos-15-intel
             arch: x64
-          - runner: macos-14
+          - runner: macos-15
             arch: arm64
     runs-on: ${{ matrix.runner }}
     env:
       CSC_IDENTITY_AUTO_DISCOVERY: 'false'
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.33.0
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: pnpm
+      - name: Set up pnpm
+        shell: bash
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.33.0 --activate
+          pnpm --version
+      - name: Validate native architecture and release version
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected_arch="${{ matrix.arch }}"
+          test "$(node -p 'process.arch')" = "$expected_arch"
+          version="$(node -p "require('./package.json').version")"
+          if [[ "$GITHUB_REF_TYPE" == "tag" && "$GITHUB_REF_NAME" != "v${version}" ]]; then
+            echo "Tag $GITHUB_REF_NAME does not match package version v${version}."
+            exit 1
+          fi
       - run: pnpm install --frozen-lockfile
       - run: pnpm run build:mac:${{ matrix.arch }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: macos-${{ matrix.arch }}
+          compression-level: 0
+          retention-days: 14
           path: |
             dist/Dream-Work-Theme-*-mac-${{ matrix.arch }}.dmg
             dist/Dream-Work-Theme-*-mac-${{ matrix.arch }}.zip
@@ -112,8 +150,8 @@ jobs:
       - build-macos
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v6
         with:
           path: release-assets
           merge-multiple: true
