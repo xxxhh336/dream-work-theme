@@ -7,19 +7,26 @@ const args = process.argv.slice(2);
 const archIndex = args.indexOf('--arch');
 const arch = archIndex >= 0 ? args[archIndex + 1] : process.arch;
 const appImageOnly = args.includes('--appimage-only');
+const debOnly = args.includes('--deb-only');
 
 if (!['x64', 'arm64'].includes(arch)) {
   throw new Error(`Unsupported Linux architecture: ${arch}`);
 }
 
-if (appImageOnly && process.platform !== 'linux') {
-  throw new Error('AppImage packaging must run on a Linux host or Linux CI runner.');
+if (appImageOnly && debOnly) {
+  throw new Error('Choose either --appimage-only or --deb-only, not both.');
+}
+
+if ((appImageOnly || debOnly) && process.platform !== 'linux') {
+  throw new Error(`${appImageOnly ? 'AppImage' : 'deb'} packaging must run on a Linux host or Linux CI runner.`);
 }
 
 const targets = appImageOnly
   ? ['AppImage']
+  : debOnly
+    ? ['deb']
   : process.platform === 'linux'
-    ? ['AppImage', 'tar.gz']
+    ? ['AppImage', 'deb', 'tar.gz']
     : ['tar.gz'];
 
 if (process.platform !== 'linux' && !appImageOnly) {

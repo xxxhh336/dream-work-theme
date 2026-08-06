@@ -230,9 +230,14 @@ pnpm run build:mac:x64
 pnpm run build:linux
 pnpm run build:linux:x64
 pnpm run build:linux:arm64
+pnpm run build:linux:deb
+pnpm run build:linux:deb:x64
+pnpm run build:linux:deb:arm64
 ```
 
-在 Linux 上生成 `AppImage + tar.gz`；在 Windows 或 macOS 上只生成 `tar.gz`。AppImage 工具链需要创建 Linux 符号链接，因此必须在 Linux 主机运行。
+在 Linux 上生成 `AppImage + deb + tar.gz`；在 Windows 或 macOS 上只生成 `tar.gz`。AppImage 和 deb 必须在 Linux 主机运行。
+
+本地构建 deb 需要 `fpm`。Ubuntu/Debian 可先安装 Ruby，再执行 `sudo gem install --no-document fpm`。GitHub Actions 工作流会自动安装。
 
 仅构建 AppImage：
 
@@ -242,6 +247,23 @@ pnpm run build:linux:appimage:arm64
 ```
 
 Linux 打包会同时产生 `linux-unpacked`、约 700 MB 的中间 tar 和最终压缩包，需要较大临时空间。`scripts/package-linux.cjs` 会清理失败残留、要求至少 2 GB 空闲空间，并在 Windows 上自动选择空闲空间最多的磁盘作为临时目录。可通过 `DREAM_WORK_BUILD_TEMP` 手动指定。
+
+## GitHub Actions 自动发布
+
+仓库包含 `.github/workflows/release.yml`：
+
+- 推送到 `main`：构建 Windows x64、Linux x64、macOS x64/arm64，并更新 `nightly` 预发布。
+- 推送 `v*` 标签：创建对应正式 Release，例如 `v0.1.0`。
+- Actions 页面手动运行：不填写标签时更新 `nightly`；填写标签时创建或更新指定正式 Release。
+
+正式发布示例：
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+Release 包含 NSIS、AppImage、deb、Linux tar.gz、macOS DMG 和 macOS ZIP。GitHub 仓库需要允许工作流拥有 `contents: write` 权限；工作流已声明该权限，公开仓库通常无需额外 Secret。
 
 ## 项目结构
 

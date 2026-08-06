@@ -230,9 +230,14 @@ Outputs are DMG and ZIP files named with the target architecture. macOS packages
 pnpm run build:linux
 pnpm run build:linux:x64
 pnpm run build:linux:arm64
+pnpm run build:linux:deb
+pnpm run build:linux:deb:x64
+pnpm run build:linux:deb:arm64
 ```
 
-On Linux, these commands build `AppImage` and `tar.gz`. On Windows or macOS, they build only `tar.gz`; AppImage creation requires a Linux host because its toolchain creates Linux symbolic links.
+On Linux, these commands build `AppImage`, `deb`, and `tar.gz`. On Windows or macOS, they build only `tar.gz`; AppImage and deb packaging require a Linux host.
+
+Local deb packaging requires `fpm`. On Ubuntu/Debian, install Ruby and run `sudo gem install --no-document fpm`. The GitHub Actions workflow installs it automatically.
 
 Linux-only AppImage commands:
 
@@ -242,6 +247,23 @@ pnpm run build:linux:appimage:arm64
 ```
 
 Linux packaging requires substantial temporary space because it keeps `linux-unpacked`, an intermediate tar archive, and the final compressed archive. `scripts/package-linux.cjs` removes stale failed output, requires at least 2 GB free, and on Windows automatically selects the filesystem drive with the most free space for temporary files. Override it with `DREAM_WORK_BUILD_TEMP` when needed.
+
+## GitHub Actions Releases
+
+The repository includes `.github/workflows/release.yml`:
+
+- Push to `main`: build Windows x64, Linux x64, and macOS x64/arm64, then replace the `nightly` prerelease.
+- Push a `v*` tag: create the matching stable Release, for example `v0.1.0`.
+- Manual dispatch: leave the tag empty for `nightly`, or enter a tag for a stable Release.
+
+Stable release example:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+Release assets include NSIS, AppImage, deb, Linux tar.gz, macOS DMG, and macOS ZIP. The workflow requests `contents: write`; public repositories normally do not need an additional token Secret.
 
 ## Project Structure
 

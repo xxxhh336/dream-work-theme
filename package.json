@@ -4,6 +4,14 @@
   "private": true,
   "author": "Dream Work Theme",
   "description": "适用于 Electron Work 应用的跨平台主题切换器（如 WorkBuddy、TRAE Work 等）。Cross-platform theme switcher for Electron work apps (WorkBuddy, TRAE Work, etc.).",
+  "homepage": "https://github.com/xxxhh336/dream-work-theme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xxxhh336/dream-work-theme.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xxxhh336/dream-work-theme/issues"
+  },
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite --port 5173",
@@ -17,6 +25,9 @@
     "build:linux": "pnpm build:app && node scripts/package-linux.cjs",
     "build:linux:arm64": "pnpm build:app && node scripts/package-linux.cjs --arch arm64",
     "build:linux:x64": "pnpm build:app && node scripts/package-linux.cjs --arch x64",
+    "build:linux:deb": "pnpm build:app && node scripts/package-linux.cjs --arch x64 --deb-only",
+    "build:linux:deb:arm64": "pnpm build:app && node scripts/package-linux.cjs --arch arm64 --deb-only",
+    "build:linux:deb:x64": "pnpm build:app && node scripts/package-linux.cjs --arch x64 --deb-only",
     "build:linux:appimage:arm64": "pnpm build:app && node scripts/package-linux.cjs --arch arm64 --appimage-only",
     "build:linux:appimage:x64": "pnpm build:app && node scripts/package-linux.cjs --arch x64 --appimage-only",
     "build:app": "tsc && vite build && node scripts/copy-electron-dist.js",
@@ -79,11 +90,12 @@
     "linux": {
       "target": [
         "AppImage",
+        "deb",
         "tar.gz"
       ],
       "artifactName": "Dream-Work-Theme-${version}-linux-${arch}.${ext}",
       "category": "Utility",
-      "maintainer": "Dream Work Theme"
+      "maintainer": "Dream Work Theme <xxxhh336@users.noreply.github.com>"
     }
   },
   "pnpm": {
