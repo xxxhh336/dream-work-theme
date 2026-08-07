@@ -42,6 +42,8 @@ Dream Work Theme 是面向 Electron Work 类桌面应用的主题管理器。它
 
 ![Dream Work Theme 界面预览](preview8.png)
 
+![Dream Work Theme 界面预览](preview9.png)
+
 </details>
 
 ## 支持的应用
@@ -54,9 +56,10 @@ Dream Work Theme 是面向 Electron Work 类桌面应用的主题管理器。它
 - CatPaw
 - ZCode
 - 千问办公（`QwenWorkCN`）
+- HanaAgent
 - Codex / ChatGPT Desktop
 
-部分应用使用固定调试端口；QoderWork 和千问办公通过 `DevToolsActivePort` 获取运行时动态端口。
+部分应用使用固定调试端口；QoderWork 和千问办公通过 `DevToolsActivePort` 获取运行时动态端口。HanaAgent 使用固定端口 `9346`，Dream Work Theme 会等待其 renderer 稳定后再注入主题。
 
 ## 应用功能
 
@@ -129,6 +132,26 @@ Vite 的 CJS API deprecation 当前只是警告，不会导致构建失败。
 
 应用主题时，Dream Work Theme 可能会重启目标应用，以便加入 CDP 调试端口。主题只存在于运行时渲染进程，不会写入目标应用安装包。
 
+右下角菜单最多显示 4 个快捷预置主题，不再固定绑定某几个主题 ID。Dream Work Theme 会按当前应用中的切换次数排序，次数相同时优先最近使用的主题；没有使用记录时从当前应用实际兼容的主题中补足，因此已删除或不兼容的主题不会显示空白入口。
+
+- 使用频率按应用分别统计，同一主题在 HanaAgent、Codex 等应用中可以有不同排序。
+- 从 Dream Work Theme 点击「应用主题」或从目标应用右下角菜单切换预置主题都会计数。
+- 菜单初始化、HanaAgent renderer 重建、watcher 自动补注入、自定义图片切换和「还原主题」不会计数。
+- 当前从 Dream Work Theme 应用的主题会进入本次菜单；后续菜单根据累计次数和最近使用时间重新排序。
+- 使用记录保存在用户数据目录的 `theme-usage.json`。删除或停止兼容某个主题后，记录可以保留，但该主题不会出现在对应应用菜单中。
+
+### HanaAgent 说明
+
+- HanaAgent 启动期间可能重建 renderer。Dream Work Theme 会等待主 renderer 稳定，并在运行期间对新建或丢失主题的 renderer 自动补充注入。
+- HanaAgent 使用稳定性优先的轻量菜单。右下角按钮的 `◉` 标识、尺寸和基础样式与其他应用一致，菜单打开后点击应用内其他空白位置会自动关闭。
+- HanaAgent 的快捷预置主题与其他应用使用相同的高频排序规则，但使用次数按 HanaAgent 独立统计。
+- HanaAgent 的自定义图片使用独立轻量实现，不直接复用曾导致崩溃的完整通用菜单脚本。支持 PNG、JPEG、WebP，导入后缩放压缩为 WebP、自动提取主题配色，最多保存 5 张，并支持切换和删除。
+- 自定义图片由 Dream Work Theme 主进程集中保存到用户数据目录的 `custom-themes.json`，不依赖各目标应用相互隔离的 `localStorage`。在任一受支持应用上传或删除后，其他应用下次打开菜单或应用主题时会读取同一图片库。
+- 当前选中的 HanaAgent 自定义图片会记录在本地，页面刷新或 renderer 重建后会自动恢复；从 Dream Work Theme 主动应用预置主题会覆盖该选择。
+- 在 HanaAgent 右下角浮动菜单点击「还原主题」后，会记录用户的还原选择；守护器、页面刷新和 renderer 重建都不会再次自动显示主题。
+- 需要重新启用主题时，可在 HanaAgent 浮动菜单选择一个主题，或回到 Dream Work Theme 点击「应用主题」。主动应用会清除还原状态。
+- 从 Dream Work Theme 执行「还原主题」同样会停止 HanaAgent 的主题守护和持久注入，并保持原生主题。
+
 ## 主题存储
 
 主题按以下优先级加载：
@@ -181,7 +204,8 @@ themes/<theme-id>/
     "qoder-work": { "compat": true },
     "catpaw": { "compat": true },
     "zcode": { "compat": true },
-    "qwen-office": { "compat": true }
+    "qwen-office": { "compat": true },
+    "hana-agent": { "compat": true }
   }
 }
 ```
@@ -312,6 +336,7 @@ dream-work-theme/
 
 - 主题注入存在于目标应用运行中的渲染进程，退出应用后运行时注入自然消失。
 - 目标应用升级可能改变 DOM，需要更新注入选择器。
+- HanaAgent 会在启动和部分界面切换期间重建 renderer，因此首次应用主题可能比其他应用多等待数秒。
 - 未签名的 Windows/macOS 发布包可能触发系统安全提示。
 - Windows 当前关闭了 EXE 元数据编辑，因此可能显示 Electron 默认图标和文件信息。
 - 大量内置主题会显著增加安装包大小、构建时间和磁盘需求。

@@ -388,6 +388,15 @@ export class CdpSession {
     return response?.result?.value;
   }
 
+  async addScriptToEvaluateOnNewDocument(source: string): Promise<string | undefined> {
+    const response = await this.send('Page.addScriptToEvaluateOnNewDocument', { source });
+    return response?.identifier;
+  }
+
+  async removeScriptToEvaluateOnNewDocument(identifier: string): Promise<void> {
+    await this.send('Page.removeScriptToEvaluateOnNewDocument', { identifier });
+  }
+
   close() {
     if (this.closeStarted) return;
     this.terminate(new Error('CDP session closed by client'));

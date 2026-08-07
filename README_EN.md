@@ -42,6 +42,8 @@ Dream Work Theme is a desktop theme manager for supported Electron work applicat
 
 ![Dream Work Theme Interface preview](preview8.png)
 
+![Dream Work Theme Interface preview](preview9.png)
+
 </details>
 
 ## Supported Applications
@@ -54,9 +56,10 @@ The current application registry supports:
 - CatPaw
 - ZCode
 - Qwen Office (`QwenWorkCN`)
+- HanaAgent
 - Codex / ChatGPT Desktop
 
-Support is implemented in `electron/manager/app-registry.ts` and `electron/manager/injector.ts`. Some applications use fixed debugging ports, while QoderWork and Qwen Office read their live port from `DevToolsActivePort`.
+Support is implemented in `electron/manager/app-registry.ts` and `electron/manager/injector.ts`. Some applications use fixed debugging ports, while QoderWork and Qwen Office read their live port from `DevToolsActivePort`. HanaAgent uses fixed port `9346`; Dream Work Theme waits for its renderer to stabilize before injecting a theme.
 
 ## Applications Features
 
@@ -129,6 +132,26 @@ The Vite CJS API deprecation message is currently a warning and does not fail th
 
 Applying a theme may restart the target application so it can be launched with a debugging port. Runtime injection is not a modification of the target application's packaged files.
 
+The floating menu shows up to four quick preset themes and is no longer tied to fixed theme IDs. Dream Work Theme ranks themes by switch count for the current application, using most recent use as the tie-breaker. With no history, it fills the menu from themes that are actually compatible with the current application, so removed or incompatible themes do not leave empty entries.
+
+- Usage is tracked separately for each application, so the same theme can have different rankings in HanaAgent, Codex, and other applications.
+- Applying a theme from Dream Work Theme or selecting a preset from the target application's floating menu increments its usage.
+- Menu initialization, HanaAgent renderer recreation, watcher reinjection, custom-image selection, and **Restore Theme** do not increment usage.
+- A theme explicitly applied from Dream Work Theme is included in the current menu; later menus are ordered from accumulated count and recency.
+- Usage is stored in `theme-usage.json` under the user-data directory. A removed or newly incompatible theme may retain history but is excluded from that application's menu.
+
+### HanaAgent Notes
+
+- HanaAgent may recreate its renderer during startup. Dream Work Theme waits for the main renderer to stabilize and automatically restores injection when an active renderer is replaced or loses its injected theme.
+- HanaAgent uses a stability-first lightweight menu. Its `◉` button marker, dimensions, and base styling match the other applications, and clicking elsewhere in the application closes an open menu.
+- HanaAgent uses the same frequent-preset ranking as the other applications, while maintaining its own application-specific usage counts.
+- HanaAgent custom images use an independent lightweight implementation rather than the complete generic menu script that previously caused crashes. PNG, JPEG, and WebP images are resized, compressed to WebP, assigned an automatically extracted palette, and can be switched or deleted, with up to five images stored.
+- Dream Work Theme now stores custom images centrally in `custom-themes.json` under its user-data directory instead of relying on the isolated `localStorage` of each target application. Uploading or deleting an image in any supported application updates the library read by the other applications when their menu opens or a theme is applied.
+- The selected HanaAgent custom image is persisted and restored after page reloads or renderer recreation. Explicitly applying a preset from Dream Work Theme overrides the custom selection.
+- Clicking **Restore Theme** in HanaAgent's floating menu records the user's choice. The watcher, page reloads, and renderer recreation will not automatically display the theme again.
+- To enable a theme again, select one from HanaAgent's floating menu or click **Apply Theme** in Dream Work Theme. An explicit apply clears the restored state.
+- Using **Restore Theme** from Dream Work Theme also stops HanaAgent's theme watcher and persistent injection, leaving the native theme active.
+
 ## Theme Storage
 
 Themes are loaded from two locations, in priority order:
@@ -181,7 +204,8 @@ Example manifest:
     "qoder-work": { "compat": true },
     "catpaw": { "compat": true },
     "zcode": { "compat": true },
-    "qwen-office": { "compat": true }
+    "qwen-office": { "compat": true },
+    "hana-agent": { "compat": true }
   }
 }
 ```
@@ -312,6 +336,7 @@ dream-work-theme/
 
 - Injection exists in the target application's running renderer; closing the application removes the runtime injection.
 - Application updates can change DOM selectors and require injector adjustments.
+- HanaAgent recreates its renderer during startup and some view transitions, so the initial theme application can take several seconds longer than for other applications.
 - Unsigned Windows and macOS packages can trigger operating-system security warnings.
 - Windows currently uses Electron's default executable icon and metadata because executable editing is disabled in the local build configuration.
 - Large bundled theme collections produce large installers and require significant build and installation disk space.

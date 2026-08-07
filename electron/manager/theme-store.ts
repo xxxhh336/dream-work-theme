@@ -34,7 +34,7 @@ export function listThemes(appId?: string): ThemeEntry[] {
         if (seenIds.has(manifest.id)) continue;
         const heroPath = path.join(themeDir, manifest.hero);
         if (!fs.existsSync(heroPath) || !fs.statSync(heroPath).isFile()) throw new Error(`theme hero is missing: ${manifest.hero}`);
-        if (appId && manifest.apps[appId]?.compat !== true) continue;
+        if (appId && manifest.apps[appId]?.compat !== true && appId !== 'hana-agent') continue;
 
         seenIds.add(manifest.id);
         entries.push({

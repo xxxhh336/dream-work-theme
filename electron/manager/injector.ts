@@ -3,9 +3,13 @@ import * as path from 'path';
 import { CdpSession, fetchRendererTargets, waitForRendererTargets, isAnyPageTarget } from './cdp';
 import { getThemeHeroDataUrl, listThemes } from './theme-store';
 import { getAppDefinition } from './app-registry';
+import { ensureSharedCustomThemeService, listSharedCustomThemes, mergeSharedCustomThemes, recordThemeUsage, selectQuickThemeIds } from './custom-theme-store';
 
 const STYLE_ID = 'dream-work-style';
 const MENU_ID = 'dream-work-menu';
+const hanaAgentPersistentScripts = new Map<string, string>();
+const hanaAgentWatchers = new Map<number, NodeJS.Timeout>();
+const hanaAgentGenerations = new Map<number, number>();
 const WORKBUDDY_CSS_PLACEHOLDERS = {
   id: 'wb-dream-sentinel-id',
   hero: 'data:image/png;base64,WBDREAMHEROSENTINEL',
@@ -91,8 +95,9 @@ export async function applyTheme(
     if (!allThemes.some(theme => theme.id === themeId)) {
       return { success: false, applied: 0, error: `Theme ${themeId} is not compatible with ${appId}` };
     }
-    const quickThemeIds = new Set(['lisa', 'mbappe', 'nagasawa-masami', 'ronaldo', themeId]);
-    const menuThemeEntries = allThemes.filter(theme => quickThemeIds.has(theme.id));
+    const quickThemeIds = selectQuickThemeIds(appId, allThemes.map(theme => theme.id), themeId);
+    const themesById = new Map(allThemes.map(theme => [theme.id, theme]));
+    const menuThemeEntries = quickThemeIds.map(id => themesById.get(id)).filter(Boolean) as typeof allThemes;
     const themeEntries = new Map<string, { name: string; css: string; surface: string }>();
     for (const theme of menuThemeEntries) {
       themeEntries.set(theme.id, {
@@ -110,12 +115,35 @@ export async function applyTheme(
       surface: entry.surface,
       accent: allThemes.find(theme => theme.id === id)?.manifest.colors.accent ?? '#24c9d7',
     }));
+    let sharedCustomThemes = listSharedCustomThemes();
+    if (sharedCustomThemes.length === 0) {
+      const storageKey = appId === 'workbuddy' ? 'dreamCustomThemes' : 'dreamCodexCustomThemes';
+      for (const target of targets) {
+        const session = new CdpSession(target.webSocketDebuggerUrl);
+        try {
+          await session.open();
+          const serialized = await session.evaluate(`(() => localStorage.getItem(${JSON.stringify(storageKey)}) || '[]')()`);
+          const localThemes = JSON.parse(serialized);
+          if (Array.isArray(localThemes) && localThemes.length > 0) {
+            sharedCustomThemes = mergeSharedCustomThemes(localThemes);
+            break;
+          }
+        } catch (error) {
+          console.warn(`[injector] Failed to import existing custom themes from ${appId} target ${target.id}:`, error);
+        } finally {
+          session.close();
+        }
+      }
+    }
+    const sharedCustomThemeService = await ensureSharedCustomThemeService();
     const menuScript = appId === 'workbuddy'
       ? buildWorkBuddyMenuScript({
           styleId: STYLE_ID,
           menuId: MENU_ID,
           currentThemeId: themeId,
           themes: menuThemes,
+          sharedCustomThemes,
+          sharedCustomThemeService,
           cssTemplate: buildWorkBuddyCss({
             id: WORKBUDDY_CSS_PLACEHOLDERS.id,
             colors: {
@@ -132,12 +160,37 @@ export async function applyTheme(
             text: WORKBUDDY_CSS_PLACEHOLDERS.text,
           }),
         })
+      : appId === 'hana-agent'
+        ? buildHanaAgentMenuScript({
+            styleId: STYLE_ID,
+            menuId: MENU_ID,
+            currentThemeId: themeId,
+            themes: menuThemes,
+            sharedCustomThemes,
+            sharedCustomThemeService,
+            cssTemplate: buildHanaAgentCss({
+              id: WORKBUDDY_CSS_PLACEHOLDERS.id,
+              colors: {
+                accent: WORKBUDDY_CSS_PLACEHOLDERS.accent,
+                secondary: WORKBUDDY_CSS_PLACEHOLDERS.secondary,
+                surface: WORKBUDDY_CSS_PLACEHOLDERS.surface,
+                text: WORKBUDDY_CSS_PLACEHOLDERS.text,
+              },
+            }, WORKBUDDY_CSS_PLACEHOLDERS.hero, {
+              accent: WORKBUDDY_CSS_PLACEHOLDERS.accent,
+              secondary: WORKBUDDY_CSS_PLACEHOLDERS.secondary,
+              surface: WORKBUDDY_CSS_PLACEHOLDERS.surface,
+              text: WORKBUDDY_CSS_PLACEHOLDERS.text,
+            }),
+          })
       : buildMenuScript({
           styleId: STYLE_ID,
           menuId: MENU_ID,
           currentThemeId: themeId,
           appId,
           themes: menuThemes,
+          sharedCustomThemes,
+          sharedCustomThemeService,
           cssTemplate: buildAppCss(appId, {
             id: WORKBUDDY_CSS_PLACEHOLDERS.id,
             colors: {
@@ -187,9 +240,48 @@ export async function applyTheme(
           }
         }
         
-        const evalResult = await session.evaluate(menuScript);
+        if (appId === 'hana-agent') {
+          const persistentScript = `(() => {
+            const inject = () => ${menuScript};
+            if (document.readyState === 'loading') {
+              window.addEventListener('DOMContentLoaded', inject, { once: true });
+            } else {
+              inject();
+            }
+          })()`;
+          const previousIdentifier = hanaAgentPersistentScripts.get(target.id);
+          if (previousIdentifier) {
+            await session.removeScriptToEvaluateOnNewDocument(previousIdentifier).catch(() => {});
+          }
+          const identifier = await session.addScriptToEvaluateOnNewDocument(persistentScript);
+          if (identifier) hanaAgentPersistentScripts.set(target.id, identifier);
+        }
+        const evalResult = await session.evaluate(appId === 'hana-agent'
+          ? `(() => { window.__dreamWorkForceApply = true; return ${menuScript}; })()`
+          : menuScript);
         console.log(`[injector] Injection result for target ${target.id}:`, evalResult);
-        
+
+        if (appId === 'hana-agent') {
+          let ready = false;
+          for (let attempt = 0; attempt < 20; attempt++) {
+            ready = await session.evaluate(`(() => {
+              const host = document.getElementById('${MENU_ID}-host');
+              return Boolean(
+                document.getElementById('${STYLE_ID}') &&
+                host?.shadowRoot?.getElementById('${MENU_ID}') &&
+                document.documentElement.dataset.dreamTheme
+              );
+            })()`).catch(() => false);
+            if (ready) break;
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+          if (!ready) {
+            console.warn(`[injector] HanaAgent injection did not become ready for target ${target.id}`);
+            session.close();
+            continue;
+          }
+        }
+
         // For Codex, ensure home-surface classes are present so the base CSS
         // (background-image / chrome / suggestion cards) can match the DOM.
         if (appId === 'codex') {
@@ -289,6 +381,74 @@ export async function applyTheme(
       }
     }
 
+    if (appId === 'hana-agent' && applied > 0) {
+      const injectedTargetIds = new Set(targets.map(target => target.id));
+      const deadline = Date.now() + 20000;
+      let stableTargetId = '';
+      let stableSince = 0;
+
+      while (Date.now() < deadline) {
+        let currentTargets: any[] = [];
+        try {
+          currentTargets = await fetchRendererTargets(port, '.hanako/artifacts/renderer/', { timeoutMs: 2000, quiet: true });
+        } catch {}
+        const current = currentTargets[0];
+        if (!current) {
+          stableTargetId = '';
+          stableSince = 0;
+          await new Promise(resolve => setTimeout(resolve, 250));
+          continue;
+        }
+
+        if (!injectedTargetIds.has(current.id)) {
+          console.log(`[injector] HanaAgent created renderer target ${current.id}; injecting theme`);
+          const session = new CdpSession(current.webSocketDebuggerUrl);
+          try {
+            await session.open();
+            const persistentScript = `(() => {
+              const inject = () => ${menuScript};
+              if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', inject, { once: true });
+              else inject();
+            })()`;
+            const identifier = await session.addScriptToEvaluateOnNewDocument(persistentScript);
+            if (identifier) hanaAgentPersistentScripts.set(current.id, identifier);
+            await session.evaluate(`(() => { window.__dreamWorkForceApply = true; return ${menuScript}; })()`);
+            injectedTargetIds.add(current.id);
+          } finally {
+            session.close();
+          }
+        }
+
+        const session = new CdpSession(current.webSocketDebuggerUrl);
+        let ready = false;
+        try {
+          await session.open();
+          ready = await session.evaluate(`(() => {
+            const host = document.getElementById('${MENU_ID}-host');
+            return Boolean(document.getElementById('${STYLE_ID}') && host?.shadowRoot?.getElementById('${MENU_ID}') && document.documentElement.dataset.dreamTheme);
+          })()`);
+        } catch {} finally {
+          session.close();
+        }
+
+        if (ready) {
+          if (stableTargetId !== current.id) {
+            stableTargetId = current.id;
+            stableSince = Date.now();
+          } else if (Date.now() - stableSince >= 2000) {
+            startHanaAgentWatcher(port, menuScript, injectedTargetIds);
+            recordThemeUsage(appId, themeId);
+            return { success: true, applied: 1 };
+          }
+        } else {
+          stableTargetId = '';
+          stableSince = 0;
+        }
+        await new Promise(resolve => setTimeout(resolve, 250));
+      }
+      return { success: false, applied: 0, error: 'HanaAgent renderer did not stabilize with the injected theme' };
+    }
+    if (applied > 0) recordThemeUsage(appId, themeId);
     return { success: applied > 0, applied };
   } catch (error: any) {
     console.error('[injector] Injection failed:', error);
@@ -297,6 +457,90 @@ export async function applyTheme(
 }
 
 export async function getStatus(
+  appId: string,
+  port: number,
+  options: { rendererUrlHint?: string } = {}
+): Promise<{ installed: boolean; menu: boolean; themeId?: string; targets?: number }> {
+  return readStatusOnce(appId, port, options);
+}
+
+function startHanaAgentWatcher(port: number, menuScript: string, injectedTargetIds: Set<string>): void {
+  const existing = hanaAgentWatchers.get(port);
+  if (existing) clearInterval(existing);
+  const generation = (hanaAgentGenerations.get(port) ?? 0) + 1;
+  hanaAgentGenerations.set(port, generation);
+  let busy = false;
+  const timer = setInterval(async () => {
+    if (busy) return;
+    if (hanaAgentGenerations.get(port) !== generation) return;
+    busy = true;
+    try {
+      const targets = await fetchRendererTargets(port, '.hanako/artifacts/renderer/', { timeoutMs: 1000, quiet: true });
+      const target = targets[0];
+      if (!target) return;
+      if (hanaAgentGenerations.get(port) !== generation) return;
+      const session = new CdpSession(target.webSocketDebuggerUrl);
+      try {
+        await session.open();
+        const state = await session.evaluate(`(() => {
+          const host = document.getElementById('${MENU_ID}-host');
+          if (document.documentElement.dataset.dreamThemeRestored === 'true') return 'restored';
+          return document.getElementById('${STYLE_ID}') && host?.shadowRoot?.getElementById('${MENU_ID}') && document.documentElement.dataset.dreamTheme
+            ? 'ready'
+            : 'missing';
+        })()`).catch(() => 'missing');
+        if (state === 'ready' || state === 'restored') {
+          injectedTargetIds.add(target.id);
+          return;
+        }
+        console.log(`[injector] HanaAgent watcher restoring theme on renderer target ${target.id}`);
+        if (hanaAgentGenerations.get(port) !== generation) return;
+        const persistentScript = `(() => {
+          const inject = () => ${menuScript};
+          if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', inject, { once: true });
+          else inject();
+        })()`;
+        if (!injectedTargetIds.has(target.id)) {
+          const identifier = await session.addScriptToEvaluateOnNewDocument(persistentScript);
+          if (identifier) hanaAgentPersistentScripts.set(target.id, identifier);
+        }
+        await session.evaluate(menuScript);
+        if (hanaAgentGenerations.get(port) !== generation) {
+          await session.evaluate(`(() => {
+            document.getElementById('${STYLE_ID}')?.remove();
+            document.getElementById('${MENU_ID}-host')?.remove();
+            clearInterval(window.__dreamWorkMenuGuard);
+            delete window.__dreamWorkMenuGuard;
+            delete document.documentElement.dataset.dreamTheme;
+          })()`).catch(() => {});
+          return;
+        }
+        injectedTargetIds.add(target.id);
+      } finally {
+        session.close();
+      }
+    } catch {
+      if (!(await isPortReachable(port))) {
+        clearInterval(timer);
+        hanaAgentWatchers.delete(port);
+      }
+    } finally {
+      busy = false;
+    }
+  }, 1000);
+  hanaAgentWatchers.set(port, timer);
+}
+
+async function isPortReachable(port: number): Promise<boolean> {
+  try {
+    const response = await fetch(`http://127.0.0.1:${port}/json/version`, { signal: AbortSignal.timeout(500) });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function readStatusOnce(
   appId: string,
   port: number,
   options: { rendererUrlHint?: string } = {}
@@ -338,18 +582,20 @@ export async function getStatus(
         const isWorkBuddy = await session.evaluate(`(() => document.body?.dataset.applicationName === 'workbuddy')()`);
         if (!isWorkBuddy) continue;
       }
-      states.push(await session.evaluate(`(() => {
+      const serializedState = await session.evaluate(`(() => {
         const style = document.getElementById('${STYLE_ID}');
         const menuHost = document.getElementById('${MENU_ID}-host');
         const menu = document.getElementById('${MENU_ID}') || menuHost?.shadowRoot?.getElementById('${MENU_ID}');
-        return {
+        return JSON.stringify({
           installed: Boolean(style),
           menu: Boolean(menu),
           themeId: document.documentElement.dataset.dreamTheme ?? undefined
-        };
-      })`) as any);
-    } catch {
-      // A target can disappear while WorkBuddy reloads; inspect the remaining targets.
+        });
+      })()`);
+      const state = JSON.parse(serializedState);
+      states.push(state);
+    } catch (error) {
+      console.warn(`[injector] Status check failed for ${appId} target ${target.id}:`, error);
     } finally {
       session.close();
     }
@@ -369,6 +615,12 @@ export async function removeSkin(
   port: number,
   options: { rendererUrlHint?: string } = {}
 ): Promise<{ success: boolean }> {
+  if (appId === 'hana-agent') {
+    hanaAgentGenerations.set(port, (hanaAgentGenerations.get(port) ?? 0) + 1);
+    const watcher = hanaAgentWatchers.get(port);
+    if (watcher) clearInterval(watcher);
+    hanaAgentWatchers.delete(port);
+  }
   const rendererUrlHint = options.rendererUrlHint ?? getAppDefinition(appId)?.rendererHints[0] ?? 'renderer/index.html';
   let targets: any[] = [];
 
@@ -394,24 +646,34 @@ export async function removeSkin(
     return { success: false };
   }
 
-  const target = targets[0];
-  const session = new CdpSession(target.webSocketDebuggerUrl);
-  await session.open();
-  await session.evaluate(`(() => {
-    document.getElementById('${STYLE_ID}')?.remove();
-    document.getElementById('${MENU_ID}')?.remove();
-    document.getElementById('${MENU_ID}-host')?.remove();
-    clearInterval(window.__dreamWorkMenuGuard);
-    delete window.__dreamWorkMenuGuard;
-    if (window.__dreamWorkOutsideClick) {
-      document.removeEventListener('pointerdown', window.__dreamWorkOutsideClick, true);
-      delete window.__dreamWorkOutsideClick;
+  for (const target of appId === 'hana-agent' ? targets : targets.slice(0, 1)) {
+    const session = new CdpSession(target.webSocketDebuggerUrl);
+    await session.open();
+    if (appId === 'hana-agent') {
+      const identifier = hanaAgentPersistentScripts.get(target.id);
+      if (identifier) {
+        await session.removeScriptToEvaluateOnNewDocument(identifier).catch(() => {});
+        hanaAgentPersistentScripts.delete(target.id);
+      }
     }
-    delete document.documentElement.dataset.dreamTheme;
-    delete document.documentElement.dataset.dreamShell;
-    return true;
-  })`);
-  session.close();
+    await session.evaluate(`(() => {
+      ${appId === 'hana-agent' ? `try { localStorage.setItem('dream-work-theme:hana-agent:restored', '1'); } catch {}
+      document.documentElement.dataset.dreamThemeRestored = 'true';` : ''}
+      document.getElementById('${STYLE_ID}')?.remove();
+      document.getElementById('${MENU_ID}')?.remove();
+      document.getElementById('${MENU_ID}-host')?.remove();
+      clearInterval(window.__dreamWorkMenuGuard);
+      delete window.__dreamWorkMenuGuard;
+      if (window.__dreamWorkOutsideClick) {
+        document.removeEventListener('pointerdown', window.__dreamWorkOutsideClick, true);
+        delete window.__dreamWorkOutsideClick;
+      }
+      delete document.documentElement.dataset.dreamTheme;
+      delete document.documentElement.dataset.dreamShell;
+      return true;
+    })`);
+    session.close();
+  }
 
   return { success: true };
 };
@@ -433,6 +695,9 @@ function buildAppCss(appId: string, manifest: any, heroDataUrl: string): string 
     return buildVsCodeWorkCss(manifest, heroDataUrl, colors);
   }
   if (definition?.kind === 'generic-work') {
+    if (appId === 'hana-agent') {
+      return buildHanaAgentCss(manifest, heroDataUrl, colors);
+    }
     return buildGenericWorkCss(appId, manifest, heroDataUrl, colors);
   }
 
@@ -686,6 +951,396 @@ html, body, #root { background: ${colors.surface} !important; color: ${colors.te
 :is(${main}) :where(p, span, li, h1, h2, h3, h4, strong, em) { color: ${colors.text} !important; }
 button[class*="bg-primary"], button[class*="bg-accent"] { background-color: ${colors.accent} !important; color: #fff !important; }
 ${appSpecificCss}`;
+}
+
+function buildHanaAgentCss(manifest: any, heroDataUrl: string, colors: any): string {
+  return `/* DREAM_THEME:${manifest.id} */
+:root {
+  --dream-work-accent: ${colors.accent};
+  --dream-work-secondary: ${colors.secondary};
+  --dream-work-surface: ${colors.surface};
+  --dream-work-text: ${colors.text};
+}
+html, body, #react-root, .app-shell {
+  background-color: ${colors.surface} !important;
+  background-image: url(${JSON.stringify(heroDataUrl)}) !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+  color: ${colors.text} !important;
+}
+.titlebar, .app, .main-content, .chat-area, .input-area {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+#sidebar, #jianSidebar .universal-card, #previewBody {
+  background: color-mix(in srgb, ${colors.surface} 66%, transparent) !important;
+  border-color: color-mix(in srgb, ${colors.accent} 24%, transparent) !important;
+  color: ${colors.text} !important;
+  backdrop-filter: blur(20px) saturate(110%) !important;
+}
+.titlebar {
+  background: color-mix(in srgb, ${colors.surface} 62%, transparent) !important;
+  color: ${colors.text} !important;
+  backdrop-filter: blur(18px) saturate(108%) !important;
+}
+[class*="input-wrapper"] {
+  background: color-mix(in srgb, ${colors.surface} 78%, transparent) !important;
+  border-color: color-mix(in srgb, ${colors.accent} 30%, transparent) !important;
+  color: ${colors.text} !important;
+  box-shadow: 0 16px 42px color-mix(in srgb, ${colors.surface} 28%, transparent) !important;
+  backdrop-filter: blur(18px) saturate(108%) !important;
+}
+[class*="input-wrapper"] :where(textarea, input, [contenteditable="true"]) {
+  background: transparent !important;
+  color: ${colors.text} !important;
+  caret-color: ${colors.accent} !important;
+}
+#sidebar :where(button, [role="button"]):hover,
+#jianSidebar :where(button, [role="button"]):hover {
+  background-color: color-mix(in srgb, ${colors.accent} 16%, transparent) !important;
+}
+:where(button[class*="primary"], button[type="submit"]) {
+  background-color: ${colors.accent} !important;
+  color: #ffffff !important;
+}`;
+}
+
+function buildHanaAgentMenuScript(options: {
+  styleId: string;
+  menuId: string;
+  currentThemeId: string;
+  themes: Array<{ id: string; name: string; css: string; surface: string; accent?: string }>;
+  cssTemplate: string;
+  sharedCustomThemes: any[];
+  sharedCustomThemeService: { endpoint: string; usageEndpoint: string; token: string };
+}): string {
+  return `(() => {
+    const themes = ${JSON.stringify(options.themes)};
+    const cssTemplate = ${JSON.stringify(options.cssTemplate)};
+    const sentinels = ${JSON.stringify(WORKBUDDY_CSS_PLACEHOLDERS)};
+    const restoreKey = 'dream-work-theme:hana-agent:restored';
+    const customStorageKey = 'dreamCodexCustomThemes';
+    const selectedKey = 'dream-work-theme:hana-agent:selected-theme';
+    const sharedCustomThemes = ${JSON.stringify(options.sharedCustomThemes)};
+    const sharedCustomThemeService = ${JSON.stringify(options.sharedCustomThemeService)};
+    const recordPresetUsage = (themeId) => fetch(sharedCustomThemeService.usageEndpoint, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + sharedCustomThemeService.token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ appId: 'hana-agent', themeId }),
+    }).catch(() => {});
+    const forceApply = Boolean(window.__dreamWorkForceApply);
+    delete window.__dreamWorkForceApply;
+    let restored = false;
+    try { restored = localStorage.getItem(restoreKey) === '1'; } catch {}
+    if (forceApply) {
+      restored = false;
+      try { localStorage.removeItem(restoreKey); } catch {}
+    }
+    if (restored) document.documentElement.dataset.dreamThemeRestored = 'true';
+    else delete document.documentElement.dataset.dreamThemeRestored;
+    let active = !restored;
+    let style = document.getElementById('${options.styleId}');
+    if (!style) {
+      style = document.createElement('style');
+      style.id = '${options.styleId}';
+    }
+    const attachStyle = () => {
+      if (active && !style.isConnected) document.head.appendChild(style);
+    };
+    let rows = [];
+    const applyTheme = (themeId) => {
+      const theme = themes.find(item => item.id === themeId);
+      if (!theme) return;
+      active = true;
+      try { localStorage.removeItem(restoreKey); } catch {}
+      delete document.documentElement.dataset.dreamThemeRestored;
+      style.textContent = theme.css;
+      attachStyle();
+      document.documentElement.dataset.dreamTheme = themeId;
+      try { localStorage.setItem(selectedKey, themeId); } catch {}
+      rows.forEach((row) => {
+        const selected = row.dataset.themeId === themeId;
+        row.style.background = selected ? 'rgba(36,201,215,.16)' : 'transparent';
+        row.style.fontWeight = selected ? '700' : '500';
+      });
+    };
+    const restoreNative = () => {
+      active = false;
+      try { localStorage.setItem(restoreKey, '1'); } catch {}
+      document.documentElement.dataset.dreamThemeRestored = 'true';
+      clearInterval(window.__dreamWorkMenuGuard);
+      style.remove();
+      delete document.documentElement.dataset.dreamTheme;
+      try { localStorage.removeItem(selectedKey); } catch {}
+      panel.style.display = 'none';
+    };
+    if (window.__dreamWorkOutsideClick) {
+      document.removeEventListener('pointerdown', window.__dreamWorkOutsideClick, true);
+      delete window.__dreamWorkOutsideClick;
+    }
+    document.getElementById('${options.menuId}-host')?.remove();
+    clearInterval(window.__dreamWorkMenuGuard);
+    const host = document.createElement('div');
+    host.id = '${options.menuId}-host';
+    host.style.cssText = 'all:initial!important;position:fixed!important;right:16px!important;bottom:16px!important;z-index:2147483647!important;display:block!important;pointer-events:auto!important;';
+    const shadow = host.attachShadow({ mode: 'open' });
+    const root = document.createElement('div');
+    root.id = '${options.menuId}';
+    root.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;font:500 13px/1.4 system-ui;color:#17344f;';
+    const panel = document.createElement('div');
+    panel.style.cssText = 'display:none;margin-bottom:8px;min-width:190px;padding:6px;border-radius:12px;border:1px solid rgba(0,0,0,.1);background:rgba(255,255,255,.96);box-shadow:0 10px 30px rgba(0,0,0,.18);';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.title = 'Dream Work Theme';
+    button.textContent = '◉';
+    button.style.cssText = 'width:36px;height:36px;border-radius:10px;border:1px solid rgba(0,0,0,.12);background:rgba(255,255,255,.92);box-shadow:0 3px 12px rgba(0,0,0,.2);cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;color:#17344f;font-size:18px;line-height:1;';
+    const addRow = (label, themeId, accent, onClick, before) => {
+      const row = document.createElement('div');
+      row.dataset.themeId = themeId || '';
+      row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;cursor:pointer;color:#17344f;';
+      const dot = document.createElement('span');
+      dot.style.cssText = 'width:10px;height:10px;border-radius:50%;flex:none;background:' + accent + ';';
+      const text = document.createElement('span');
+      text.textContent = label;
+      row.append(dot, text);
+      row.addEventListener('click', onClick);
+      if (before) panel.insertBefore(row, before); else panel.appendChild(row);
+      rows.push(row);
+      return row;
+    };
+    themes.forEach((theme) => addRow(theme.name, theme.id, theme.accent || '#24c9d7', () => {
+      applyTheme(theme.id);
+      void recordPresetUsage(theme.id);
+      panel.style.display = 'none';
+    }));
+    const materializeCustomCss = (dataUrl, colors, customId) => cssTemplate
+      .split(sentinels.hero).join(dataUrl)
+      .split(sentinels.accent).join(colors.accent)
+      .split(sentinels.secondary).join(colors.secondary)
+      .split(sentinels.surface).join(colors.surface)
+      .split(sentinels.text).join(colors.text)
+      .split(sentinels.id).join(customId);
+    const hex = (r, g, b) => '#' + [r, g, b].map((value) => Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, '0')).join('');
+    const mix = (a, b, amount) => a.map((value, index) => value + (b[index] - value) * amount);
+    const extractPalette = (canvas) => {
+      const context = canvas.getContext('2d');
+      const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+      const buckets = new Map();
+      let luminanceSum = 0;
+      let count = 0;
+      for (let index = 0; index < pixels.length; index += 4) {
+        const r = pixels[index], g = pixels[index + 1], b = pixels[index + 2];
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        luminanceSum += luminance;
+        count += 1;
+        const saturation = max === 0 ? 0 : (max - min) / max;
+        if (saturation < 0.18 || luminance < 24 || luminance > 245) continue;
+        const delta = max - min || 1;
+        const hue = max === r ? (g - b) / delta + (g < b ? 6 : 0) : max === g ? (b - r) / delta + 2 : (r - g) / delta + 4;
+        const bucket = (Math.round(hue) % 6) * 2 + (saturation > 0.55 ? 1 : 0);
+        const entry = buckets.get(bucket) || { weight: 0, r: 0, g: 0, b: 0, hue: hue * 60 };
+        const weight = saturation * saturation;
+        entry.weight += weight;
+        entry.r += r * weight;
+        entry.g += g * weight;
+        entry.b += b * weight;
+        buckets.set(bucket, entry);
+      }
+      const ranked = [...buckets.values()].sort((left, right) => right.weight - left.weight)
+        .map((entry) => ({ rgb: [entry.r / entry.weight, entry.g / entry.weight, entry.b / entry.weight], hue: entry.hue }));
+      const accent = ranked[0]?.rgb || [36, 201, 215];
+      const secondary = ranked.find((entry) => Math.abs(entry.hue - (ranked[0]?.hue || 0)) > 50)?.rgb || mix(accent, [255, 255, 255], 0.35);
+      const light = (count ? luminanceSum / count : 128) > 128;
+      return {
+        accent: hex(...accent),
+        secondary: hex(...secondary),
+        surface: hex(...(light ? mix(accent, [252, 252, 255], 0.92) : mix(accent, [12, 12, 18], 0.86))),
+        text: hex(...(light ? mix(accent, [16, 24, 40], 0.82) : mix(accent, [244, 246, 252], 0.85))),
+      };
+    };
+    const MAX_CUSTOM = 5;
+    const customRows = new Map();
+    const removeCustomRow = (slotId) => {
+      const row = customRows.get(slotId);
+      if (!row) return;
+      const rowIndex = rows.indexOf(row);
+      if (rowIndex >= 0) rows.splice(rowIndex, 1);
+      row.remove();
+      customRows.delete(slotId);
+    };
+    const loadCustoms = () => {
+      try {
+        const saved = JSON.parse(localStorage.getItem(customStorageKey) || '[]');
+        return Array.isArray(saved) ? saved.filter((item) => item?.id && item?.dataUrl && item?.colors).slice(0, MAX_CUSTOM) : [];
+      } catch { return []; }
+    };
+    const writeLocalCustoms = (saved) => {
+      try { localStorage.setItem(customStorageKey, JSON.stringify(saved.slice(0, MAX_CUSTOM))); }
+      catch (error) { console.warn('Dream Theme: HanaAgent 自定义图片本地缓存失败', error); }
+    };
+    const syncSharedCustoms = (saved) => fetch(sharedCustomThemeService.endpoint, {
+      method: 'PUT',
+      headers: { Authorization: 'Bearer ' + sharedCustomThemeService.token, 'Content-Type': 'application/json' },
+      body: JSON.stringify(saved.slice(0, MAX_CUSTOM)),
+    }).then((response) => {
+      if (!response.ok) throw new Error('共享图片同步失败: HTTP ' + response.status);
+      return response.json();
+    });
+    const saveCustoms = (saved) => {
+      const limited = saved.slice(0, MAX_CUSTOM);
+      writeLocalCustoms(limited);
+      return syncSharedCustoms(limited).catch((error) => {
+        console.warn('Dream Theme: HanaAgent 共享图片同步失败', error);
+        return limited;
+      });
+    };
+    const localCustomThemes = loadCustoms();
+    const initialCustomThemes = sharedCustomThemes.length > 0 ? sharedCustomThemes : localCustomThemes;
+    writeLocalCustoms(initialCustomThemes);
+    if (sharedCustomThemes.length === 0 && localCustomThemes.length > 0) void saveCustoms(localCustomThemes);
+    const paintRows = (themeId) => rows.forEach((row) => {
+      const selected = row.dataset.themeId === themeId;
+      row.style.background = selected ? 'rgba(36,201,215,.16)' : 'transparent';
+      row.style.fontWeight = selected ? '700' : '500';
+    });
+    const applyCustomTheme = (slot) => {
+      active = true;
+      try {
+        localStorage.removeItem(restoreKey);
+        localStorage.setItem(selectedKey, slot.id);
+      } catch {}
+      delete document.documentElement.dataset.dreamThemeRestored;
+      style.textContent = materializeCustomCss(slot.dataUrl, slot.colors, slot.id);
+      attachStyle();
+      document.documentElement.dataset.dreamTheme = slot.id;
+      paintRows(slot.id);
+    };
+    let uploadRow;
+    const deleteCustom = async (slotId) => {
+      const saved = loadCustoms();
+      const index = saved.findIndex((item) => item.id === slotId);
+      if (index < 0) return;
+      if (document.documentElement.dataset.dreamTheme === slotId) restoreNative();
+      saved.splice(index, 1);
+      await saveCustoms(saved);
+      removeCustomRow(slotId);
+    };
+    const ensureCustomRow = (slot) => {
+      const existing = customRows.get(slot.id);
+      if (existing) return;
+      const item = addRow(slot.name, slot.id, slot.colors.accent, () => {
+        const current = loadCustoms().find((saved) => saved.id === slot.id) || slot;
+        applyCustomTheme(current);
+        panel.style.display = 'none';
+      }, uploadRow);
+      const text = item.querySelector('span + span');
+      text.style.cssText = 'flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+      const remove = document.createElement('span');
+      remove.textContent = '×';
+      remove.title = '删除这张自定义图片';
+      remove.style.cssText = 'flex:none;width:18px;height:18px;line-height:18px;text-align:center;border-radius:50%;color:rgba(0,0,0,.45);font-size:14px;';
+      remove.addEventListener('click', (event) => { event.stopPropagation(); deleteCustom(slot.id); });
+      item.appendChild(remove);
+      customRows.set(slot.id, item);
+    };
+    const importFromDataUrl = (dataUrl, name) => new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = async () => {
+        const scale = Math.min(1, 1280 / image.width);
+        const full = document.createElement('canvas');
+        full.width = Math.max(1, Math.round(image.width * scale));
+        full.height = Math.max(1, Math.round(image.height * scale));
+        full.getContext('2d').drawImage(image, 0, 0, full.width, full.height);
+        const sample = document.createElement('canvas');
+        sample.width = 48;
+        sample.height = Math.max(1, Math.round(48 * image.height / image.width));
+        sample.getContext('2d').drawImage(image, 0, 0, sample.width, sample.height);
+        const colors = extractPalette(sample);
+        const compressed = full.toDataURL('image/webp', 0.78);
+        const saved = loadCustoms();
+        let slot;
+        if (saved.length < MAX_CUSTOM) {
+          slot = { id: 'custom-hana-' + Date.now().toString(36), name: name || '我的图片', dataUrl: compressed, colors };
+          saved.push(slot);
+        } else {
+          const activeId = document.documentElement.dataset.dreamTheme;
+          let index = saved.findIndex((item) => item.id === activeId);
+          if (index < 0) index = 0;
+          slot = { id: saved[index].id, name: name || '我的图片', dataUrl: compressed, colors };
+          saved[index] = slot;
+          removeCustomRow(slot.id);
+        }
+        await saveCustoms(saved);
+        ensureCustomRow(slot);
+        applyCustomTheme(slot);
+        resolve(colors);
+      };
+      image.onerror = () => reject(new Error('图片读取失败'));
+      image.src = dataUrl;
+    });
+    const picker = document.createElement('input');
+    picker.type = 'file';
+    picker.accept = 'image/png,image/jpeg,image/webp';
+    picker.style.display = 'none';
+    picker.addEventListener('change', () => {
+      const file = picker.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => importFromDataUrl(reader.result, file.name.replace(/\\.[a-z0-9]+$/i, '')).catch((error) => console.warn('Dream Theme: HanaAgent 图片导入失败', error));
+      reader.readAsDataURL(file);
+      picker.value = '';
+      panel.style.display = 'none';
+    });
+    uploadRow = addRow('＋ 自定义图片', '', 'rgba(36,201,215,.9)', () => picker.click());
+    uploadRow.style.borderTop = '1px solid rgba(0,0,0,.08)';
+    addRow('还原主题', '', 'rgba(0,0,0,.24)', restoreNative);
+    initialCustomThemes.forEach(ensureCustomRow);
+    fetch(sharedCustomThemeService.endpoint, {
+      headers: { Authorization: 'Bearer ' + sharedCustomThemeService.token },
+    }).then((response) => response.ok ? response.json() : Promise.reject(new Error('HTTP ' + response.status)))
+      .then((latest) => {
+        if (!Array.isArray(latest)) return;
+        for (const slotId of [...customRows.keys()]) {
+          if (!latest.some((item) => item.id === slotId)) removeCustomRow(slotId);
+        }
+        writeLocalCustoms(latest);
+        latest.forEach(ensureCustomRow);
+        let selectedId = '';
+        try { selectedId = localStorage.getItem(selectedKey) || ''; } catch {}
+        const selected = latest.find((item) => item.id === selectedId);
+        if (selected) applyCustomTheme(selected);
+      }).catch((error) => console.warn('Dream Theme: HanaAgent 共享图片读取失败', error));
+    button.addEventListener('click', () => {
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    });
+    const closeOnOutsideClick = (event) => {
+      if (panel.style.display === 'none') return;
+      const path = event.composedPath?.() || [];
+      if (!path.includes(host)) panel.style.display = 'none';
+    };
+    window.__dreamWorkOutsideClick = closeOnOutsideClick;
+    document.addEventListener('pointerdown', closeOnOutsideClick, true);
+    root.append(panel, button, picker);
+    shadow.appendChild(root);
+    document.documentElement.appendChild(host);
+    window.__dreamWorkMenuGuard = setInterval(() => {
+      attachStyle();
+      if (!host.isConnected) document.documentElement.appendChild(host);
+    }, 250);
+    if (!restored || forceApply) {
+      let selectedId = '${options.currentThemeId}';
+      if (!forceApply) {
+        try { selectedId = localStorage.getItem(selectedKey) || selectedId; } catch {}
+      }
+      const selectedCustom = loadCustoms().find((item) => item.id === selectedId);
+      if (selectedCustom) applyCustomTheme(selectedCustom);
+      else applyTheme('${options.currentThemeId}');
+    }
+    return true;
+  })()`;
 }
 
 function buildQoderWorkShellCss(colors: any): string {
@@ -1147,6 +1802,8 @@ function buildWorkBuddyMenuScript(options: {
   currentThemeId: string;
   themes: Array<{ id: string; name: string; css: string; surface: string; accent: string }>;
   cssTemplate: string;
+  sharedCustomThemes: any[];
+  sharedCustomThemeService: { endpoint: string; usageEndpoint: string; token: string };
 }): string {
   const payload = JSON.stringify({
     styleId: options.styleId,
@@ -1157,10 +1814,17 @@ function buildWorkBuddyMenuScript(options: {
     sentinels: WORKBUDDY_CSS_PLACEHOLDERS,
     storageKey: 'dreamCustomThemes',
     selectedKey: 'wb-dream-selected',
+    sharedCustomThemes: options.sharedCustomThemes,
+    sharedCustomThemeService: options.sharedCustomThemeService,
   });
 
   return `(() => {
   const data = ${payload};
+  const recordPresetUsage = (themeId) => fetch(data.sharedCustomThemeService.usageEndpoint, {
+    method: "POST",
+    headers: { Authorization: "Bearer " + data.sharedCustomThemeService.token, "Content-Type": "application/json" },
+    body: JSON.stringify({ appId: "workbuddy", themeId }),
+  }).catch(() => {});
   const themeBlobUrls = new Map();
   const materializeCss = (css, cacheKey) => {
     const dataUrl = css.match(new RegExp('data:image/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+'))?.[0];
@@ -1192,8 +1856,8 @@ function buildWorkBuddyMenuScript(options: {
   const button = document.createElement("button");
   button.type = "button";
   button.title = "WorkBuddy 主题切换";
-  button.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#17344f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 1 0-18c4.97 0 9 3.58 9 8 0 2.5-2 4-4 4h-2a2 2 0 0 1 0-4h.5a3.5 3.5 0 1 0-3.5 3.5c.5 0 .9.5.9 1.5V21z"/><circle cx="7.5" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16.5" cy="10.5" r="1"/></svg>';
-  button.style.cssText = "margin-left:auto;width:36px;height:36px;border-radius:10px;border:1px solid rgba(0,0,0,.12);background:rgba(255,255,255,.92);backdrop-filter:blur(10px);box-shadow:0 3px 12px rgba(0,0,0,.2);cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;";
+  button.textContent = "◉";
+  button.style.cssText = "margin-left:auto;width:36px;height:36px;border-radius:10px;border:1px solid rgba(0,0,0,.12);background:rgba(255,255,255,.92);backdrop-filter:blur(10px);box-shadow:0 3px 12px rgba(0,0,0,.2);cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;color:#17344f;font-size:18px;line-height:1;";
 
   const panel = document.createElement("div");
   panel.style.cssText = "display:none;margin-bottom:8px;min-width:200px;padding:6px;border-radius:12px;border:1px solid rgba(0,0,0,.1);background:rgba(255,255,255,.94);backdrop-filter:blur(16px);box-shadow:0 10px 30px rgba(0,0,0,.18);color:#17344f;";
@@ -1258,7 +1922,7 @@ function buildWorkBuddyMenuScript(options: {
   };
 
   for (const theme of data.themes) {
-    const item = row(theme.name, theme.accent, () => { setTheme(theme.id); panel.style.display = "none"; });
+    const item = row(theme.name, theme.accent, () => { setTheme(theme.id); void recordPresetUsage(theme.id); panel.style.display = "none"; });
     item.dataset.dreamThemeId = theme.id;
     rows.set(theme.id, item);
   }
@@ -1319,10 +1983,30 @@ function buildWorkBuddyMenuScript(options: {
       return Array.isArray(themes) ? themes.filter((theme) => theme && theme.dataUrl && theme.colors).slice(0, MAX_CUSTOM) : [];
     } catch { return []; }
   };
-  const saveCustoms = (themes) => {
+  const writeLocalCustoms = (themes) => {
     try { localStorage.setItem(data.storageKey, JSON.stringify(themes.slice(0, MAX_CUSTOM))); }
-    catch (error) { console.warn("Dream Theme: 自定义主题图片过多或过大，本次生效但重启后可能不保留", error); }
+    catch (error) { console.warn("Dream Theme: 自定义图片本地缓存失败", error); }
   };
+  const syncSharedCustoms = (themes) => fetch(data.sharedCustomThemeService.endpoint, {
+    method: "PUT",
+    headers: { Authorization: "Bearer " + data.sharedCustomThemeService.token, "Content-Type": "application/json" },
+    body: JSON.stringify(themes.slice(0, MAX_CUSTOM)),
+  }).then((response) => {
+    if (!response.ok) throw new Error("共享图片同步失败: HTTP " + response.status);
+    return response.json();
+  });
+  const saveCustoms = (themes) => {
+    const limited = themes.slice(0, MAX_CUSTOM);
+    writeLocalCustoms(limited);
+    return syncSharedCustoms(limited).catch((error) => {
+      console.warn("Dream Theme: 共享图片同步失败", error);
+      return limited;
+    });
+  };
+  const localCustomThemes = loadCustoms();
+  const initialCustomThemes = data.sharedCustomThemes.length > 0 ? data.sharedCustomThemes : localCustomThemes;
+  writeLocalCustoms(initialCustomThemes);
+  if (data.sharedCustomThemes.length === 0 && localCustomThemes.length > 0) void saveCustoms(localCustomThemes);
   const applyCustomTheme = (slot) => {
     style.textContent = materializeCss(buildCustomCss(slot.dataUrl, slot.colors, slot.id), slot.id);
     document.documentElement.dataset.dreamTheme = slot.id;
@@ -1331,13 +2015,13 @@ function buildWorkBuddyMenuScript(options: {
     ensureCustomRow(slot);
     paint(slot.id);
   };
-  const deleteCustom = (slotId) => {
+  const deleteCustom = async (slotId) => {
     const themes = loadCustoms();
     const index = themes.findIndex((theme) => theme.id === slotId);
     if (index < 0) return;
     if (document.documentElement.dataset.dreamTheme === slotId) clearTheme();
     themes.splice(index, 1);
-    saveCustoms(themes);
+    await saveCustoms(themes);
     customRows.get(slotId)?.remove();
     customRows.delete(slotId);
     rows.delete(slotId);
@@ -1371,7 +2055,7 @@ function buildWorkBuddyMenuScript(options: {
 
   const importFromDataUrl = (dataUrl, name) => new Promise((resolve, reject) => {
     const image = new Image();
-    image.onload = () => {
+    image.onload = async () => {
       const scale = Math.min(1, 1600 / image.width);
       const full = document.createElement("canvas");
       full.width = Math.round(image.width * scale);
@@ -1395,7 +2079,7 @@ function buildWorkBuddyMenuScript(options: {
         slot = { id: themes[index].id, name: name || "我的图片", dataUrl: compressed, colors };
         themes[index] = slot;
       }
-      saveCustoms(themes);
+      await saveCustoms(themes);
       applyCustomTheme(slot);
       resolve(colors);
     };
@@ -1421,7 +2105,22 @@ function buildWorkBuddyMenuScript(options: {
   uploadRow.style.borderTop = "1px solid rgba(0,0,0,.08)";
   const native = row("还原主题", "rgba(0,0,0,.24)", () => { clearTheme(); panel.style.display = "none"; });
   rows.set(null, native);
-  loadCustoms().forEach(ensureCustomRow);
+  initialCustomThemes.forEach(ensureCustomRow);
+  fetch(data.sharedCustomThemeService.endpoint, {
+    headers: { Authorization: "Bearer " + data.sharedCustomThemeService.token },
+  }).then((response) => response.ok ? response.json() : Promise.reject(new Error("HTTP " + response.status)))
+    .then((latest) => {
+      if (!Array.isArray(latest)) return;
+      for (const slotId of [...customRows.keys()]) {
+        if (!latest.some((item) => item.id === slotId)) {
+          customRows.get(slotId)?.remove();
+          customRows.delete(slotId);
+          rows.delete(slotId);
+        }
+      }
+      writeLocalCustoms(latest);
+      latest.forEach(ensureCustomRow);
+    }).catch((error) => console.warn("Dream Theme: 共享图片读取失败", error));
 
   button.addEventListener("click", () => { panel.style.display = panel.style.display === "none" ? "block" : "none"; });
   const closeOnOutsideClick = (event) => {
@@ -1450,6 +2149,8 @@ export function buildMenuScript(options: {
   themes: Array<{ id: string; name: string; css: string; surface: string; accent?: string }>;
   appId: string;
   cssTemplate?: string;
+  sharedCustomThemes: any[];
+  sharedCustomThemeService: { endpoint: string; usageEndpoint: string; token: string };
 }): string {
   const themesJson = JSON.stringify(options.themes);
   const cssTemplate = JSON.stringify(options.cssTemplate ?? '');
@@ -1461,6 +2162,13 @@ export function buildMenuScript(options: {
   const currentThemeId = '${options.currentThemeId}';
   const appId = '${appId}';
   const customStorageKey = 'dreamCodexCustomThemes';
+  const sharedCustomThemes = ${JSON.stringify(options.sharedCustomThemes)};
+  const sharedCustomThemeService = ${JSON.stringify(options.sharedCustomThemeService)};
+  const recordPresetUsage = (themeId) => fetch(sharedCustomThemeService.usageEndpoint, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + sharedCustomThemeService.token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ appId, themeId }),
+  }).catch(() => {});
   const themeBlobUrls = new Map();
   const materializeCss = (css, cacheKey) => {
     const dataUrl = css.match(new RegExp('data:image/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+'))?.[0];
@@ -1514,10 +2222,10 @@ export function buildMenuScript(options: {
     if (!theme) return;
     window.__dreamWorkThemeStyle.textContent = materializeCss(theme.css, theme.id);
     document.documentElement.dataset.dreamTheme = themeId;
-    applyMode(theme.surface);
+    if (appId !== 'hana-agent') applyMode(theme.surface);
     
     // Codex themes require the codex-dream-skin class on <html> for CSS selectors to match
-    if (appId !== 'workbuddy') {
+    if (appId === 'codex') {
       document.documentElement.classList.add('codex-dream-skin');
       const shellMain = document.querySelector('main.main-surface') || document.querySelector('main');
       if (shellMain) {
@@ -1549,8 +2257,8 @@ export function buildMenuScript(options: {
   const restoreNative = () => {
     window.__dreamWorkThemeStyle.textContent = '';
     delete document.documentElement.dataset.dreamTheme;
-    applyMode('#ffffff');
-    if (appId !== 'workbuddy') {
+    if (appId !== 'hana-agent') applyMode('#ffffff');
+    if (appId === 'codex') {
       document.documentElement.classList.remove('codex-dream-skin');
       delete document.documentElement.dataset.dreamShell;
     }
@@ -1576,8 +2284,8 @@ export function buildMenuScript(options: {
   const button = document.createElement('button');
   button.type = 'button';
   button.title = 'Dream Work Theme';
-  button.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#17344f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 1 0-18c4.97 0 9 3.58 9 8 0 2.5-2 4-4 4h-2a2 2 0 0 1 0-4h.5a3.5 3.5 0 1 0-3.5 3.5c.5 0 .9.5.9 1.5V21z"/><circle cx="7.5" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16.5" cy="10.5" r="1"/></svg>';
-  button.style.cssText = "display:block;margin-left:auto;width:36px;height:36px;border-radius:10px;border:1px solid rgba(0,0,0,.12);background:rgba(255,255,255,.92);backdrop-filter:blur(10px);box-shadow:0 3px 12px rgba(0,0,0,.2);cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;";
+  button.textContent = '◉';
+  button.style.cssText = "margin-left:auto;width:36px;height:36px;border-radius:10px;border:1px solid rgba(0,0,0,.12);background:rgba(255,255,255,.92);backdrop-filter:blur(10px);box-shadow:0 3px 12px rgba(0,0,0,.2);cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;color:#17344f;font-size:18px;line-height:1;";
 
   const panel = document.createElement('div');
   panel.style.cssText = "display:none;margin-bottom:8px;min-width:200px;padding:6px;border-radius:12px;border:1px solid rgba(0,0,0,.1);background:rgba(255,255,255,.96);backdrop-filter:blur(16px);box-shadow:0 10px 30px rgba(0,0,0,.18);color:#17344f!important;-webkit-text-fill-color:#17344f!important;";
@@ -1601,6 +2309,7 @@ export function buildMenuScript(options: {
   for (const theme of themes) {
     const item = row(theme.name, theme.accent || '#24c9d7', () => {
       applyTheme(theme.id);
+      void recordPresetUsage(theme.id);
       panel.style.display = 'none';
     });
     item.className = 'dream-theme-row';
@@ -1662,24 +2371,44 @@ export function buildMenuScript(options: {
       return Array.isArray(saved) ? saved.filter((theme) => theme && theme.dataUrl && theme.colors).slice(0, MAX_CUSTOM) : [];
     } catch { return []; }
   };
-  const saveCustoms = (saved) => {
+  const writeLocalCustoms = (saved) => {
     try { localStorage.setItem(customStorageKey, JSON.stringify(saved.slice(0, MAX_CUSTOM))); }
-    catch (error) { console.warn('Dream Theme: 自定义主题图片过多或过大，本次生效但重启后可能不保留', error); }
+    catch (error) { console.warn('Dream Theme: 自定义图片本地缓存失败', error); }
   };
+  const syncSharedCustoms = (saved) => fetch(sharedCustomThemeService.endpoint, {
+    method: 'PUT',
+    headers: { Authorization: 'Bearer ' + sharedCustomThemeService.token, 'Content-Type': 'application/json' },
+    body: JSON.stringify(saved.slice(0, MAX_CUSTOM)),
+  }).then((response) => {
+    if (!response.ok) throw new Error('共享图片同步失败: HTTP ' + response.status);
+    return response.json();
+  });
+  const saveCustoms = (saved) => {
+    const limited = saved.slice(0, MAX_CUSTOM);
+    writeLocalCustoms(limited);
+    return syncSharedCustoms(limited).catch((error) => {
+      console.warn('Dream Theme: 共享图片同步失败', error);
+      return limited;
+    });
+  };
+  const localCustomThemes = loadCustoms();
+  const initialCustomThemes = sharedCustomThemes.length > 0 ? sharedCustomThemes : localCustomThemes;
+  writeLocalCustoms(initialCustomThemes);
+  if (sharedCustomThemes.length === 0 && localCustomThemes.length > 0) void saveCustoms(localCustomThemes);
   const applyCustomTheme = (slot) => {
     window.__dreamWorkThemeStyle.textContent = materializeCss(buildCustomCss(slot.dataUrl, slot.colors, slot.id), slot.id);
     document.documentElement.dataset.dreamTheme = slot.id;
-    applyMode(slot.colors.surface);
-    document.documentElement.classList.add('codex-dream-skin');
+    if (appId !== 'hana-agent') applyMode(slot.colors.surface);
+    if (appId === 'codex') document.documentElement.classList.add('codex-dream-skin');
     ensureCustomRow(slot);
   };
-  const deleteCustom = (slotId) => {
+  const deleteCustom = async (slotId) => {
     const saved = loadCustoms();
     const index = saved.findIndex((theme) => theme.id === slotId);
     if (index < 0) return;
     if (document.documentElement.dataset.dreamTheme === slotId) restoreNative();
     saved.splice(index, 1);
-    saveCustoms(saved);
+    await saveCustoms(saved);
     customRows.get(slotId)?.remove();
     customRows.delete(slotId);
   };
@@ -1707,7 +2436,7 @@ export function buildMenuScript(options: {
   };
   const importFromDataUrl = (dataUrl, name) => new Promise((resolve, reject) => {
     const image = new Image();
-    image.onload = () => {
+    image.onload = async () => {
       const scale = Math.min(1, 1600 / image.width);
       const full = document.createElement('canvas');
       full.width = Math.round(image.width * scale);
@@ -1728,7 +2457,7 @@ export function buildMenuScript(options: {
         slot = { id: saved[0].id, name: name || '我的图片', dataUrl: compressed, colors };
         saved[0] = slot;
       }
-      saveCustoms(saved);
+      await saveCustoms(saved);
       applyCustomTheme(slot);
       resolve(colors);
     };
@@ -1751,7 +2480,21 @@ export function buildMenuScript(options: {
   const uploadRow = row('＋ 自定义图片', 'rgba(36,201,215,.9)', () => picker.click());
   uploadRow.style.borderTop = '1px solid rgba(0,0,0,.08)';
   const native = row('还原主题', 'rgba(0,0,0,.24)', () => restoreNative());
-  loadCustoms().forEach(ensureCustomRow);
+  initialCustomThemes.forEach(ensureCustomRow);
+  fetch(sharedCustomThemeService.endpoint, {
+    headers: { Authorization: 'Bearer ' + sharedCustomThemeService.token },
+  }).then((response) => response.ok ? response.json() : Promise.reject(new Error('HTTP ' + response.status)))
+    .then((latest) => {
+      if (!Array.isArray(latest)) return;
+      for (const slotId of [...customRows.keys()]) {
+        if (!latest.some((item) => item.id === slotId)) {
+          customRows.get(slotId)?.remove();
+          customRows.delete(slotId);
+        }
+      }
+      writeLocalCustoms(latest);
+      latest.forEach(ensureCustomRow);
+    }).catch((error) => console.warn('Dream Theme: 共享图片读取失败', error));
 
   button.addEventListener('click', () => {
     panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
@@ -1773,9 +2516,14 @@ export function buildMenuScript(options: {
   document.documentElement.appendChild(host);
 
   clearInterval(window.__dreamWorkMenuGuard);
-  window.__dreamWorkMenuGuard = setInterval(() => {
+  const ensureInjectedNodes = () => {
+    if (!window.__dreamWorkThemeStyle.isConnected) document.head.appendChild(window.__dreamWorkThemeStyle);
     if (!host.isConnected) document.documentElement.appendChild(host);
-  }, 1000);
+  };
+  window.__dreamWorkMenuGuard = setInterval(() => {
+    ensureInjectedNodes();
+  }, 250);
   applyTheme(currentThemeId);
+  ensureInjectedNodes();
 })()`;
 }

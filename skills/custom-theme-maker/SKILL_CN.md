@@ -19,6 +19,7 @@ qoder-work
 catpaw
 zcode
 qwen-office
+hana-agent
 ```
 
 ## 输出
@@ -40,7 +41,7 @@ hero 也可以使用 JPEG、WebP 或 GIF，只需让 `hero` 字段与实际文�
 4. 使用 schema version `1` 创建 `theme.json`。
 5. 在 `apps` 中明确声明应用兼容性。
 6. 使用 `pnpm run electron:dev` 启动 Dream Work Theme。
-7. 对每个兼容应用检查背景裁切、文字对比度、原生组件样式、浮动菜单位置和还原行为。
+7. 对每个兼容应用检查背景裁切、文字对比度、原生组件样式、浮动菜单位置、高频快捷主题和还原行为。
 
 ## Manifest
 
@@ -63,12 +64,17 @@ hero 也可以使用 JPEG、WebP 或 GIF，只需让 `hero` 字段与实际文�
   },
   "apps": {
     "workbuddy": { "compat": true },
-    "codex": { "compat": true }
+    "codex": { "compat": true },
+    "hana-agent": { "compat": true }
   }
 }
 ```
 
 `copy` 可省略。只有应用条目包含 `compat: true` 时，该主题才会出现在对应应用的筛选画廊中。
+
+右下角菜单不再固定展示指定主题 ID，而是为每个应用显示最多四个高频预置主题。新主题声明兼容后会先出现在主题画廊；从 Dream Work Theme 应用或从浮动菜单切换后会累积该应用下的使用次数，并可能进入快捷菜单。没有使用历史时，快捷菜单会从当前应用实际兼容的主题中补足。
+
+HanaAgent 适配时还应验证启动后的 renderer 重建场景：主题应在 renderer 稳定后显示；点击「还原主题」后，等待数秒并刷新或切换界面，主题都不应自动恢复。
 
 ## 应用当前执行的校验
 

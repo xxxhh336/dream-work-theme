@@ -4,5 +4,6 @@ export function getAppInitials(appId: string, name: string): string {
   if (appId === 'qoder-work') return 'QW';
   if (appId === 'catpaw') return 'CP';
   if (appId === 'qwen-office') return 'QO';
+  if (appId === 'hana-agent') return 'HA';
   return name.slice(0, 2).toUpperCase();
 }

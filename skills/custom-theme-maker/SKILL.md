@@ -19,6 +19,7 @@ qoder-work
 catpaw
 zcode
 qwen-office
+hana-agent
 ```
 
 ## Output
@@ -40,7 +41,7 @@ The hero may also be JPEG, WebP, or GIF if the `hero` field uses the matching fi
 4. Create `theme.json` using schema version `1`.
 5. Mark application compatibility explicitly in `apps`.
 6. Start Dream Work Theme with `pnpm run electron:dev`.
-7. Select each compatible application and verify background cropping, text contrast, native component styling, floating menu placement, and restore behavior.
+7. Select each compatible application and verify background cropping, text contrast, native component styling, floating menu placement, frequent quick themes, and restore behavior.
 
 ## Manifest
 
@@ -63,12 +64,17 @@ The hero may also be JPEG, WebP, or GIF if the `hero` field uses the matching fi
   },
   "apps": {
     "workbuddy": { "compat": true },
-    "codex": { "compat": true }
+    "codex": { "compat": true },
+    "hana-agent": { "compat": true }
   }
 }
 ```
 
 `copy` is optional. An application appears in the filtered gallery only when its entry has `compat: true`.
+
+The floating menu no longer contains fixed theme IDs. It shows up to four frequently used preset themes for each application. After compatibility is declared, a new theme first appears in the gallery; applying it from Dream Work Theme or selecting it from the floating menu increments usage for that application and can promote it into the quick menu. With no usage history, compatible themes fill the available quick-menu slots.
+
+For HanaAgent compatibility, also test renderer recreation after startup: the theme should appear after the renderer stabilizes, and it must remain disabled for several seconds and across reloads or view changes after **Restore Theme** is selected.
 
 ## Validation Implemented by the App
 

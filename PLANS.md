@@ -4,13 +4,13 @@
 
 ## 1. 目标
 
-构建一个 **跨平台桌面应用**，支持给市面上主流 Electron Work 工具（- WorkBuddy - TRAE Work - QoderWork - CatPaw - ZCode - 千问办公（`QwenWorkCN`） - Codex / ChatGPT Desktop 等）一键切换主题。核心机制：**不改安装包、只注入运行中渲染进程的 CDP 层**。
+构建一个 **跨平台桌面应用**，支持给市面上主流 Electron Work 工具（- WorkBuddy - TRAE Work - QoderWork - CatPaw - ZCode - 千问办公（`QwenWorkCN`） - Codex / ChatGPT Desktop - HanaAgent 等）一键切换主题。核心机制：**不改安装包、只注入运行中渲染进程的 CDP 层**。
 
 交付物：
 - 完整 Electron 项目
 - 默认 4 套主题
 - 自定义主题制作 SKILL
-- 支持 7 款主流 work 工具
+- 支持 8 款主流 work 工具
 - 每款工具支持创建"主题+应用"桌面快捷启动图标
 - 注入后右下角显示统一主题菜单按钮（切换/上传/还原）
 - 支持 macOS / Windows / Linux 三端
@@ -342,11 +342,11 @@ dream-work-theme/
 
 ## 9. 当前实现状态与实机适配分析
 
-> 本节记录 2026-08-02 在 Windows 实机上的适配结果。前文是项目早期计划，其中应用数量、主题数量、目录结构和 CDP 端口策略已有变化；后续维护应以本节和当前代码为准。
+> 本节记录 2026-08-02 至 2026-08-07 在 Windows 实机上的适配结果。前文是项目早期计划，其中应用数量、主题数量、目录结构和 CDP 端口策略已有变化；后续维护应以本节和当前代码为准。
 
 ### 9.1 当前支持范围
 
-项目目前支持以下 7 款 Work 类桌面应用：
+项目目前支持以下 8 款 Work 类桌面应用：
 
 | 应用 ID | 显示名称 | 应用类型 | 默认 CDP 端口 | 当前状态 |
 |---------|----------|----------|---------------|----------|
@@ -357,8 +357,9 @@ dream-work-theme/
 | `catpaw` | CatPaw | 通用 Electron 工作台 | `9343` | 已完成实机 CDP 验证 |
 | `zcode` | ZCode | 通用 Electron 工作台 | `9344` | 已完成实机 CDP 验证 |
 | `qwen-office` | 千问办公 | 通用 Electron 工作台 | `9345`，运行时可能改为随机端口 | 已完成实机 CDP 验证 |
+| `hana-agent` | HanaAgent | 通用 Electron 工作台，专属注入策略 | `9346` | 已适配稳定 renderer 等待、持续守护和还原状态 |
 
-当前保留 4 套内置主题，全部声明兼容上述 7 款应用：
+当前保留 4 套内置主题。原有主题 manifest 声明兼容前 7 款应用；HanaAgent 当前由主题存储兼容回退逻辑开放这些主题：
 
 - `lisa`：亮色主题
 - `nagasawa-masami`：亮色主题
@@ -518,6 +519,22 @@ D:\Program Files\QwenWorkCN\0.1.1-26072818\QwenWorkCN.exe
 - Electron 应用入口：版本目录下的 `resources/app.asar`
 - 用户数据目录：`%APPDATA%\QwenWorkCN`
 
+#### HanaAgent
+
+常见可执行文件：
+
+```text
+HanaAgent.exe
+```
+
+扫描位置包括：
+
+- `%LOCALAPPDATA%\Programs\HanaAgent`
+- `%ProgramFiles%\HanaAgent`
+- `%ProgramFiles(x86)%\HanaAgent`
+
+HanaAgent 启动时会创建并替换 renderer，不能在 CDP 端口刚开放时立即把第一个 target 视为最终主页面。当前启动器会继续等待匹配 `.hanako/artifacts/renderer/` 的 renderer target，并要求同一个 target 保持稳定后再进入注入流程。
+
 ### 9.4 CDP 启动与端口差异
 
 所有应用仍采用 CDP 注入，不修改目标应用安装包。标准启动参数为：
@@ -535,6 +552,7 @@ D:\Program Files\QwenWorkCN\0.1.1-26072818\QwenWorkCN.exe
 - TRAE Work
 - CatPaw
 - ZCode
+- HanaAgent
 
 #### 随机端口应用
 
@@ -567,6 +585,8 @@ Chromium 随后分配随机端口，并写入用户数据目录中的 `DevToolsA
 
 这修正了早期“所有应用都能稳定使用固定 CDP 端口”的错误假设。
 
+HanaAgent 虽然使用固定端口 `9346`，但其特殊点不是端口，而是 renderer 生命周期。`launcher.ts` 在端口可用后还会执行稳定 target 等待；`injector.ts` 注入后也会确认最终 renderer 连续稳定，再启动运行期守护。
+
 ### 9.5 渲染页面识别
 
 注入器不会向所有 page target 盲目注入，而是根据 `rendererHints` 匹配主页面 URL。
@@ -580,8 +600,9 @@ Chromium 随后分配随机端口，并写入用户数据目录中的 `DevToolsA
 | CatPaw | `app.asar/dist/index.html` |
 | ZCode | `app.asar/out/renderer/index.html` |
 | 千问办公 | `app.asar/out/renderer/index.html#windowId=main` |
+| HanaAgent | `.hanako/artifacts/renderer/`、`artifacts/renderer/` |
 
-QoderWork 和千问办公还存在 `voice-overlay.html` 页面，ZCode 存在 Stripe iframe 和 worker target，CatPaw 存在 `about:blank` page。URL hint 可以避免菜单和主题被错误注入这些辅助页面。
+QoderWork 和千问办公还存在 `voice-overlay.html` 页面，ZCode 存在 Stripe iframe 和 worker target，CatPaw 存在 `about:blank` page。HanaAgent 会在启动和部分界面切换时替换 renderer target。URL hint 可以避免菜单和主题被错误注入辅助页面，HanaAgent 则需要在正确 URL hint 的基础上额外处理 target 更替。
 
 ### 9.6 DOM 与主题表面分析
 
@@ -783,9 +804,38 @@ data-spm="new_chat_page"
 - 使用半透明基础背景，避免 parchment surface 完全遮挡图片。
 - 主页面和 Voice Input 辅助页面通过 URL hint 区分。
 
+#### HanaAgent
+
+实机主页面 URL 包含：
+
+```text
+.hanako/artifacts/renderer/
+```
+
+关键 DOM 和表面：
+
+- `#react-root`
+- `.app-shell`
+- `.titlebar`
+- `#sidebar`
+- `#jianSidebar`
+- `#previewBody`
+- `[class*="input-wrapper"]`
+
+适配方式：
+
+- 注册类型仍为 `generic-work`，但 CSS 由专属 `buildHanaAgentCss()` 生成，避免通用工作台选择器覆盖过宽。
+- 背景图应用到 `html`、`body`、`#react-root` 和 `.app-shell`，标题栏、主内容、聊天区和输入区保持透明。
+- 侧栏、预览和输入组件使用基于主题 surface/accent 的半透明材质。
+- 使用专属轻量浮动菜单，提供最多四个高频预置主题切换、自定义图片和「还原主题」；按钮 `◉`、尺寸和基础样式与其他应用一致，并支持点击应用内空白位置关闭菜单。
+- 自定义图片采用 HanaAgent 专属实现，不直接移植完整通用菜单脚本。支持 PNG、JPEG、WebP，最大边缩放到 `1280px` 后压缩为 WebP，自动提取四色调色板，最多保存 5 张，并支持切换和删除。
+- 自定义图片列表由 Dream Work Theme 主进程集中保存到 `app.getPath('userData')/custom-themes.json`。目标应用中的 localStorage 只作为当前 renderer 缓存和既有数据导入来源，不再承担跨应用共享。当前选中的 HanaAgent 自定义图片 ID 仍使用应用内独立键保存，使 renderer 重建后可以恢复且不会改变其他应用当前选择。管理器主动应用预置主题时会覆盖 HanaAgent 当前选择。
+- 首次注入会通过 `Page.addScriptToEvaluateOnNewDocument` 注册持久脚本，并由主进程 watcher 检测 renderer 更替或注入节点丢失。
+- 用户点击「还原主题」时写入本地停用标记；watcher、页面刷新和 renderer 重建都不会重新显示主题。再次从浮动菜单选择主题或从管理器主动应用时会清除该标记。
+
 ### 9.7 CSS 生成器分层
 
-当前 `electron/manager/injector.ts` 中存在 4 类 CSS 生成器：
+当前 `electron/manager/injector.ts` 中存在 5 个 CSS 生成器，对应 4 类注册类型和 HanaAgent 的专属分支：
 
 | 生成器 | 应用 |
 |--------|------|
@@ -793,6 +843,7 @@ data-spm="new_chat_page"
 | `buildCodexCss()` | Codex |
 | `buildVsCodeWorkCss()` | TRAE Work |
 | `buildGenericWorkCss()` | QoderWork、CatPaw、ZCode、千问办公 |
+| `buildHanaAgentCss()` | HanaAgent |
 
 通用主题语义仍由以下字段提供：
 
@@ -808,9 +859,9 @@ hero
 
 ### 9.8 统一菜单与自定义图片
 
-右下角菜单当前支持：
+WorkBuddy 和通用右下角菜单当前支持：
 
-- 四套内置主题切换
+- 最多四个高频预置主题切换，按当前应用的切换次数和最近使用时间动态排序
 - 还原主题恢复
 - 自定义图片上传
 - PNG、JPEG、WebP
@@ -820,7 +871,18 @@ hero
 - 删除自定义图片
 - 点击菜单外空白区域自动关闭
 
-Codex 和其他非 WorkBuddy 应用使用 Shadow DOM host：
+高频预置主题规则：
+
+- 每个应用独立记录预置主题使用次数和最近切换时间。
+- 管理器主动应用和浮动菜单主动切换都会计数。
+- 初始化、自动补注入、自定义图片和还原主题不计数。
+- 当前主动应用的主题优先进入本次菜单；其余位置按次数降序、最近使用时间降序补足。
+- 无历史记录时按当前应用实际兼容主题顺序补足，最多四个；主题不足、已删除或不兼容时不生成空白菜单项。
+- 数据保存到 `app.getPath('userData')/theme-usage.json`，由本机共享服务的 `/theme-usage` 接口接收目标应用菜单的切换记录。
+
+HanaAgent 使用专属轻量菜单，支持预置主题切换、自定义图片、「还原主题」和点击空白处关闭。其自定义图片代码与通用菜单相互独立，但通过 Dream Work Theme 主进程的本机共享图片服务读写同一图片库，以实现跨应用上传、切换和删除同一批图片，同时降低完整菜单结构引发崩溃的风险。服务只监听 `127.0.0.1` 并使用进程内随机令牌鉴权。三套菜单入口统一使用 `◉` 按钮标识和相同的 `36px` 基础按钮样式。HanaAgent 菜单和样式采用更高频的页面内连接守护，并配合主进程 renderer watcher 处理 target 更替。
+
+Codex、HanaAgent 和其他非 WorkBuddy 应用使用 Shadow DOM host：
 
 ```text
 #dream-work-menu-host
@@ -835,26 +897,31 @@ Codex 和其他非 WorkBuddy 应用使用 Shadow DOM host：
 - 主内容 `overflow: hidden` 裁剪菜单
 - 应用层叠上下文遮挡菜单
 
-菜单 host 使用最高层级，并通过 `__dreamWorkMenuGuard` 定时检查连接状态。重复注入和还原时会清理旧菜单、定时器和外部点击监听器。
+菜单 host 使用最高层级，并通过 `__dreamWorkMenuGuard` 定时检查连接状态。重复注入和还原时会清理旧菜单、定时器和外部点击监听器。HanaAgent 还使用主进程 watcher 监控最终 renderer；还原状态存在时 watcher 只确认停用状态，不执行补注入。
 
 ### 9.9 实机验证结果
 
-适配阶段对 5 款新增应用执行了真实 CDP 页面连接和 JavaScript/CSS 注入能力验证：
+适配阶段对新增应用执行了真实 CDP 页面连接和 JavaScript/CSS 注入能力验证；HanaAgent 还验证了稳定 renderer、持续守护与还原后不自动恢复的路径：
 
 | 应用 | CDP 页面发现 | Runtime.evaluate | 样式节点注入 | 浮动菜单节点注入 |
 |------|---------------|------------------|--------------|------------------|
+| WorkBuddy | 通过 | 通过 | 通过 | 通过 |
 | TRAE Work | 通过 | 通过 | 通过 | 通过 |
 | QoderWork | 通过，使用随机端口 | 通过 | 通过 | 通过 |
 | CatPaw | 通过 | 通过 | 通过 | 通过 |
 | ZCode | 通过 | 通过 | 通过 | 通过 |
 | 千问办公 | 通过，使用随机端口 | 通过 | 通过 | 通过 |
+| HanaAgent | 通过，固定端口并等待稳定 target | 通过 | 通过 | 通过 |
+| Codex / ChatGPT Desktop | 通过 | 通过 | 通过 | 通过 |
 
 构建验证：
 
 - `pnpm typecheck` 通过。
 - `pnpm build:app` 通过。
 - 根目录 `dist-electron/main.js` 与 Vite 最新 Electron 输出保持同步。
-- 7 款应用均可从主题存储中读取 4 套兼容主题。
+- 8 款应用均可从主题存储中读取 4 套可用主题；HanaAgent 当前使用兼容回退逻辑。
+- 高频快捷主题已通过实测：不再依赖固定主题 ID，可按应用统计菜单和管理器中的主动切换，并在主题缺失时只显示实际可用项。
+- 跨应用自定义图片共享已通过实测：集中图片库可被后续启动的其他受支持应用读取。
 
 这里的“通过”表示注入通道、target 选择和 DOM 挂载能力已经验证。各应用在不同页面状态下的最终视觉细节仍需要逐页验收，例如空白首页、已有对话、设置页、文件预览、弹窗和升级后的新 DOM。
 
@@ -866,7 +933,7 @@ QoderWork 当前使用较宽的 `[class*="layout"]`、`[class*="content-area"]` 
 
 #### 应用升级导致类名变化
 
-TRAE Work、CatPaw、ZCode 和千问办公均大量使用构建生成类名或 Tailwind 类。优先依赖以下相对稳定信号：
+TRAE Work、CatPaw、ZCode、千问办公和 HanaAgent 均大量使用构建生成类名或 Tailwind 类。优先依赖以下相对稳定信号：
 
 - 应用前缀类名，例如 `solo-lite-*`、`catpaw-*`、`agents-*`
 - 语义 ID，例如 `#sidebar`
@@ -882,6 +949,15 @@ TRAE Work、CatPaw、ZCode 和千问办公均大量使用构建生成类名或 T
 #### 多窗口和辅助 target
 
 应用可能产生 Voice Input、Stripe iframe、worker、about:blank、插件 WebView 等 target。注入器必须继续使用 `rendererHints`，不能退回“注入所有 page target”的策略。
+
+#### HanaAgent renderer 生命周期
+
+HanaAgent 的 renderer 会在启动和部分界面切换期间被替换。维护时必须同时保留以下约束：
+
+- 端口开放不代表最终 renderer 已稳定。
+- 新 target 需要重新注册持久脚本并执行注入。
+- 页面内「还原主题」必须优先于自动补注入，不能仅以样式节点缺失判断需要恢复。
+- 管理器主动「应用主题」必须能够清除用户还原状态。
 
 #### 视觉验收
 
@@ -915,18 +991,20 @@ TRAE Work、CatPaw、ZCode 和千问办公均大量使用构建生成类名或 T
 8. 在 `app-registry.ts` 添加定义。
 9. 在四套主题的 `apps` 中声明兼容。
 10. 为该应用收窄主内容和侧栏选择器。
-11. 验证样式节点、菜单节点、自定义图片和原生恢复。
+11. 验证样式节点、菜单节点、高频快捷主题、自定义图片和原生恢复。
 12. 执行 `pnpm typecheck` 和 `pnpm build:app`。
 
 ### 9.12 当前关键文件
 
 | 文件 | 职责 |
 |------|------|
-| `electron/manager/app-registry.ts` | 7 款应用的发现、启动、端口和类型注册 |
+| `electron/manager/app-registry.ts` | 8 款应用的发现、启动、端口和类型注册 |
 | `electron/manager/discovery.ts` | 扫描安装目录、版本目录和 Codex Appx |
-| `electron/manager/launcher.ts` | 结束旧进程、启动应用、等待固定或随机 CDP 端口 |
+| `electron/manager/launcher.ts` | 结束旧进程、启动应用、等待固定或随机 CDP 端口，并等待 HanaAgent renderer 稳定 |
 | `electron/manager/cdp.ts` | target 发现、WebSocket 会话和 Runtime.evaluate |
-| `electron/manager/injector.ts` | 主题 CSS 生成、target 筛选、菜单、自定义图片和还原 |
+| `electron/manager/injector.ts` | 主题 CSS 生成、target 筛选、菜单、自定义图片、HanaAgent 持久守护和还原 |
+| `electron/manager/custom-theme-store.ts` | 自定义图片集中存储、校验和本机共享同步服务 |
+| `app.getPath('userData')/theme-usage.json` | 各应用预置主题的切换次数和最近使用时间，用于生成四个快捷主题 |
 | `electron/manager/theme-store.ts` | 主题扫描、校验和按应用兼容性过滤 |
 | `renderer/App.tsx` | 应用选择、真实端口记录、应用和还原流程 |
 | `renderer/pages/Gallery.tsx` | 多应用主题画廊 |
@@ -939,11 +1017,12 @@ TRAE Work、CatPaw、ZCode 和千问办公均大量使用构建生成类名或 T
 | 早期计划 | 当前实现 |
 |----------|----------|
 | 默认 5 套主题 | 当前保留 4 套主题，两亮两暗 |
-| 支持至少 5 款应用 | 当前注册 7 款应用 |
+| 支持至少 5 款应用 | 当前注册 8 款应用 |
 | 所有应用使用固定端口 | QoderWork 和千问办公使用 `DevToolsActivePort` 随机端口 |
-| 每款应用单独 profile 文件 | 使用集中式 `app-registry.ts` + 4 类 CSS 生成器 |
+| 每款应用单独 profile 文件 | 使用集中式 `app-registry.ts` + 4 类注册类型，并为 HanaAgent 增加专属 CSS/菜单分支 |
 | 主题背景可统一铺 body | WorkBuddy/Codex/其他应用均根据主体 DOM 放置图片，避免侧栏和外壳错误铺图 |
 | 通用菜单挂到 body | 非 WorkBuddy 菜单使用 Shadow DOM host 和重挂载守护 |
 | 需调研 ZCode、千问办公、CatPaw | 已完成 Windows 实机 Electron、CDP、URL 和 DOM 探测 |
+| renderer target 启动后保持不变 | HanaAgent 需要稳定 target 等待、持久脚本和主进程 watcher |
 
 后续开发不应继续按前文旧文件清单机械创建未使用的 profile、base.css 或 menu.js；应优先深化现有注册表和注入器模块，保持实现与运行路径一致。

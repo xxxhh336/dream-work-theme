@@ -87,6 +87,10 @@ export async function launchApp(appId: string, themeId?: string): Promise<{ succ
     }
     console.log(`[launcher] CDP port ${actualPort} is ready`);
 
+    if (appId === 'hana-agent') {
+      await waitForStableRenderer(actualPort, profile.rendererHints, 30000);
+    }
+
     return { success: true, port: actualPort };
   } catch (error: any) {
     console.error(`[launcher] Launch failed:`, error);
@@ -138,6 +142,31 @@ async function verifyRendererEndpoint(port: number, rendererHints: string[], tim
     await new Promise(resolve => setTimeout(resolve, 250));
   }
   throw new Error(`CDP renderer endpoint is not ready on port ${port}`);
+}
+
+async function waitForStableRenderer(port: number, rendererHints: string[], timeoutMs: number): Promise<void> {
+  const startedAt = Date.now();
+  let stableId = '';
+  let stableSince = 0;
+
+  while (Date.now() - startedAt < timeoutMs) {
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/json/list`, { signal: AbortSignal.timeout(1000) });
+      const targets = await response.json() as any[];
+      const target = targets.find(item => item?.type === 'page' && rendererHints.some(hint => String(item.url).includes(hint)));
+      if (target?.id) {
+        if (target.id !== stableId) {
+          stableId = target.id;
+          stableSince = Date.now();
+        } else if (Date.now() - stableSince >= 3000) {
+          console.log(`[launcher] Stable HanaAgent renderer ${stableId} confirmed`);
+          return;
+        }
+      }
+    } catch {}
+    await new Promise(resolve => setTimeout(resolve, 250));
+  }
+  throw new Error(`HanaAgent renderer did not stabilize on port ${port}`);
 }
 
 function findAvailablePort(startPort: number): number {

@@ -56,6 +56,11 @@ export const APP_DEFINITIONS: AppDefinition[] = [
     rendererHints: ['out/renderer/index.html', 'renderer/index.html'], kind: 'generic-work',
     devToolsActivePort: path.join(roamingAppData, 'QwenWorkCN', 'DevToolsActivePort'),
   },
+  {
+    id: 'hana-agent', name: 'HanaAgent', exeNames: ['HanaAgent.exe'], processName: 'HanaAgent.exe', defaultPort: 9346,
+    installPaths: [path.join(localAppData, 'Programs', 'HanaAgent'), path.join(programFiles, 'HanaAgent'), path.join(programFilesX86, 'HanaAgent')],
+    rendererHints: ['.hanako/artifacts/renderer/', 'artifacts/renderer/', '/index.html'], kind: 'generic-work',
+  },
 ];
 
 export function getAppDefinition(appId: string): AppDefinition | undefined {

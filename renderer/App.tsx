@@ -18,6 +18,7 @@ const APP_PORTS: Record<string, number> = {
   catpaw: 9343,
   zcode: 9344,
   'qwen-office': 9345,
+  'hana-agent': 9346,
 };
 
 interface ThemeInfo {

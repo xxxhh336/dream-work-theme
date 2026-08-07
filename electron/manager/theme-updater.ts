@@ -13,7 +13,7 @@ const THEMES_ENDPOINT = `${API_ORIGIN}/v1/themes`;
 const MAX_PACKAGE_BYTES = 32 * 1024 * 1024;
 const PAGE_SIZE = 6;
 let nextOffset = 0;
-const SUPPORTED_APPS = ['workbuddy', 'codex', 'trae-work', 'qoder-work', 'catpaw', 'zcode', 'qwen-office'];
+const SUPPORTED_APPS = ['workbuddy', 'codex', 'trae-work', 'qoder-work', 'catpaw', 'zcode', 'qwen-office', 'hana-agent'];
 
 interface CommunityTheme {
   applyCompatible: boolean;
