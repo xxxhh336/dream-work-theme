@@ -23,12 +23,12 @@ Dream Work Theme 是面向 Electron Work 类桌面应用的主题管理器。它
 
 ## 界面预览
 
-<details>
-<summary><b>点击展开截图展示</b></summary>
-
 ![Dream Work Theme 界面预览](preview1.png)
 
 ![Dream Work Theme 界面预览](preview2.png)
+
+<details>
+<summary><b>点击展开更多应用</b></summary>
 
 ![Dream Work Theme 界面预览](preview3.png)
 
@@ -44,9 +44,11 @@ Dream Work Theme 是面向 Electron Work 类桌面应用的主题管理器。它
 
 ![Dream Work Theme 界面预览](preview9.png)
 
+![Dream Work Theme 界面预览](preview10.png)
+
 </details>
 
-## 支持的应用
+## 支持应用
 
 当前 `electron/manager/app-registry.ts` 注册了以下应用：
 
@@ -57,9 +59,12 @@ Dream Work Theme 是面向 Electron Work 类桌面应用的主题管理器。它
 - ZCode
 - 千问办公（`QwenWorkCN`）
 - HanaAgent
+- Kimi Work
 - Codex / ChatGPT Desktop
 
-部分应用使用固定调试端口；QoderWork 和千问办公通过 `DevToolsActivePort` 获取运行时动态端口。HanaAgent 使用固定端口 `9346`，Dream Work Theme 会等待其 renderer 稳定后再注入主题。
+部分应用使用固定调试端口；QoderWork 和千问办公通过 `DevToolsActivePort` 获取运行时动态端口。HanaAgent 使用固定端口 `9346`，Kimi Work 使用端口 `9347`。Dream Work Theme 会等待易重建的 renderer 稳定，并在运行期间自动恢复丢失的主题。
+
+应用注册表集中声明 Windows 安装路径、macOS app bundle、Linux executable/desktop 文件候选以及主题兼容策略。普通应用在三个平台使用 detached spawn；Kimi Windows 版会把 Node/Electron/PowerShell 父进程误判为开发监督进程，因此 Windows 使用临时快捷方式交给 Explorer 启动，macOS 和 Linux 仍使用通用 detached spawn。
 
 ## 应用功能
 
@@ -152,6 +157,15 @@ Vite 的 CJS API deprecation 当前只是警告，不会导致构建失败。
 - 需要重新启用主题时，可在 HanaAgent 浮动菜单选择一个主题，或回到 Dream Work Theme 点击「应用主题」。主动应用会清除还原状态。
 - 从 Dream Work Theme 执行「还原主题」同样会停止 HanaAgent 的主题守护和持久注入，并保持原生主题。
 
+### Kimi Work 说明
+
+- Kimi Work 的 Work 与 Chat 是两个独立 renderer：`app://localhost/kimi-agent.html` 和 `https://www.kimi.com/`。Dream Work Theme 会在首次应用时同时注入两个页面。
+- Kimi watcher 会监控 Work/Chat target 的创建、导航和重载；从 Work 切换到 Chat、切回 Work 或 renderer 重建后会自动恢复当前主题。
+- Kimi 首次注入不再使用固定 3-4 秒等待。CDP renderer 通过短暂稳定确认后立即应用主题。
+- Kimi 专属 CSS 会透明化首页、对话列表、顶部 publisher 区域以及输入框外层大背景，只为实际输入卡片、消息和必要控件保留轻透明底色。
+- Kimi 的背景图不使用 `backdrop-filter: blur()`，避免 Work 与 Chat 页面中的图片被模糊。
+- Windows 必须由 Explorer 成为 Kimi 的真实父进程，否则 Kimi 可能不注册内部 `app://` 协议并在启动后退出。该限制不适用于 macOS/Linux 的通用启动路径。
+
 ## 主题存储
 
 主题按以下优先级加载：
@@ -197,20 +211,20 @@ themes/<theme-id>/
     "surface": "#f7fbff",
     "text": "#17344f"
   },
-  "apps": {
-    "workbuddy": { "compat": true },
-    "codex": { "compat": true },
-    "trae-work": { "compat": true },
-    "qoder-work": { "compat": true },
-    "catpaw": { "compat": true },
-    "zcode": { "compat": true },
-    "qwen-office": { "compat": true },
-    "hana-agent": { "compat": true }
-  }
+  "apps": {}
 }
 ```
 
 当前校验要求：`schemaVersion` 为 `1`，ID 只使用小写字母、数字和连字符，名称非空，hero 文件存在，并提供四个 `#RRGGBB` 颜色。
+
+应用兼容性采用“注册表默认 + manifest 显式覆盖”模型：如果 `apps[appId].compat` 存在，则使用该值；未声明时读取 `app-registry.ts` 中应用的 `acceptsGenericThemes`。因此新增接受通用主题的应用无需批量修改历史 `theme.json`。只有主题需要拒绝某个应用或提供特殊 `layout` 时，才需要在 `apps` 中显式声明，例如：
+
+```json
+"apps": {
+  "some-app": { "compat": false },
+  "another-app": { "compat": true, "layout": "compact" }
+}
+```
 
 主题制作流程见 [skills/custom-theme-maker/SKILL_CN.md](skills/custom-theme-maker/SKILL_CN.md)。
 
@@ -326,17 +340,19 @@ dream-work-theme/
 
 ## 添加新应用
 
-1. 在 `electron/manager/app-registry.ts` 添加进程名、安装路径、渲染页 URL 特征和端口策略。
-2. 如果应用有特殊安装结构或动态端口，在 discovery/launcher 中补充处理。
+1. 在 `electron/manager/app-registry.ts` 添加 Windows 安装路径、macOS bundle/executable、Linux executable/desktop 文件、渲染页 URL 特征、端口策略和 `acceptsGenericThemes`。
+2. 发现、运行状态检查、进程终止和通用启动默认读取应用注册表；只有特殊安装结构、动态端口或父进程限制才需要修改 discovery/launcher。
 3. 在 `electron/manager/injector.ts` 添加应用专属注入 CSS 与菜单行为。
-4. 在主题 manifest 和社区主题转换中加入应用 ID。
-5. 测试启动、应用、刷新状态、还原、辅助窗口和应用退出场景。
+4. 通用主题兼容应用不需要批量修改主题 manifest；只有兼容例外或特殊布局才写 `apps` 覆盖。
+5. 在目标操作系统测试发现、启动、应用、renderer 导航/重建、刷新状态、还原、辅助窗口和应用退出场景。
 
 ## 已知限制
 
 - 主题注入存在于目标应用运行中的渲染进程，退出应用后运行时注入自然消失。
 - 目标应用升级可能改变 DOM，需要更新注入选择器。
 - HanaAgent 会在启动和部分界面切换期间重建 renderer，因此首次应用主题可能比其他应用多等待数秒。
+- Kimi Work 的 Work/Chat renderer 和页面 DOM 可能随客户端或网站更新变化，需要同步维护 URL hint 与透明层选择器。
+- TRAE Work、QoderWork、CatPaw、ZCode 和千问办公的 macOS/Linux 注册表候选尚缺对应平台安装样本验证；实际产品若未发布该平台版本则无法发现。
 - 未签名的 Windows/macOS 发布包可能触发系统安全提示。
 - Windows 当前关闭了 EXE 元数据编辑，因此可能显示 Electron 默认图标和文件信息。
 - 大量内置主题会显著增加安装包大小、构建时间和磁盘需求。

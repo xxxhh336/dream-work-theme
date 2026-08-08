@@ -1,16 +1,16 @@
 # Dream Work Theme — 多应用主题切换工具项目计划
 
-> 历史文档：本文是项目早期设计与实施计划，包含未采用、已改名或尚未实现的结构与功能。当前使用方法、支持应用、构建命令和目录结构以 `README_CN.md`、`README.md` 及实际代码为准。请勿将本文中的待办清单视为当前项目状态。
+> 历史文档：本文前半部分是项目早期设计与实施计划，包含未采用、已改名或尚未实现的结构与功能。当前使用方法、支持应用、构建命令和目录结构以 `README.md`、`README_EN.md` 及实际代码为准；第 9 节记录当前实现状态。请勿将早期待办清单视为当前项目状态。
 
 ## 1. 目标
 
-构建一个 **跨平台桌面应用**，支持给市面上主流 Electron Work 工具（- WorkBuddy - TRAE Work - QoderWork - CatPaw - ZCode - 千问办公（`QwenWorkCN`） - Codex / ChatGPT Desktop - HanaAgent 等）一键切换主题。核心机制：**不改安装包、只注入运行中渲染进程的 CDP 层**。
+构建一个 **跨平台桌面应用**，支持给市面上主流 Electron Work 工具（WorkBuddy、TRAE Work、QoderWork、CatPaw、ZCode、千问办公、Codex / ChatGPT Desktop、HanaAgent、Kimi Work 等）一键切换主题。核心机制：**不改安装包、只注入运行中渲染进程的 CDP 层**。
 
 交付物：
 - 完整 Electron 项目
 - 默认 4 套主题
 - 自定义主题制作 SKILL
-- 支持 8 款主流 work 工具
+- 当前注册 9 款主流 Work 工具
 - 每款工具支持创建"主题+应用"桌面快捷启动图标
 - 注入后右下角显示统一主题菜单按钮（切换/上传/还原）
 - 支持 macOS / Windows / Linux 三端
@@ -257,9 +257,11 @@ interface ShortcutProfile {
 
 ### 5.3 主题兼容性策略
 
-- 主题标记 `apps` 字段声明兼容的应用列表
-- 不兼容的应用会自动跳过，不报错
-- 用户可以看到哪些主题支持当前选中的应用
+- 当前采用“应用注册表默认 + 主题 manifest 显式覆盖”策略。
+- `theme.json` 中存在 `apps[appId].compat` 时，以显式值为准。
+- 未声明应用时，读取 `app-registry.ts` 中对应应用的 `acceptsGenericThemes`。
+- 接受通用主题的新应用无需批量改写历史 `theme.json`；只有不兼容或需要特殊 `layout` 时才写显式覆盖。
+- 不兼容的主题会自动跳过，画廊只显示当前应用可用主题。
 
 ---
 
@@ -342,11 +344,11 @@ dream-work-theme/
 
 ## 9. 当前实现状态与实机适配分析
 
-> 本节记录 2026-08-02 至 2026-08-07 在 Windows 实机上的适配结果。前文是项目早期计划，其中应用数量、主题数量、目录结构和 CDP 端口策略已有变化；后续维护应以本节和当前代码为准。
+> 本节记录 2026-08-02 至 2026-08-08 在 Windows 实机上的适配结果。前文是项目早期计划，其中应用数量、主题数量、目录结构、主题兼容模型和 CDP 端口策略已有变化；后续维护应以本节和当前代码为准。
 
 ### 9.1 当前支持范围
 
-项目目前支持以下 8 款 Work 类桌面应用：
+项目目前注册以下 9 款 Work 类桌面应用：
 
 | 应用 ID | 显示名称 | 应用类型 | 默认 CDP 端口 | 当前状态 |
 |---------|----------|----------|---------------|----------|
@@ -358,15 +360,11 @@ dream-work-theme/
 | `zcode` | ZCode | 通用 Electron 工作台 | `9344` | 已完成实机 CDP 验证 |
 | `qwen-office` | 千问办公 | 通用 Electron 工作台 | `9345`，运行时可能改为随机端口 | 已完成实机 CDP 验证 |
 | `hana-agent` | HanaAgent | 通用 Electron 工作台，专属注入策略 | `9346` | 已适配稳定 renderer 等待、持续守护和还原状态 |
+| `kimi` | Kimi Work | Work/Chat 双 renderer，专属 CSS 与守护策略 | `9347` | 已适配 Windows Explorer 启动、双 target 注入、自动重注入和透明层 |
 
-当前保留 4 套内置主题。原有主题 manifest 声明兼容前 7 款应用；HanaAgent 当前由主题存储兼容回退逻辑开放这些主题：
+源码 `themes/` 当前包含 235 份 `theme.json`。运行时会按主题名称、作者和 hero 内容去重，因此实际菜单/画廊数量可能略少于 manifest 数量。
 
-- `lisa`：亮色主题
-- `nagasawa-masami`：亮色主题
-- `mbappe`：暗色主题
-- `ronaldo`：暗色主题
-
-主题清单通过 `theme.json` 的 `apps` 字段声明兼容性。主题画廊根据当前选中的应用调用 `listThemes(appId)`，只展示兼容主题。
+主题兼容不再依赖为每个应用批量写入 `theme.json.apps`。`listThemes(appId)` 先读取 manifest 的显式 `compat`，未声明时再使用应用注册表的 `acceptsGenericThemes` 默认值。当前 9 款应用均接受通用主题；主题仍可用 `compat:false` 拒绝某款应用，或通过 `layout` 提供应用特例。
 
 ### 9.2 当前应用注册架构
 
@@ -387,6 +385,9 @@ interface AppDefinition {
   rendererHints: string[];
   kind: 'workbuddy' | 'codex' | 'vscode-work' | 'generic-work';
   devToolsActivePort?: string;
+  acceptsGenericThemes: boolean;
+  darwin?: { appBundles: string[]; executableNames: string[] };
+  linux?: { executableNames: string[]; desktopFiles: string[] };
 }
 ```
 
@@ -403,8 +404,11 @@ interface AppDefinition {
 | `rendererHints` | 从 `/json/list` 中筛选主渲染页面的 URL 特征 |
 | `kind` | 决定使用哪一类 CSS 生成器 |
 | `devToolsActivePort` | 应用强制使用随机 CDP 端口时，用于读取实际端口 |
+| `acceptsGenericThemes` | manifest 未显式声明应用时，是否默认接受通用主题 |
+| `darwin` | macOS app bundle 和内部 executable 候选 |
+| `linux` | Linux executable 与 `.desktop` 文件候选 |
 
-相较早期每款应用一个静态 `AppProfile` 文件的设计，当前注册表更适合处理大量结构相近的 Electron 应用，减少发现、启动和端口逻辑的重复。
+相较早期每款应用一个静态 `AppProfile` 文件的设计，当前注册表同时作为发现、启动、进程管理、平台候选和主题默认兼容的单一信息源，减少跨模块重复维护。
 
 ### 9.3 安装发现分析
 
@@ -535,6 +539,23 @@ HanaAgent.exe
 
 HanaAgent 启动时会创建并替换 renderer，不能在 CDP 端口刚开放时立即把第一个 target 视为最终主页面。当前启动器会继续等待匹配 `.hanako/artifacts/renderer/` 的 renderer target，并要求同一个 target 保持稳定后再进入注入流程。
 
+#### Kimi Work
+
+Windows 实机安装位置：
+
+```text
+D:\Program Files\Kimi\Kimi.exe
+```
+
+Kimi Windows 版会检查父进程。若由 Dream Work Theme 的 Node/Electron 进程或短生命周期 PowerShell 直接 `spawn`，Kimi 会进入 `dev parent watcher` 模式，不注册内部 `app://` 协议，并在父进程退出后以 `dev-parent-process-gone` 关闭。当前 Windows 启动流程为：
+
+1. PowerShell 只创建带 `--remote-debugging-port=9347` 参数的临时 `.lnk`。
+2. PowerShell 完全退出。
+3. 由现有 `explorer.exe` 打开快捷方式，使 Explorer 成为 Kimi 的真实父进程。
+4. 临时快捷方式延迟删除。
+
+macOS 和 Linux 不执行 PowerShell、`.lnk` 或 Explorer 逻辑，使用与 HanaAgent 等应用相同的 detached spawn。注册表候选包括 `/Applications/Kimi.app/Contents/MacOS/Kimi`、Linux `kimi`/`Kimi` 和 `kimi.desktop`；这些非 Windows 路径需要对应平台安装包继续实机验证。
+
 ### 9.4 CDP 启动与端口差异
 
 所有应用仍采用 CDP 注入，不修改目标应用安装包。标准启动参数为：
@@ -553,6 +574,7 @@ HanaAgent 启动时会创建并替换 renderer，不能在 CDP 端口刚开放�
 - CatPaw
 - ZCode
 - HanaAgent
+- Kimi Work
 
 #### 随机端口应用
 
@@ -587,6 +609,8 @@ Chromium 随后分配随机端口，并写入用户数据目录中的 `DevToolsA
 
 HanaAgent 虽然使用固定端口 `9346`，但其特殊点不是端口，而是 renderer 生命周期。`launcher.ts` 在端口可用后还会执行稳定 target 等待；`injector.ts` 注入后也会确认最终 renderer 连续稳定，再启动运行期守护。
 
+Kimi Work 使用固定端口 `9347`。启动器在 CDP 可用后执行约 `750ms` 的短稳定确认，用于捕获 Windows 父进程异常退出，但不再叠加前端 4 秒或主进程 3 秒固定等待。renderer 就绪后立即调用 `applyTheme()`。
+
 ### 9.5 渲染页面识别
 
 注入器不会向所有 page target 盲目注入，而是根据 `rendererHints` 匹配主页面 URL。
@@ -601,8 +625,9 @@ HanaAgent 虽然使用固定端口 `9346`，但其特殊点不是端口，而是
 | ZCode | `app.asar/out/renderer/index.html` |
 | 千问办公 | `app.asar/out/renderer/index.html#windowId=main` |
 | HanaAgent | `.hanako/artifacts/renderer/`、`artifacts/renderer/` |
+| Kimi Work | Work：`kimi-agent.html`；Chat：`kimichat.html` 或 `https://www.kimi.com/` |
 
-QoderWork 和千问办公还存在 `voice-overlay.html` 页面，ZCode 存在 Stripe iframe 和 worker target，CatPaw 存在 `about:blank` page。HanaAgent 会在启动和部分界面切换时替换 renderer target。URL hint 可以避免菜单和主题被错误注入辅助页面，HanaAgent 则需要在正确 URL hint 的基础上额外处理 target 更替。
+QoderWork 和千问办公还存在 `voice-overlay.html` 页面，ZCode 存在 Stripe iframe 和 worker target，CatPaw 存在 `about:blank` page。HanaAgent 会替换 renderer target；Kimi Work 的 Work 与 Chat 本来就是两个独立 target。URL hint 可以避免菜单和主题被错误注入辅助页面，HanaAgent/Kimi 还需要在正确 URL hint 的基础上持续处理 target 创建、导航和更替。
 
 ### 9.6 DOM 与主题表面分析
 
@@ -833,9 +858,29 @@ data-spm="new_chat_page"
 - 首次注入会通过 `Page.addScriptToEvaluateOnNewDocument` 注册持久脚本，并由主进程 watcher 检测 renderer 更替或注入节点丢失。
 - 用户点击「还原主题」时写入本地停用标记；watcher、页面刷新和 renderer 重建都不会重新显示主题。再次从浮动菜单选择主题或从管理器主动应用时会清除该标记。
 
+#### Kimi Work
+
+Kimi Work 有两个主要 renderer：
+
+```text
+Work: app://localhost/kimi-agent.html
+Chat: https://www.kimi.com/
+```
+
+适配方式：
+
+- `buildKimiCss()` 映射 Kimi 的 Figma token，包括 `--Bg-*`、`--BgGp-*`、`--Labels-*`、`--Colors-KMBlue` 和 `--Bg-GroundPC`。
+- Kimi 保留自身 `html.dark` 和 token 模式，不调用通用 `applyMode()`，避免破坏应用原生变量体系。
+- 首次应用会同时收集 Work 与 Chat target，并对两个页面注入主题和 `Page.addScriptToEvaluateOnNewDocument` 持久脚本。
+- 主进程 Kimi watcher 每 `750ms` 检查 Kimi 相关 target；发现新 target、导航后样式丢失或 renderer 重建时自动补注入。
+- 首页、对话页、消息列表、顶部 publisher/sticky 区域、底部输入框外层大容器保持透明；只给实际输入卡片、消息和必要控件保留轻透明 surface。
+- Kimi CSS 明确设置 `backdrop-filter: none` 和 `-webkit-backdrop-filter: none`，避免背景图被模糊。
+- Chat 的 `#chat-box`、`.home-input-options`、`.publisher-stage` 等大面积容器已透明化；`.chat-editor-content` 保留单层约 42% 输入卡片底色。
+- Work 的 `.composer-dock`、`.composer-inner`、`.composer-wrap` 等外层透明，仅 `.composer.docked` 保留单层轻底色。
+
 ### 9.7 CSS 生成器分层
 
-当前 `electron/manager/injector.ts` 中存在 5 个 CSS 生成器，对应 4 类注册类型和 HanaAgent 的专属分支：
+当前 `electron/manager/injector.ts` 中存在 6 个 CSS 生成器，对应 4 类注册类型以及 HanaAgent、Kimi 的专属分支：
 
 | 生成器 | 应用 |
 |--------|------|
@@ -844,6 +889,7 @@ data-spm="new_chat_page"
 | `buildVsCodeWorkCss()` | TRAE Work |
 | `buildGenericWorkCss()` | QoderWork、CatPaw、ZCode、千问办公 |
 | `buildHanaAgentCss()` | HanaAgent |
+| `buildKimiCss()` | Kimi Work |
 
 通用主题语义仍由以下字段提供：
 
@@ -880,9 +926,9 @@ WorkBuddy 和通用右下角菜单当前支持：
 - 无历史记录时按当前应用实际兼容主题顺序补足，最多四个；主题不足、已删除或不兼容时不生成空白菜单项。
 - 数据保存到 `app.getPath('userData')/theme-usage.json`，由本机共享服务的 `/theme-usage` 接口接收目标应用菜单的切换记录。
 
-HanaAgent 使用专属轻量菜单，支持预置主题切换、自定义图片、「还原主题」和点击空白处关闭。其自定义图片代码与通用菜单相互独立，但通过 Dream Work Theme 主进程的本机共享图片服务读写同一图片库，以实现跨应用上传、切换和删除同一批图片，同时降低完整菜单结构引发崩溃的风险。服务只监听 `127.0.0.1` 并使用进程内随机令牌鉴权。三套菜单入口统一使用 `◉` 按钮标识和相同的 `36px` 基础按钮样式。HanaAgent 菜单和样式采用更高频的页面内连接守护，并配合主进程 renderer watcher 处理 target 更替。
+HanaAgent 使用专属轻量菜单，支持预置主题切换、自定义图片、「还原主题」和点击空白处关闭。其自定义图片代码与通用菜单相互独立，但通过 Dream Work Theme 主进程的本机共享图片服务读写同一图片库，以实现跨应用上传、切换和删除同一批图片，同时降低完整菜单结构引发崩溃的风险。服务只监听 `127.0.0.1` 并使用进程内随机令牌鉴权。菜单入口统一使用 `◉` 按钮标识和相同的 `36px` 基础按钮样式。HanaAgent 菜单和样式采用更高频的页面内连接守护，并配合主进程 renderer watcher 处理 target 更替。Kimi 使用通用 Shadow DOM 菜单脚本，但由 Kimi watcher 同时维护 Work/Chat target。
 
-Codex、HanaAgent 和其他非 WorkBuddy 应用使用 Shadow DOM host：
+Codex、HanaAgent、Kimi 和其他非 WorkBuddy 应用使用 Shadow DOM host：
 
 ```text
 #dream-work-menu-host
@@ -897,11 +943,11 @@ Codex、HanaAgent 和其他非 WorkBuddy 应用使用 Shadow DOM host：
 - 主内容 `overflow: hidden` 裁剪菜单
 - 应用层叠上下文遮挡菜单
 
-菜单 host 使用最高层级，并通过 `__dreamWorkMenuGuard` 定时检查连接状态。重复注入和还原时会清理旧菜单、定时器和外部点击监听器。HanaAgent 还使用主进程 watcher 监控最终 renderer；还原状态存在时 watcher 只确认停用状态，不执行补注入。
+菜单 host 使用最高层级，并通过 `__dreamWorkMenuGuard` 定时检查连接状态。重复注入和还原时会清理旧菜单、定时器和外部点击监听器。HanaAgent 使用主进程 watcher 监控最终 renderer；Kimi watcher 监控 Work/Chat 双 target。还原状态存在时守护逻辑不得覆盖用户主动停用。
 
 ### 9.9 实机验证结果
 
-适配阶段对新增应用执行了真实 CDP 页面连接和 JavaScript/CSS 注入能力验证；HanaAgent 还验证了稳定 renderer、持续守护与还原后不自动恢复的路径：
+适配阶段对新增应用执行了真实 CDP 页面连接和 JavaScript/CSS 注入能力验证；HanaAgent 还验证了稳定 renderer、持续守护与还原后不自动恢复，Kimi 还验证了 Explorer 启动、Work/Chat 双 target 和导航后自动恢复：
 
 | 应用 | CDP 页面发现 | Runtime.evaluate | 样式节点注入 | 浮动菜单节点注入 |
 |------|---------------|------------------|--------------|------------------|
@@ -912,6 +958,7 @@ Codex、HanaAgent 和其他非 WorkBuddy 应用使用 Shadow DOM host：
 | ZCode | 通过 | 通过 | 通过 | 通过 |
 | 千问办公 | 通过，使用随机端口 | 通过 | 通过 | 通过 |
 | HanaAgent | 通过，固定端口并等待稳定 target | 通过 | 通过 | 通过 |
+| Kimi Work | 通过，固定端口并确认 Work/Chat target | 通过 | 通过，双 target | 通过，双 target |
 | Codex / ChatGPT Desktop | 通过 | 通过 | 通过 | 通过 |
 
 构建验证：
@@ -919,7 +966,8 @@ Codex、HanaAgent 和其他非 WorkBuddy 应用使用 Shadow DOM host：
 - `pnpm typecheck` 通过。
 - `pnpm build:app` 通过。
 - 根目录 `dist-electron/main.js` 与 Vite 最新 Electron 输出保持同步。
-- 8 款应用均可从主题存储中读取 4 套可用主题；HanaAgent 当前使用兼容回退逻辑。
+- 9 款应用通过 `acceptsGenericThemes` 默认兼容和 manifest 显式覆盖模型读取主题，无 HanaAgent/Kimi 硬编码放行。
+- Kimi Work 首次注入实测同时覆盖 Work 与 Chat，返回 `applied: 2`；两个 target 重载后均能恢复主题。
 - 高频快捷主题已通过实测：不再依赖固定主题 ID，可按应用统计菜单和管理器中的主动切换，并在主题缺失时只显示实际可用项。
 - 跨应用自定义图片共享已通过实测：集中图片库可被后续启动的其他受支持应用读取。
 
@@ -933,7 +981,7 @@ QoderWork 当前使用较宽的 `[class*="layout"]`、`[class*="content-area"]` 
 
 #### 应用升级导致类名变化
 
-TRAE Work、CatPaw、ZCode、千问办公和 HanaAgent 均大量使用构建生成类名或 Tailwind 类。优先依赖以下相对稳定信号：
+TRAE Work、CatPaw、ZCode、千问办公、HanaAgent 和 Kimi 均大量使用构建生成类名或 Tailwind/业务类。优先依赖以下相对稳定信号：
 
 - 应用前缀类名，例如 `solo-lite-*`、`catpaw-*`、`agents-*`
 - 语义 ID，例如 `#sidebar`
@@ -958,6 +1006,14 @@ HanaAgent 的 renderer 会在启动和部分界面切换期间被替换。维护
 - 新 target 需要重新注册持久脚本并执行注入。
 - 页面内「还原主题」必须优先于自动补注入，不能仅以样式节点缺失判断需要恢复。
 - 管理器主动「应用主题」必须能够清除用户还原状态。
+
+#### Kimi Work 双 renderer 与父进程限制
+
+- Windows 不能改回 Node/Electron 通用 spawn，否则可能重新触发 `dev parent watcher`、`app://` 注册失败和主动退出。
+- Work 与 Chat 必须作为两个独立 target 同时注入，不能在命中第一个 `kimi-agent.html` 后停止。
+- Kimi watcher 只能匹配 `kimi-agent.html`、`kimichat.html` 和 `kimi.com`，避免注入 `volcano-tracker.html` 等辅助页面。
+- Kimi 网站 DOM 更新时优先检查 `.publisher-stage`、`#chat-box`、`.chat-editor-content`、对话列表和输入区外层是否重新引入大面积不透明背景。
+- 首次注入速度依赖短稳定确认，不应重新增加固定 3-4 秒 sleep。
 
 #### 视觉验收
 
@@ -988,27 +1044,27 @@ HanaAgent 的 renderer 会在启动和部分界面切换期间被替换。维护
 5. 如果固定端口不可用，检查用户数据目录的 `DevToolsActivePort`。
 6. 通过 CDP 读取 `document.title`、URL、body 类、顶层节点、main、aside、sidebar 和原生 CSS 变量。
 7. 判断应用应归入 `workbuddy`、`codex`、`vscode-work` 或 `generic-work`。
-8. 在 `app-registry.ts` 添加定义。
-9. 在四套主题的 `apps` 中声明兼容。
+8. 在 `app-registry.ts` 添加 Windows、macOS、Linux 候选、端口策略和 `acceptsGenericThemes`。
+9. 通用兼容不修改历史主题；只有不兼容或特殊布局才在 theme `apps` 中显式覆盖。
 10. 为该应用收窄主内容和侧栏选择器。
-11. 验证样式节点、菜单节点、高频快捷主题、自定义图片和原生恢复。
-12. 执行 `pnpm typecheck` 和 `pnpm build:app`。
+11. 验证样式节点、菜单节点、高频快捷主题、自定义图片、renderer 导航/重建和原生恢复。
+12. 在目标操作系统验证发现与启动，再执行 `pnpm typecheck` 和 `pnpm build:app`。
 
 ### 9.12 当前关键文件
 
 | 文件 | 职责 |
 |------|------|
-| `electron/manager/app-registry.ts` | 8 款应用的发现、启动、端口和类型注册 |
-| `electron/manager/discovery.ts` | 扫描安装目录、版本目录和 Codex Appx |
-| `electron/manager/launcher.ts` | 结束旧进程、启动应用、等待固定或随机 CDP 端口，并等待 HanaAgent renderer 稳定 |
+| `electron/manager/app-registry.ts` | 9 款应用的三平台发现候选、启动、端口、类型和默认主题兼容注册 |
+| `electron/manager/discovery.ts` | 扫描 Windows 安装目录/版本目录/Codex Appx、macOS bundle 和 Linux desktop/executable |
+| `electron/manager/launcher.ts` | 结束旧进程、跨平台启动、等待固定或随机 CDP 端口，并处理 HanaAgent/Kimi renderer 稳定与 Kimi Windows 父进程限制 |
 | `electron/manager/cdp.ts` | target 发现、WebSocket 会话和 Runtime.evaluate |
-| `electron/manager/injector.ts` | 主题 CSS 生成、target 筛选、菜单、自定义图片、HanaAgent 持久守护和还原 |
+| `electron/manager/injector.ts` | 主题 CSS 生成、target 筛选、菜单、自定义图片、HanaAgent/Kimi 持久守护和还原 |
 | `electron/manager/custom-theme-store.ts` | 自定义图片集中存储、校验和本机共享同步服务 |
 | `app.getPath('userData')/theme-usage.json` | 各应用预置主题的切换次数和最近使用时间，用于生成四个快捷主题 |
 | `electron/manager/theme-store.ts` | 主题扫描、校验和按应用兼容性过滤 |
 | `renderer/App.tsx` | 应用选择、真实端口记录、应用和还原流程 |
 | `renderer/pages/Gallery.tsx` | 多应用主题画廊 |
-| `themes/*/theme.json` | 四套主题的颜色、图片和应用兼容声明 |
+| `themes/*/theme.json` | 主题颜色、图片和可选的应用兼容/布局显式覆盖 |
 
 ---
 
@@ -1016,13 +1072,14 @@ HanaAgent 的 renderer 会在启动和部分界面切换期间被替换。维护
 
 | 早期计划 | 当前实现 |
 |----------|----------|
-| 默认 5 套主题 | 当前保留 4 套主题，两亮两暗 |
-| 支持至少 5 款应用 | 当前注册 8 款应用 |
+| 默认 5 套主题 | 当前源码包含 235 份主题 manifest，运行时按内容去重 |
+| 支持至少 5 款应用 | 当前注册 9 款应用 |
 | 所有应用使用固定端口 | QoderWork 和千问办公使用 `DevToolsActivePort` 随机端口 |
-| 每款应用单独 profile 文件 | 使用集中式 `app-registry.ts` + 4 类注册类型，并为 HanaAgent 增加专属 CSS/菜单分支 |
+| 每款应用单独 profile 文件 | 使用集中式 `app-registry.ts` + 4 类注册类型，并为 HanaAgent、Kimi 增加专属 CSS/生命周期分支 |
 | 主题背景可统一铺 body | WorkBuddy/Codex/其他应用均根据主体 DOM 放置图片，避免侧栏和外壳错误铺图 |
 | 通用菜单挂到 body | 非 WorkBuddy 菜单使用 Shadow DOM host 和重挂载守护 |
 | 需调研 ZCode、千问办公、CatPaw | 已完成 Windows 实机 Electron、CDP、URL 和 DOM 探测 |
-| renderer target 启动后保持不变 | HanaAgent 需要稳定 target 等待、持久脚本和主进程 watcher |
+| renderer target 启动后保持不变 | HanaAgent 需要稳定 target；Kimi 同时维护 Work/Chat 双 target；两者均使用持久脚本和主进程 watcher |
+| 每个主题列出全部兼容应用 | 应用注册表提供 `acceptsGenericThemes` 默认值，manifest 只记录显式例外和布局 |
 
 后续开发不应继续按前文旧文件清单机械创建未使用的 profile、base.css 或 menu.js；应优先深化现有注册表和注入器模块，保持实现与运行路径一致。

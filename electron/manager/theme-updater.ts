@@ -6,6 +6,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { getThemeById, hasThemeContent } from './theme-store';
 import { getUserThemesDir } from './theme-paths';
+import { APP_DEFINITIONS } from './app-registry';
 
 const execFileAsync = promisify(execFile);
 const API_ORIGIN = 'https://api.dreamskin.cc';
@@ -13,7 +14,6 @@ const THEMES_ENDPOINT = `${API_ORIGIN}/v1/themes`;
 const MAX_PACKAGE_BYTES = 32 * 1024 * 1024;
 const PAGE_SIZE = 6;
 let nextOffset = 0;
-const SUPPORTED_APPS = ['workbuddy', 'codex', 'trae-work', 'qoder-work', 'catpaw', 'zcode', 'qwen-office', 'hana-agent'];
 
 interface CommunityTheme {
   applyCompatible: boolean;
@@ -165,7 +165,7 @@ function convertTheme(source: any, metadata: CommunityTheme, id: string, hero: s
       text: parseColor(colors.text, appearance === 'dark' ? '#eef2f7' : '#1f2937', base),
     },
     copy: null,
-    apps: Object.fromEntries(SUPPORTED_APPS.map(appId => [appId, { compat: true }])),
+    apps: Object.fromEntries(APP_DEFINITIONS.filter(app => !app.acceptsGenericThemes).map(app => [app.id, { compat: true }])),
   };
 }
 

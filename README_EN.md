@@ -23,12 +23,12 @@ Dream Work Theme is a desktop theme manager for supported Electron work applicat
 
 ## Interface preview
 
-<details>
-<summary><b>Click to expand the screenshot for display</b></summary>
-
 ![Dream Work Theme Interface preview](preview1.png)
 
 ![Dream Work Theme Interface preview](preview2.png)
+
+<details>
+<summary><b>Click to expand more applications</b></summary>
 
 ![Dream Work Theme Interface preview](preview3.png)
 
@@ -44,9 +44,11 @@ Dream Work Theme is a desktop theme manager for supported Electron work applicat
 
 ![Dream Work Theme Interface preview](preview9.png)
 
+![Dream Work Theme Interface preview](preview10.png)
+
 </details>
 
-## Supported Applications
+## Support Applications
 
 The current application registry supports:
 
@@ -57,9 +59,12 @@ The current application registry supports:
 - ZCode
 - Qwen Office (`QwenWorkCN`)
 - HanaAgent
+- Kimi Work
 - Codex / ChatGPT Desktop
 
-Support is implemented in `electron/manager/app-registry.ts` and `electron/manager/injector.ts`. Some applications use fixed debugging ports, while QoderWork and Qwen Office read their live port from `DevToolsActivePort`. HanaAgent uses fixed port `9346`; Dream Work Theme waits for its renderer to stabilize before injecting a theme.
+Some applications use fixed debugging ports, while QoderWork and Qwen Office read their live port from `DevToolsActivePort`. HanaAgent uses port `9346`, and Kimi Work uses `9347`. Dream Work Theme waits for renderers that are likely to be recreated and restores missing injection while the application is running.
+
+The application registry is the shared source for Windows installation paths, macOS app bundles, Linux executable/desktop-file candidates, and theme compatibility policy. Normal applications use detached spawn on all three platforms. Kimi on Windows mistakes Node, Electron, or PowerShell parents for a development supervisor, so Windows delegates its launch to Explorer through a temporary shortcut; macOS and Linux use the normal detached spawn path.
 
 ## Applications Features
 
@@ -152,6 +157,15 @@ The floating menu shows up to four quick preset themes and is no longer tied to 
 - To enable a theme again, select one from HanaAgent's floating menu or click **Apply Theme** in Dream Work Theme. An explicit apply clears the restored state.
 - Using **Restore Theme** from Dream Work Theme also stops HanaAgent's theme watcher and persistent injection, leaving the native theme active.
 
+### Kimi Work Notes
+
+- Kimi Work uses separate renderers for Work and Chat: `app://localhost/kimi-agent.html` and `https://www.kimi.com/`. Dream Work Theme injects both during the initial apply.
+- A Kimi watcher monitors Work/Chat target creation, navigation, and reloads. The current theme is restored after switching to Chat, switching back to Work, or renderer recreation.
+- Initial Kimi injection no longer waits for fixed 3-4 second timers. The theme is applied immediately after a short CDP renderer stability check.
+- Kimi-specific CSS makes the home page, conversation list, publisher area, and large input wrappers transparent while keeping a light surface on the actual editor card, messages, and controls that need contrast.
+- Kimi backgrounds do not use `backdrop-filter: blur()`, preventing the image from becoming blurred in Work or Chat.
+- On Windows, Explorer must be Kimi's real parent process. Otherwise Kimi can skip its internal `app://` registration and exit after startup. This restriction does not apply to the generic macOS/Linux launch path.
+
 ## Theme Storage
 
 Themes are loaded from two locations, in priority order:
@@ -197,20 +211,20 @@ Example manifest:
     "surface": "#f7fbff",
     "text": "#17344f"
   },
-  "apps": {
-    "workbuddy": { "compat": true },
-    "codex": { "compat": true },
-    "trae-work": { "compat": true },
-    "qoder-work": { "compat": true },
-    "catpaw": { "compat": true },
-    "zcode": { "compat": true },
-    "qwen-office": { "compat": true },
-    "hana-agent": { "compat": true }
-  }
+  "apps": {}
 }
 ```
 
 Validation requires schema version `1`, a lowercase alphanumeric/hyphen ID, a non-empty name, a valid hero file, and four `#RRGGBB` colors.
+
+Compatibility uses a registry-default plus manifest-override model. When `apps[appId].compat` exists, that explicit value wins; otherwise Dream Work Theme reads the application's `acceptsGenericThemes` setting from `app-registry.ts`. Adding another generic-theme application therefore does not require rewriting historical manifests. Add an `apps` entry only for an incompatibility or application-specific layout, for example:
+
+```json
+"apps": {
+  "some-app": { "compat": false },
+  "another-app": { "compat": true, "layout": "compact" }
+}
+```
 
 See [skills/custom-theme-maker/SKILL.md](skills/custom-theme-maker/SKILL.md) for the theme-authoring workflow.
 
@@ -326,17 +340,19 @@ dream-work-theme/
 
 ## Adding an Application
 
-1. Add its executable names, installation paths, renderer URL hints, process name, and port behavior to `electron/manager/app-registry.ts`.
-2. Update discovery or launcher behavior if the application has unusual installation or debugging-port behavior.
+1. Add Windows paths, macOS bundle/executable candidates, Linux executable/desktop files, renderer URL hints, port behavior, and `acceptsGenericThemes` to `electron/manager/app-registry.ts`.
+2. Discovery, process checks, termination, and normal launching read the registry by default. Modify discovery or launcher code only for unusual installation layouts, dynamic ports, or parent-process restrictions.
 3. Add application-specific injection CSS and menu behavior in `electron/manager/injector.ts`.
-4. Add the application ID to compatible theme manifests and community conversion where appropriate.
-5. Test launch, apply, refresh status, restore, auxiliary windows, and application exit.
+4. Do not rewrite theme manifests for generic compatibility; use explicit `apps` overrides only for exceptions or special layouts.
+5. Test discovery, launch, apply, renderer navigation/recreation, status refresh, restore, auxiliary windows, and application exit on the target operating system.
 
 ## Known Limitations
 
 - Injection exists in the target application's running renderer; closing the application removes the runtime injection.
 - Application updates can change DOM selectors and require injector adjustments.
 - HanaAgent recreates its renderer during startup and some view transitions, so the initial theme application can take several seconds longer than for other applications.
+- Kimi Work's Work/Chat renderers and website DOM can change with client or site updates, requiring URL-hint and transparency-selector maintenance.
+- The macOS/Linux registry candidates for TRAE Work, QoderWork, CatPaw, ZCode, and Qwen Office have not been verified against installed samples. Discovery is unavailable if the product does not publish a build for that platform.
 - Unsigned Windows and macOS packages can trigger operating-system security warnings.
 - Windows currently uses Electron's default executable icon and metadata because executable editing is disabled in the local build configuration.
 - Large bundled theme collections produce large installers and require significant build and installation disk space.

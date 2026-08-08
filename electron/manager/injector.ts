@@ -10,6 +10,9 @@ const MENU_ID = 'dream-work-menu';
 const hanaAgentPersistentScripts = new Map<string, string>();
 const hanaAgentWatchers = new Map<number, NodeJS.Timeout>();
 const hanaAgentGenerations = new Map<number, number>();
+const kimiPersistentScripts = new Map<string, string>();
+const kimiWatchers = new Map<number, NodeJS.Timeout>();
+const kimiGenerations = new Map<number, number>();
 const WORKBUDDY_CSS_PLACEHOLDERS = {
   id: 'wb-dream-sentinel-id',
   hero: 'data:image/png;base64,WBDREAMHEROSENTINEL',
@@ -58,6 +61,15 @@ export async function applyTheme(
     } catch (e: any) {
       lastError = e.message;
       console.log(`[injector] Hint "${hint}" failed: ${e.message}`);
+    }
+  }
+
+  if (appId === 'kimi') {
+    try {
+      const allTargets = await fetchKimiTargets(port);
+      if (allTargets.length > 0) targets = allTargets;
+    } catch (e: any) {
+      console.log(`[injector] Failed to collect all Kimi targets: ${e.message}`);
     }
   }
 
@@ -211,12 +223,18 @@ export async function applyTheme(
         await session.open();
 
         if (appId === 'workbuddy') {
-          const isWorkBuddy = await session.evaluate(`(() => {
-            const body = document.body;
-            return body?.dataset.applicationName === 'workbuddy' && Boolean(
-              document.querySelector('[data-view-id], .teams-container, .conversation-list, .main-content')
-            );
-          })()`);
+          let isWorkBuddy = false;
+          const deadline = Date.now() + 15000;
+          while (Date.now() < deadline) {
+            isWorkBuddy = await session.evaluate(`(() => {
+              const body = document.body;
+              return body?.dataset.applicationName === 'workbuddy' && Boolean(
+                document.querySelector('[data-view-id], .teams-container, .conversation-list, .main-content')
+              );
+            })()`).catch(() => false);
+            if (isWorkBuddy) break;
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
           if (!isWorkBuddy) {
             console.warn(`[injector] Skipping non-WorkBuddy target ${target.id}: ${target.url}`);
             session.close();
@@ -240,7 +258,7 @@ export async function applyTheme(
           }
         }
         
-        if (appId === 'hana-agent') {
+        if (appId === 'hana-agent' || appId === 'kimi') {
           const persistentScript = `(() => {
             const inject = () => ${menuScript};
             if (document.readyState === 'loading') {
@@ -249,12 +267,13 @@ export async function applyTheme(
               inject();
             }
           })()`;
-          const previousIdentifier = hanaAgentPersistentScripts.get(target.id);
+          const persistentScripts = appId === 'hana-agent' ? hanaAgentPersistentScripts : kimiPersistentScripts;
+          const previousIdentifier = persistentScripts.get(target.id);
           if (previousIdentifier) {
             await session.removeScriptToEvaluateOnNewDocument(previousIdentifier).catch(() => {});
           }
           const identifier = await session.addScriptToEvaluateOnNewDocument(persistentScript);
-          if (identifier) hanaAgentPersistentScripts.set(target.id, identifier);
+          if (identifier) persistentScripts.set(target.id, identifier);
         }
         const evalResult = await session.evaluate(appId === 'hana-agent'
           ? `(() => { window.__dreamWorkForceApply = true; return ${menuScript}; })()`
@@ -448,12 +467,79 @@ export async function applyTheme(
       }
       return { success: false, applied: 0, error: 'HanaAgent renderer did not stabilize with the injected theme' };
     }
+    if (appId === 'kimi' && applied > 0) {
+      startKimiWatcher(port, menuScript, new Set(targets.map(target => target.id)));
+    }
     if (applied > 0) recordThemeUsage(appId, themeId);
     return { success: applied > 0, applied };
   } catch (error: any) {
     console.error('[injector] Injection failed:', error);
     return { success: false, applied: 0, error: error.message };
   }
+}
+
+async function fetchKimiTargets(port: number): Promise<any[]> {
+  const response = await fetch(`http://127.0.0.1:${port}/json/list`, { signal: AbortSignal.timeout(2000) });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const targets = await response.json() as any[];
+  return (Array.isArray(targets) ? targets : []).filter(target => {
+    if (target?.type !== 'page' || !target.webSocketDebuggerUrl) return false;
+    const url = String(target.url ?? '');
+    return url.includes('kimi-agent.html') || url.includes('kimichat.html') || /^https:\/\/(?:www\.)?kimi\.com\//.test(url);
+  });
+}
+
+function startKimiWatcher(port: number, menuScript: string, injectedTargetIds: Set<string>): void {
+  const existing = kimiWatchers.get(port);
+  if (existing) clearInterval(existing);
+  const generation = (kimiGenerations.get(port) ?? 0) + 1;
+  kimiGenerations.set(port, generation);
+  let busy = false;
+  const timer = setInterval(async () => {
+    if (busy || kimiGenerations.get(port) !== generation) return;
+    busy = true;
+    try {
+      const targets = await fetchKimiTargets(port);
+      for (const target of targets) {
+        if (kimiGenerations.get(port) !== generation) return;
+        const session = new CdpSession(target.webSocketDebuggerUrl);
+        try {
+          await session.open();
+          const state = await session.evaluate(`(() => ({
+            ready: Boolean(document.getElementById('${STYLE_ID}') && document.documentElement.dataset.dreamTheme),
+            restored: document.documentElement.dataset.dreamThemeRestored === 'true'
+          }))()`).catch(() => ({ ready: false, restored: false }));
+          if (state.ready || state.restored) {
+            injectedTargetIds.add(target.id);
+            continue;
+          }
+          console.log(`[injector] Kimi watcher restoring theme on target ${target.id}: ${target.url}`);
+          if (!injectedTargetIds.has(target.id)) {
+            const persistentScript = `(() => {
+              const inject = () => ${menuScript};
+              if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', inject, { once: true });
+              else inject();
+            })()`;
+            const identifier = await session.addScriptToEvaluateOnNewDocument(persistentScript);
+            if (identifier) kimiPersistentScripts.set(target.id, identifier);
+          }
+          await session.evaluate(menuScript);
+          injectedTargetIds.add(target.id);
+        } finally {
+          session.close();
+        }
+      }
+    } catch {
+      if (!(await isPortReachable(port))) {
+        clearInterval(timer);
+        kimiWatchers.delete(port);
+      }
+    } finally {
+      busy = false;
+    }
+  }, 750);
+  timer.unref();
+  kimiWatchers.set(port, timer);
 }
 
 export async function getStatus(
@@ -621,6 +707,12 @@ export async function removeSkin(
     if (watcher) clearInterval(watcher);
     hanaAgentWatchers.delete(port);
   }
+  if (appId === 'kimi') {
+    kimiGenerations.set(port, (kimiGenerations.get(port) ?? 0) + 1);
+    const watcher = kimiWatchers.get(port);
+    if (watcher) clearInterval(watcher);
+    kimiWatchers.delete(port);
+  }
   const rendererUrlHint = options.rendererUrlHint ?? getAppDefinition(appId)?.rendererHints[0] ?? 'renderer/index.html';
   let targets: any[] = [];
 
@@ -697,6 +789,9 @@ function buildAppCss(appId: string, manifest: any, heroDataUrl: string): string 
   if (definition?.kind === 'generic-work') {
     if (appId === 'hana-agent') {
       return buildHanaAgentCss(manifest, heroDataUrl, colors);
+    }
+    if (appId === 'kimi') {
+      return buildKimiCss(manifest, heroDataUrl, colors);
     }
     return buildGenericWorkCss(appId, manifest, heroDataUrl, colors);
   }
@@ -1004,6 +1099,133 @@ html, body, #react-root, .app-shell {
 :where(button[class*="primary"], button[type="submit"]) {
   background-color: ${colors.accent} !important;
   color: #ffffff !important;
+}`;
+}
+
+function buildKimiCss(manifest: any, heroDataUrl: string, colors: any): string {
+  const accent = colors.accent;
+  const secondary = colors.secondary;
+  const surface = colors.surface;
+  const text = colors.text;
+  return `/* DREAM_THEME:${manifest.id} */
+html.dark, html {
+  --Bg-Primary: color-mix(in srgb, ${surface} 54%, transparent) !important;
+  --Bg-Primary90: color-mix(in srgb, ${surface} 48%, transparent) !important;
+  --Bg-Secondary: color-mix(in srgb, ${surface} 46%, transparent) !important;
+  --Bg-Tertiary: color-mix(in srgb, ${surface} 36%, transparent) !important;
+  --Bg-Quaternary: color-mix(in srgb, ${surface} 28%, transparent) !important;
+  --BgGp-Primary: color-mix(in srgb, ${surface} 54%, transparent) !important;
+  --BgGp-Primary90: color-mix(in srgb, ${surface} 48%, transparent) !important;
+  --BgGp-Secondary: color-mix(in srgb, ${surface} 46%, transparent) !important;
+  --BgGp-Tertiary: color-mix(in srgb, ${surface} 36%, transparent) !important;
+  --Bg-GroundPC: color-mix(in srgb, ${surface} 20%, transparent) !important;
+  --Labels-Primary: color-mix(in srgb, ${text} 88%, #000000) !important;
+  --Labels-Secondary: color-mix(in srgb, ${text} 62%, transparent) !important;
+  --Labels-Tertiary: color-mix(in srgb, ${text} 44%, transparent) !important;
+  --Labels-Quaternary: color-mix(in srgb, ${text} 28%, transparent) !important;
+  --Colors-KMBlue: ${accent} !important;
+  --Others-KMBlue10: color-mix(in srgb, ${accent} 12%, transparent) !important;
+  --Others-BubbleBlue: color-mix(in srgb, ${accent} 26%, ${surface}) !important;
+  --Others-TextSelected: color-mix(in srgb, ${accent} 22%, transparent) !important;
+  --Syntax-Mark: ${accent} !important;
+}
+html, body, .page {
+  background-color: ${surface} !important;
+  color: ${text} !important;
+}
+body {
+  background-image: url(${JSON.stringify(heroDataUrl)}) !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+}
+.page, #app, .n-config-provider,
+.home-view, .home-scroll, .home-scroll-content,
+.conversation-tab, .conversation-view {
+  background: transparent !important;
+}
+.sidebar, main.main-pane {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.sidebar {
+  background: color-mix(in srgb, ${surface} 30%, transparent) !important;
+  border-right: 1px solid color-mix(in srgb, ${accent} 18%, transparent) !important;
+  color: ${text} !important;
+}
+main.main-pane {
+  background: color-mix(in srgb, ${surface} 16%, transparent) !important;
+  border-radius: 12px !important;
+  color: ${text} !important;
+}
+.app > .main {
+  background: color-mix(in srgb, ${surface} 16%, transparent) !important;
+}
+.app > .main :where(.publisher-stage, .layout-sticky-space, .layout-sticky-group, .layout-header) {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.app > .main :where(#chat-box, .home-input-options) {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.app > .main .chat-editor-content {
+  background: color-mix(in srgb, ${surface} 42%, transparent) !important;
+  border-color: color-mix(in srgb, ${accent} 24%, transparent) !important;
+}
+main.main-pane .conversation-tab,
+main.main-pane .conversation-view,
+main.main-pane [class*="conversation"] {
+  background: transparent !important;
+  color: ${text} !important;
+}
+main.main-pane :where([class*="message"], [class*="chat"], [class*="composer"], [class*="input"], [contenteditable="true"], textarea) {
+  background-color: color-mix(in srgb, ${surface} 66%, transparent) !important;
+  border-color: color-mix(in srgb, ${accent} 30%, transparent) !important;
+  color: ${text} !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+main.main-pane :where(.message-list, .message-scroller, .message-list-inner, .messages, .msg-assistant, .chat-markdown) {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+main.main-pane :where(.composer-dock, .composer-inner, .composer-wrap, .composer-editor, .composer-toolbar) {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+main.main-pane .composer.docked {
+  background: color-mix(in srgb, ${surface} 42%, transparent) !important;
+}
+main.main-pane :where([class*="message"], [class*="chat"], [class*="composer"], [class*="input"]) :where(p, span, li, h1, h2, h3, h4, strong, em, a) {
+  color: ${text} !important;
+}
+[contenteditable="true"], textarea, input {
+  color: ${text} !important;
+  caret-color: ${accent} !important;
+}
+:where(button[class*="primary"], button[mode="primary"]) {
+  background-color: ${accent} !important;
+  color: #ffffff !important;
+}
+.nav-item, .mode-tab, .sidebar-scroll a, .sidebar-scroll span, .sidebar-footer, .account {
+  color: ${text} !important;
+}
+.nav-item:hover, .mode-tab:hover, [class*="nav-item"]:hover {
+  background-color: color-mix(in srgb, ${accent} 18%, transparent) !important;
+}
+.win-titlebar-drag {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.message-list-container:where(.top) {
+  display: none !important;
 }`;
 }
 
@@ -1628,38 +1850,42 @@ function buildCodexCss(manifest: any, heroDataUrl: string, colors: any): string 
   --dream-skin-art: url(${JSON.stringify(heroDataUrl)});
 }`;
 
-  // Keep the artwork on Codex's right-hand main surface. The body remains a
-  // solid shell so the sidebar and window chrome do not inherit the wallpaper.
+  // Keep one continuous wallpaper behind the window chrome, sidebar, and main
+  // surface. Individual surfaces add only the contrast they need.
   const bodyArt = `/* DREAM_THEME_BODY:${manifest.id} */
-html.codex-dream-skin body {
-  background-color: ${colors.surface} !important;
-  background-image: none !important;
-}
-
-html.codex-dream-skin main.main-surface {
-  position: relative !important;
-  isolation: isolate !important;
-  background-color: ${colors.surface} !important;
-  background-image: none !important;
-}
-
-html.codex-dream-skin main.main-surface::before {
-  content: "" !important;
-  position: absolute !important;
-  inset: 0 !important;
-  z-index: -1 !important;
-  pointer-events: none !important;
+html.codex-dream-skin[data-dream-theme],
+html.codex-dream-skin[data-dream-theme] body {
   background-color: ${colors.surface} !important;
   background-image: var(--dream-skin-art) !important;
   background-position: center center !important;
   background-size: cover !important;
   background-repeat: no-repeat !important;
-  opacity: 1 !important;
+  background-attachment: fixed !important;
 }
 
-html.codex-dream-skin main.main-surface > header.app-header-tint {
-  background: color-mix(in srgb, ${colors.surface} 76%, transparent) !important;
-  backdrop-filter: blur(14px) saturate(108%) !important;
+html.codex-dream-skin[data-dream-theme] main.main-surface,
+html.codex-dream-skin[data-dream-theme] main.main-surface:not(.dream-skin-home-shell) {
+  position: relative !important;
+  isolation: isolate !important;
+  background-color: color-mix(in srgb, ${colors.surface} 12%, transparent) !important;
+  background-image: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme] main.main-surface::before {
+  content: none !important;
+  background: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme] aside.app-shell-left-panel {
+  background: color-mix(in srgb, ${colors.surface} 30%, transparent) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme] main.main-surface > header.app-header-tint {
+  background: color-mix(in srgb, ${colors.surface} 16%, transparent) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 html.codex-dream-skin main.main-surface [role="main"],
@@ -2222,7 +2448,7 @@ export function buildMenuScript(options: {
     if (!theme) return;
     window.__dreamWorkThemeStyle.textContent = materializeCss(theme.css, theme.id);
     document.documentElement.dataset.dreamTheme = themeId;
-    if (appId !== 'hana-agent') applyMode(theme.surface);
+    if (appId !== 'hana-agent' && appId !== 'kimi') applyMode(theme.surface);
     
     // Codex themes require the codex-dream-skin class on <html> for CSS selectors to match
     if (appId === 'codex') {
@@ -2257,7 +2483,7 @@ export function buildMenuScript(options: {
   const restoreNative = () => {
     window.__dreamWorkThemeStyle.textContent = '';
     delete document.documentElement.dataset.dreamTheme;
-    if (appId !== 'hana-agent') applyMode('#ffffff');
+    if (appId !== 'hana-agent' && appId !== 'kimi') applyMode('#ffffff');
     if (appId === 'codex') {
       document.documentElement.classList.remove('codex-dream-skin');
       delete document.documentElement.dataset.dreamShell;

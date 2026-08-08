@@ -111,8 +111,6 @@ function App() {
       const launchResult = await window.dreamWork.launchApp(appId, themeId);
       if (launchResult.success && launchResult.port) {
         appPorts.current[appId] = launchResult.port;
-        // Wait a bit for the app to start, then apply
-        await new Promise(r => setTimeout(r, 4000));
         const applyResult = await window.dreamWork.applyTheme(appId, themeId, launchResult.port);
         if (applyResult.success) {
           setStatuses(current => ({ ...current, [appId]: { installed: true, menu: true, themeId, port: launchResult.port } }));

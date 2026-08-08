@@ -73,16 +73,9 @@ if (launchArgs) {
         const result = await launchApp(appId, themeId);
         if (result.success) {
           console.log(`[main] Launched ${appId} with theme ${themeId} on port ${result.port}`);
-          // Inject theme after app starts
-          setTimeout(async () => {
-            try {
-              console.log(`[main] Starting theme injection for ${appId}:${themeId} on port ${result.port}`);
-              const injectResult = await applyTheme(appId, themeId, result.port!);
-              console.log(`[main] Injection result:`, injectResult);
-            } catch (e) {
-              console.error('[main] Failed to inject theme:', e);
-            }
-          }, 3000);
+          console.log(`[main] Starting theme injection for ${appId}:${themeId} on port ${result.port}`);
+          const injectResult = await applyTheme(appId, themeId, result.port!);
+          console.log(`[main] Injection result:`, injectResult);
         } else {
           console.error(`[main] Failed to launch ${appId}: ${result.error}`);
         }

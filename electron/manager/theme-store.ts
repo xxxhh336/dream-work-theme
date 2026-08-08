@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as crypto from 'crypto';
 import { ThemeManifest } from '../../shared/types';
 import { getThemeSearchDirs } from './theme-paths';
+import { getAppDefinition } from './app-registry';
 
 export interface ThemeEntry {
   id: string;
@@ -34,7 +35,7 @@ export function listThemes(appId?: string): ThemeEntry[] {
         if (seenIds.has(manifest.id)) continue;
         const heroPath = path.join(themeDir, manifest.hero);
         if (!fs.existsSync(heroPath) || !fs.statSync(heroPath).isFile()) throw new Error(`theme hero is missing: ${manifest.hero}`);
-        if (appId && manifest.apps[appId]?.compat !== true && appId !== 'hana-agent') continue;
+        if (appId && !isThemeCompatible(manifest, appId)) continue;
 
         seenIds.add(manifest.id);
         entries.push({
@@ -60,6 +61,12 @@ export function listThemes(appId?: string): ThemeEntry[] {
   }
 
   return [...uniqueEntries.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function isThemeCompatible(manifest: ThemeManifest, appId: string): boolean {
+  const declaredCompatibility = manifest.apps[appId]?.compat;
+  if (declaredCompatibility !== undefined) return declaredCompatibility;
+  return getAppDefinition(appId)?.acceptsGenericThemes === true;
 }
 
 function getHeroHash(heroPath: string): string {

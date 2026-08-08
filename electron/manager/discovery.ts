@@ -1,11 +1,10 @@
-import { exec, execFile } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs';
-import { APP_DEFINITIONS } from './app-registry';
+import { APP_DEFINITIONS, AppDefinition } from './app-registry';
 
-const execAsync = promisify(exec);
 const execFileAsync = promisify(execFile);
 
 function findWindowsAppsOpenAIExes(): string[] {
@@ -62,6 +61,15 @@ export interface DiscoveredApp {
 
 export async function discoverApps(): Promise<DiscoveredApp[]> {
   const results: DiscoveredApp[] = [];
+  const platform = os.platform();
+
+  if (platform !== 'win32') {
+    for (const definition of APP_DEFINITIONS) {
+      const found = await findDefinitionOnCurrentPlatform(definition);
+      if (found) results.push({ appId: definition.id, name: definition.name, path: found });
+    }
+    return results;
+  }
 
   for (const definition of APP_DEFINITIONS.filter(app => app.id !== 'codex')) {
     const found = findWindowsExecutable(definition.exeNames, definition.installPaths);
@@ -79,6 +87,52 @@ export async function discoverApps(): Promise<DiscoveredApp[]> {
   else if (codex) results.push({ appId: 'codex', name: 'Codex', path: codex });
 
   return results;
+}
+
+async function findDefinitionOnCurrentPlatform(definition: AppDefinition): Promise<string | null> {
+  const platform = os.platform();
+  if (platform === 'darwin') {
+    for (const bundleName of definition.darwin?.appBundles ?? []) {
+      const bundlePath = path.join('/Applications', bundleName);
+      if (fs.existsSync(bundlePath)) return bundlePath;
+    }
+    return null;
+  }
+
+  if (platform === 'linux') {
+    for (const desktopFile of definition.linux?.desktopFiles ?? []) {
+      const executablePath = await findLinuxDesktopExecutable(desktopFile);
+      if (executablePath) return executablePath;
+    }
+    for (const executableName of definition.linux?.executableNames ?? []) {
+      try {
+        const { stdout } = await execFileAsync('which', [executableName], { encoding: 'utf8' });
+        const executablePath = stdout.trim();
+        if (executablePath && fs.existsSync(executablePath)) return executablePath;
+      } catch {}
+    }
+  }
+  return null;
+}
+
+async function findLinuxDesktopExecutable(desktopFile: string): Promise<string | null> {
+  for (const desktopPath of [
+    path.join(os.homedir(), '.local', 'share', 'applications', desktopFile),
+    path.join('/usr/share/applications', desktopFile),
+    path.join('/usr/local/share/applications', desktopFile),
+  ]) {
+    if (!fs.existsSync(desktopPath)) continue;
+    const match = fs.readFileSync(desktopPath, 'utf8').match(/^Exec=(?:env\s+\S+=\S+\s+)*(?:"([^"]+)"|(\S+))/m);
+    const executable = match?.[1] || match?.[2];
+    if (!executable) continue;
+    if (path.isAbsolute(executable) && fs.existsSync(executable)) return executable;
+    try {
+      const { stdout } = await execFileAsync('which', [executable], { encoding: 'utf8' });
+      const resolved = stdout.trim();
+      if (resolved && fs.existsSync(resolved)) return resolved;
+    } catch {}
+  }
+  return null;
 }
 
 function findWindowsExecutable(exeNames: string[], installPaths: string[]): string | null {
@@ -101,86 +155,6 @@ function findWindowsExecutable(exeNames: string[], installPaths: string[]): stri
         }
       }
     } catch {}
-  }
-  return null;
-}
-
-async function findApp(appId: string, platforms: any): Promise<string | null> {
-  const platform = os.platform();
-  const platformConfig = platforms[platform];
-  if (!platformConfig) return null;
-
-  if (platform === 'win32') {
-    for (const exe of platformConfig.exeNames) {
-      for (const base of platformConfig.installPaths) {
-        const full = path.join(base, exe);
-        if (fs.existsSync(full)) return full;
-      }
-    }
-    // Fallback: scan Program Files
-    const scanDirs = [
-      path.join(process.env.ProgramFiles || 'C:\\Program Files', ''),
-      path.join(process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)', ''),
-    ];
-    for (const dir of scanDirs) {
-      if (!dir || !fs.existsSync(dir)) continue;
-      try {
-        const items = fs.readdirSync(dir);
-        const match = items.find((item: string) => item.toLowerCase().includes(appId) || item.toLowerCase().includes('workbuddy') || item.toLowerCase().includes('openai'));
-        if (match) {
-          const full = path.join(dir, match);
-          const exe = path.join(full, platformConfig.exeNames[0]);
-          if (fs.existsSync(exe)) return exe;
-        }
-      } catch {}
-    }
-  } else if (platform === 'darwin') {
-    // Try mdfind first
-    try {
-      const { stdout } = await execAsync(`mdfind 'kMDItemCFBundleIdentifier == "${platformConfig.bundleId}"' 2>/dev/null | head -1`);
-      const found = stdout.trim();
-      if (found && fs.existsSync(found)) return found;
-    } catch {}
-    // Fallback
-    const fallback = `/Applications/${platformConfig.appName}`;
-    if (fs.existsSync(fallback)) return fallback;
-  } else if (platform === 'linux') {
-    // Try desktop files first
-    for (const desktop of platformConfig.desktopFiles) {
-      const locations = [
-        path.join(os.homedir(), '.local', 'share', 'applications', desktop),
-        `/usr/share/applications/${desktop}`,
-        `/usr/local/share/applications/${desktop}`,
-      ];
-      for (const loc of locations) {
-        if (fs.existsSync(loc)) {
-          const content = fs.readFileSync(loc, 'utf-8');
-          const match = content.match(/^Exec=(.+)$/m);
-          if (match) {
-            const exe = match[1].split(' ')[0];
-            if (exe.startsWith('/') && fs.existsSync(exe)) return exe;
-            const which = await execAsync(`which ${exe} 2>/dev/null`).catch(() => ({ stdout: '' }));
-            if (which.stdout && fs.existsSync(which.stdout.trim())) return which.stdout.trim();
-          }
-        }
-      }
-    }
-    // Fallback: search common paths
-    const exeNames = platformConfig.exeNames || [];
-    const searchPaths = [
-      '/usr/bin',
-      '/usr/local/bin',
-      '/opt',
-      path.join(os.homedir(), '.local', 'bin'),
-      '/snap/bin',
-    ];
-    for (const base of searchPaths) {
-      if (!fs.existsSync(base)) continue;
-      for (const exe of exeNames) {
-        const full = path.join(base, exe);
-        if (fs.existsSync(full)) return full;
-      }
-    }
   }
   return null;
 }

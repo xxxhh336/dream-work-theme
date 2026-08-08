@@ -12,7 +12,7 @@ const execFileAsync = promisify(execFile);
 export async function isAppRunning(appId: string): Promise<boolean> {
   const definition = getAppDefinition(appId);
   if (!definition) return false;
-  const processNames = [...new Set([definition.processName, ...definition.exeNames].filter(Boolean))];
+  const processNames = getPlatformProcessNames(definition);
 
   if (os.platform() === 'win32') {
     for (const processName of processNames) {
@@ -51,7 +51,7 @@ export async function launchApp(appId: string, themeId?: string): Promise<{ succ
     args.push('--disable-extensions');
   }
 
-  if (themeId) {
+  if (themeId && appId !== 'kimi') {
     args.push(`--dream-theme=${themeId}`);
   }
 
@@ -63,32 +63,30 @@ export async function launchApp(appId: string, themeId?: string): Promise<{ succ
     await killExistingInstances(appId);
     await waitForPortToClose(port, 15000);
 
-    if (profile.devToolsActivePort) {
-      try { fs.unlinkSync(profile.devToolsActivePort); } catch {}
+    const devToolsActivePort = os.platform() === 'win32' ? profile.devToolsActivePort : undefined;
+    if (devToolsActivePort) {
+      try { fs.unlinkSync(devToolsActivePort); } catch {}
     }
     
     console.log(`[launcher] Launching ${appPath} with args: ${args.join(' ')}`);
-    const child = spawn(appPath, args, {
-      detached: true,
-      stdio: 'ignore',
-      env: getCleanLaunchEnvironment(),
-    });
-    child.unref();
-    
-    console.log(`[launcher] Spawned process with PID: ${child.pid}`);
+    const pid = appId === 'kimi' && os.platform() === 'win32'
+      ? await launchKimiDetached(appPath, args)
+      : launchDetached(appPath, args);
+
+    console.log(`[launcher] Spawned process${pid ? ` with PID: ${pid}` : ''}`);
 
     // Wait for CDP port to be ready
     console.log(`[launcher] Waiting for CDP port ${port} to be ready...`);
     let actualPort = port;
-    if (profile.devToolsActivePort) {
-      actualPort = await waitForDevToolsActivePort(profile.devToolsActivePort, profile.rendererHints, 30000);
+    if (devToolsActivePort) {
+      actualPort = await waitForDevToolsActivePort(devToolsActivePort, profile.rendererHints, 30000);
     } else {
       await waitForPort(port, 30000);
     }
     console.log(`[launcher] CDP port ${actualPort} is ready`);
 
-    if (appId === 'hana-agent') {
-      await waitForStableRenderer(actualPort, profile.rendererHints, 30000);
+    if (appId === 'hana-agent' || appId === 'kimi') {
+      await waitForStableRenderer(actualPort, profile.rendererHints, 30000, appId === 'kimi' ? 750 : 3000);
     }
 
     return { success: true, port: actualPort };
@@ -96,6 +94,61 @@ export async function launchApp(appId: string, themeId?: string): Promise<{ succ
     console.error(`[launcher] Launch failed:`, error);
     return { success: false, error: error.message };
   }
+}
+
+function launchDetached(appPath: string, args: string[]): number | undefined {
+  const child = spawn(appPath, args, {
+    detached: true,
+    stdio: 'ignore',
+    env: getCleanLaunchEnvironment(),
+  });
+  child.unref();
+  return child.pid;
+}
+
+async function launchKimiDetached(appPath: string, args: string[]): Promise<undefined> {
+  const shortcutPath = path.join(os.tmpdir(), `dream-work-kimi-${process.pid}-${Date.now()}.lnk`);
+  const env = {
+    ...getCleanLaunchEnvironment(),
+    DREAM_WORK_LAUNCH_EXE: appPath,
+    DREAM_WORK_LAUNCH_ARGS: JSON.stringify(args),
+    DREAM_WORK_LAUNCH_CWD: path.dirname(appPath),
+    DREAM_WORK_LAUNCH_SHORTCUT: shortcutPath,
+  };
+  const script = [
+    '[string[]]$launchArgs = @($env:DREAM_WORK_LAUNCH_ARGS | ConvertFrom-Json)',
+    '$shell = New-Object -ComObject WScript.Shell',
+    '$shortcut = $shell.CreateShortcut($env:DREAM_WORK_LAUNCH_SHORTCUT)',
+    '$shortcut.TargetPath = $env:DREAM_WORK_LAUNCH_EXE',
+    "$shortcut.Arguments = [string]::Join(' ', $launchArgs)",
+    '$shortcut.WorkingDirectory = $env:DREAM_WORK_LAUNCH_CWD',
+    '$shortcut.Save()',
+  ].join('; ');
+
+  // Kimi disables app:// when launched under Node, Electron, or PowerShell because
+  // it mistakes them for a development supervisor. Create the shortcut first, then
+  // let the existing Windows shell become Kimi's actual parent process.
+  await execFileAsync('powershell.exe', [
+    '-NoLogo',
+    '-NoProfile',
+    '-NonInteractive',
+    '-ExecutionPolicy',
+    'Bypass',
+    '-Command',
+    script,
+  ], { env, windowsHide: true });
+
+  const explorer = spawn(path.join(process.env.WINDIR || 'C:\\Windows', 'explorer.exe'), [shortcutPath], {
+    detached: true,
+    stdio: 'ignore',
+    env: getCleanLaunchEnvironment(),
+  });
+  explorer.unref();
+  const cleanupTimer = setTimeout(() => {
+    try { fs.unlinkSync(shortcutPath); } catch {}
+  }, 15000);
+  cleanupTimer.unref();
+  return undefined;
 }
 
 function getCleanLaunchEnvironment(): NodeJS.ProcessEnv {
@@ -109,6 +162,12 @@ function getCleanLaunchEnvironment(): NodeJS.ProcessEnv {
     delete env[key];
   }
   return env;
+}
+
+function getPlatformProcessNames(definition: NonNullable<ReturnType<typeof getAppDefinition>>): string[] {
+  if (os.platform() === 'darwin') return definition.darwin?.executableNames ?? [];
+  if (os.platform() === 'linux') return definition.linux?.executableNames ?? [];
+  return [...new Set([definition.processName, ...definition.exeNames].filter(Boolean))];
 }
 
 async function waitForDevToolsActivePort(filePath: string, rendererHints: string[], timeoutMs: number): Promise<number> {
@@ -144,7 +203,7 @@ async function verifyRendererEndpoint(port: number, rendererHints: string[], tim
   throw new Error(`CDP renderer endpoint is not ready on port ${port}`);
 }
 
-async function waitForStableRenderer(port: number, rendererHints: string[], timeoutMs: number): Promise<void> {
+async function waitForStableRenderer(port: number, rendererHints: string[], timeoutMs: number, stableMs: number): Promise<void> {
   const startedAt = Date.now();
   let stableId = '';
   let stableSince = 0;
@@ -158,15 +217,15 @@ async function waitForStableRenderer(port: number, rendererHints: string[], time
         if (target.id !== stableId) {
           stableId = target.id;
           stableSince = Date.now();
-        } else if (Date.now() - stableSince >= 3000) {
-          console.log(`[launcher] Stable HanaAgent renderer ${stableId} confirmed`);
+        } else if (Date.now() - stableSince >= stableMs) {
+          console.log(`[launcher] Stable renderer ${stableId} confirmed`);
           return;
         }
       }
     } catch {}
     await new Promise(resolve => setTimeout(resolve, 250));
   }
-  throw new Error(`HanaAgent renderer did not stabilize on port ${port}`);
+  throw new Error(`Renderer did not stabilize on port ${port}`);
 }
 
 function findAvailablePort(startPort: number): number {
@@ -267,7 +326,7 @@ async function killExistingInstances(appId: string): Promise<void> {
   const platform = os.platform();
   const definition = getAppDefinition(appId);
   if (!definition) return;
-  const exeNames = [...new Set([definition.processName, ...definition.exeNames].filter(Boolean))];
+  const exeNames = getPlatformProcessNames(definition);
   
   try {
     if (platform === 'win32') {
@@ -396,12 +455,20 @@ function getAppPath(appId: string): string {
       }
     }
   } else if (platform === 'darwin') {
-    const apps = ['/Applications/WorkBuddy.app', '/Applications/ChatGPT.app'];
-    for (const app of apps) {
-      if (fs.existsSync(app)) return app;
+    for (const bundleName of definition.darwin?.appBundles ?? []) {
+      const appBundle = path.join('/Applications', bundleName);
+      if (!fs.existsSync(appBundle)) continue;
+      for (const executableName of definition.darwin?.executableNames ?? []) {
+        const executable = path.join(appBundle, 'Contents', 'MacOS', executableName);
+        if (fs.existsSync(executable)) return executable;
+      }
     }
   } else if (platform === 'linux') {
-    const exeNames = appId === 'workbuddy' ? ['workbuddy', 'WorkBuddy'] : ['codex', 'Codex'];
+    const exeNames = definition.linux?.executableNames ?? [];
+    for (const desktopFile of definition.linux?.desktopFiles ?? []) {
+      const desktopExecutable = findLinuxDesktopExecutable(desktopFile);
+      if (desktopExecutable) return desktopExecutable;
+    }
     const searchPaths = [
       '/usr/bin',
       '/usr/local/bin',
@@ -419,11 +486,31 @@ function getAppPath(appId: string): string {
     // Fallback to which
     for (const exe of exeNames) {
       try {
-        const { execSync } = require('child_process');
-        const resolved = execSync(`which ${exe} 2>/dev/null || echo ''`).toString().trim();
+        const { execFileSync } = require('child_process');
+        const resolved = execFileSync('which', [exe], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
         if (resolved && fs.existsSync(resolved)) return resolved;
       } catch {}
     }
   }
   throw new Error(`Could not find ${appId} executable`);
+}
+
+function findLinuxDesktopExecutable(desktopFile: string): string | undefined {
+  for (const desktopPath of [
+    path.join(os.homedir(), '.local', 'share', 'applications', desktopFile),
+    path.join('/usr/share/applications', desktopFile),
+    path.join('/usr/local/share/applications', desktopFile),
+  ]) {
+    if (!fs.existsSync(desktopPath)) continue;
+    const match = fs.readFileSync(desktopPath, 'utf8').match(/^Exec=(?:env\s+\S+=\S+\s+)*(?:"([^"]+)"|(\S+))/m);
+    const executable = match?.[1] || match?.[2];
+    if (!executable) continue;
+    if (path.isAbsolute(executable) && fs.existsSync(executable)) return executable;
+    try {
+      const { execFileSync } = require('child_process');
+      const resolved = execFileSync('which', [executable], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+      if (resolved && fs.existsSync(resolved)) return resolved;
+    } catch {}
+  }
+  return undefined;
 }

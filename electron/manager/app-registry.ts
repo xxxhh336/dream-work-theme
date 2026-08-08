@@ -11,6 +11,9 @@ export interface AppDefinition {
   rendererHints: string[];
   kind: 'workbuddy' | 'codex' | 'vscode-work' | 'generic-work';
   devToolsActivePort?: string;
+  acceptsGenericThemes: boolean;
+  darwin?: { appBundles: string[]; executableNames: string[] };
+  linux?: { executableNames: string[]; desktopFiles: string[] };
 }
 
 const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
@@ -22,44 +25,71 @@ export const APP_DEFINITIONS: AppDefinition[] = [
   {
     id: 'workbuddy', name: 'WorkBuddy', exeNames: ['WorkBuddy.exe'], processName: 'WorkBuddy.exe', defaultPort: 9339,
     installPaths: [path.join(localAppData, 'workbuddy'), path.join(localAppData, 'Programs', 'workbuddy'), path.join(programFiles, 'WorkBuddy'), path.join(programFilesX86, 'WorkBuddy'), 'D:\\Program Files\\WorkBuddy'],
-    rendererHints: ['app.asar/renderer/index.html', 'renderer/index.html', 'index.html'], kind: 'workbuddy',
+    rendererHints: ['app.asar/renderer/index.html', 'renderer/index.html', 'index.html'], kind: 'workbuddy', acceptsGenericThemes: true,
+    darwin: { appBundles: ['WorkBuddy.app'], executableNames: ['WorkBuddy'] },
+    linux: { executableNames: ['workbuddy', 'WorkBuddy'], desktopFiles: ['workbuddy.desktop'] },
   },
   {
     id: 'codex', name: 'Codex', exeNames: ['ChatGPT.exe', 'Codex.exe'], processName: 'ChatGPT.exe', defaultPort: 9340,
     installPaths: [path.join(localAppData, 'Programs', 'Codex'), path.join(localAppData, 'Programs', 'OpenAI', 'Codex'), path.join(programFiles, 'Codex'), path.join(programFilesX86, 'Codex'), 'D:\\Program Files\\Codex'],
-    rendererHints: ['index.html', 'renderer/index.html'], kind: 'codex',
+    rendererHints: ['index.html', 'renderer/index.html'], kind: 'codex', acceptsGenericThemes: true,
+    darwin: { appBundles: ['ChatGPT.app', 'Codex.app'], executableNames: ['ChatGPT', 'Codex'] },
+    linux: { executableNames: ['codex', 'Codex'], desktopFiles: ['codex.desktop'] },
   },
   {
     id: 'trae-work', name: 'TRAE Work', exeNames: ['TRAE SOLO CN.exe', 'TRAE Work CN.exe'], processName: 'TRAE SOLO CN.exe', defaultPort: 9341,
     installPaths: ['D:\\Program Files\\TRAE SOLO CN', path.join(localAppData, 'Programs', 'TRAE SOLO CN'), path.join(programFiles, 'TRAE SOLO CN')],
-    rendererHints: ['solo/solo-lite.html', 'solo-lite.html'], kind: 'vscode-work',
+    rendererHints: ['solo/solo-lite.html', 'solo-lite.html'], kind: 'vscode-work', acceptsGenericThemes: true,
+    darwin: { appBundles: ['TRAE SOLO CN.app', 'TRAE Work CN.app', 'TRAE.app'], executableNames: ['TRAE SOLO CN', 'TRAE Work CN', 'TRAE'] },
+    linux: { executableNames: ['trae', 'trae-work', 'TRAE'], desktopFiles: ['trae.desktop', 'trae-work.desktop'] },
   },
   {
     id: 'qoder-work', name: 'QoderWork', exeNames: ['QoderWork CN.exe', 'QoderWork.exe'], processName: 'QoderWork CN.exe', defaultPort: 9342,
     installPaths: ['D:\\Program Files\\QoderWork CN', path.join(localAppData, 'Programs', 'QoderWork CN'), path.join(programFiles, 'QoderWork CN')],
     rendererHints: ['out/renderer/index.html', 'renderer/index.html'], kind: 'generic-work',
     devToolsActivePort: path.join(roamingAppData, 'QoderWork CN', 'DevToolsActivePort'),
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ['QoderWork CN.app', 'QoderWork.app'], executableNames: ['QoderWork CN', 'QoderWork'] },
+    linux: { executableNames: ['qoder-work', 'qoderwork', 'QoderWork'], desktopFiles: ['qoder-work.desktop', 'qoderwork.desktop'] },
   },
   {
     id: 'catpaw', name: 'CatPaw', exeNames: ['CatPaw.exe'], processName: 'CatPaw.exe', defaultPort: 9343,
     installPaths: [path.join(localAppData, 'CatPaw'), path.join(localAppData, 'Programs', 'CatPaw'), path.join(programFiles, 'CatPaw')],
-    rendererHints: ['app.asar/dist/index.html', 'dist/index.html'], kind: 'generic-work',
+    rendererHints: ['app.asar/dist/index.html', 'dist/index.html'], kind: 'generic-work', acceptsGenericThemes: true,
+    darwin: { appBundles: ['CatPaw.app'], executableNames: ['CatPaw'] },
+    linux: { executableNames: ['catpaw', 'CatPaw'], desktopFiles: ['catpaw.desktop'] },
   },
   {
     id: 'zcode', name: 'ZCode', exeNames: ['ZCode.exe'], processName: 'ZCode.exe', defaultPort: 9344,
     installPaths: ['D:\\Program Files\\ZCode', path.join(localAppData, 'Programs', 'ZCode'), path.join(programFiles, 'ZCode')],
-    rendererHints: ['out/renderer/index.html', 'renderer/index.html'], kind: 'generic-work',
+    rendererHints: ['out/renderer/index.html', 'renderer/index.html'], kind: 'generic-work', acceptsGenericThemes: true,
+    darwin: { appBundles: ['ZCode.app'], executableNames: ['ZCode'] },
+    linux: { executableNames: ['zcode', 'ZCode'], desktopFiles: ['zcode.desktop'] },
   },
   {
     id: 'qwen-office', name: '千问办公', exeNames: ['QwenWorkCN.exe'], processName: 'QwenWorkCN.exe', defaultPort: 9345,
     installPaths: ['D:\\Program Files\\QwenWorkCN', path.join(localAppData, 'Programs', 'QwenWorkCN'), path.join(programFiles, 'QwenWorkCN')],
     rendererHints: ['out/renderer/index.html', 'renderer/index.html'], kind: 'generic-work',
     devToolsActivePort: path.join(roamingAppData, 'QwenWorkCN', 'DevToolsActivePort'),
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ['QwenWorkCN.app', 'Qwen Work.app'], executableNames: ['QwenWorkCN', 'Qwen Work'] },
+    linux: { executableNames: ['qwen-work', 'qwenwork', 'QwenWorkCN'], desktopFiles: ['qwen-work.desktop', 'qwenwork.desktop'] },
   },
   {
     id: 'hana-agent', name: 'HanaAgent', exeNames: ['HanaAgent.exe'], processName: 'HanaAgent.exe', defaultPort: 9346,
     installPaths: [path.join(localAppData, 'Programs', 'HanaAgent'), path.join(programFiles, 'HanaAgent'), path.join(programFilesX86, 'HanaAgent')],
-    rendererHints: ['.hanako/artifacts/renderer/', 'artifacts/renderer/', '/index.html'], kind: 'generic-work',
+    rendererHints: ['.hanako/artifacts/renderer/', 'artifacts/renderer/', '/index.html'], kind: 'generic-work', acceptsGenericThemes: true,
+    darwin: { appBundles: ['HanaAgent.app'], executableNames: ['HanaAgent'] },
+    linux: { executableNames: ['hana-agent', 'HanaAgent'], desktopFiles: ['hana-agent.desktop'] },
+  },
+  {
+    id: 'kimi', name: 'Kimi Work', exeNames: ['Kimi.exe'], processName: 'Kimi.exe', defaultPort: 9347,
+    installPaths: ['D:\\Program Files\\Kimi', path.join(localAppData, 'Programs', 'Kimi'), path.join(programFiles, 'Kimi'), path.join(programFilesX86, 'Kimi')],
+    rendererHints: ['kimi-agent.html', 'kimichat.html', 'https://www.kimi.com/'], kind: 'generic-work',
+    devToolsActivePort: path.join(roamingAppData, 'kimi-desktop', 'DevToolsActivePort'),
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ['Kimi.app'], executableNames: ['Kimi'] },
+    linux: { executableNames: ['kimi', 'Kimi'], desktopFiles: ['kimi.desktop'] },
   },
 ];
 

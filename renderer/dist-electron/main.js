@@ -47,7 +47,10 @@ const APP_DEFINITIONS = [
     defaultPort: 9339,
     installPaths: [path__namespace.join(localAppData, "workbuddy"), path__namespace.join(localAppData, "Programs", "workbuddy"), path__namespace.join(programFiles, "WorkBuddy"), path__namespace.join(programFilesX86, "WorkBuddy"), "D:\\Program Files\\WorkBuddy"],
     rendererHints: ["app.asar/renderer/index.html", "renderer/index.html", "index.html"],
-    kind: "workbuddy"
+    kind: "workbuddy",
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ["WorkBuddy.app"], executableNames: ["WorkBuddy"] },
+    linux: { executableNames: ["workbuddy", "WorkBuddy"], desktopFiles: ["workbuddy.desktop"] }
   },
   {
     id: "codex",
@@ -57,7 +60,10 @@ const APP_DEFINITIONS = [
     defaultPort: 9340,
     installPaths: [path__namespace.join(localAppData, "Programs", "Codex"), path__namespace.join(localAppData, "Programs", "OpenAI", "Codex"), path__namespace.join(programFiles, "Codex"), path__namespace.join(programFilesX86, "Codex"), "D:\\Program Files\\Codex"],
     rendererHints: ["index.html", "renderer/index.html"],
-    kind: "codex"
+    kind: "codex",
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ["ChatGPT.app", "Codex.app"], executableNames: ["ChatGPT", "Codex"] },
+    linux: { executableNames: ["codex", "Codex"], desktopFiles: ["codex.desktop"] }
   },
   {
     id: "trae-work",
@@ -67,7 +73,10 @@ const APP_DEFINITIONS = [
     defaultPort: 9341,
     installPaths: ["D:\\Program Files\\TRAE SOLO CN", path__namespace.join(localAppData, "Programs", "TRAE SOLO CN"), path__namespace.join(programFiles, "TRAE SOLO CN")],
     rendererHints: ["solo/solo-lite.html", "solo-lite.html"],
-    kind: "vscode-work"
+    kind: "vscode-work",
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ["TRAE SOLO CN.app", "TRAE Work CN.app", "TRAE.app"], executableNames: ["TRAE SOLO CN", "TRAE Work CN", "TRAE"] },
+    linux: { executableNames: ["trae", "trae-work", "TRAE"], desktopFiles: ["trae.desktop", "trae-work.desktop"] }
   },
   {
     id: "qoder-work",
@@ -78,7 +87,10 @@ const APP_DEFINITIONS = [
     installPaths: ["D:\\Program Files\\QoderWork CN", path__namespace.join(localAppData, "Programs", "QoderWork CN"), path__namespace.join(programFiles, "QoderWork CN")],
     rendererHints: ["out/renderer/index.html", "renderer/index.html"],
     kind: "generic-work",
-    devToolsActivePort: path__namespace.join(roamingAppData, "QoderWork CN", "DevToolsActivePort")
+    devToolsActivePort: path__namespace.join(roamingAppData, "QoderWork CN", "DevToolsActivePort"),
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ["QoderWork CN.app", "QoderWork.app"], executableNames: ["QoderWork CN", "QoderWork"] },
+    linux: { executableNames: ["qoder-work", "qoderwork", "QoderWork"], desktopFiles: ["qoder-work.desktop", "qoderwork.desktop"] }
   },
   {
     id: "catpaw",
@@ -88,7 +100,10 @@ const APP_DEFINITIONS = [
     defaultPort: 9343,
     installPaths: [path__namespace.join(localAppData, "CatPaw"), path__namespace.join(localAppData, "Programs", "CatPaw"), path__namespace.join(programFiles, "CatPaw")],
     rendererHints: ["app.asar/dist/index.html", "dist/index.html"],
-    kind: "generic-work"
+    kind: "generic-work",
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ["CatPaw.app"], executableNames: ["CatPaw"] },
+    linux: { executableNames: ["catpaw", "CatPaw"], desktopFiles: ["catpaw.desktop"] }
   },
   {
     id: "zcode",
@@ -98,7 +113,10 @@ const APP_DEFINITIONS = [
     defaultPort: 9344,
     installPaths: ["D:\\Program Files\\ZCode", path__namespace.join(localAppData, "Programs", "ZCode"), path__namespace.join(programFiles, "ZCode")],
     rendererHints: ["out/renderer/index.html", "renderer/index.html"],
-    kind: "generic-work"
+    kind: "generic-work",
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ["ZCode.app"], executableNames: ["ZCode"] },
+    linux: { executableNames: ["zcode", "ZCode"], desktopFiles: ["zcode.desktop"] }
   },
   {
     id: "qwen-office",
@@ -109,7 +127,10 @@ const APP_DEFINITIONS = [
     installPaths: ["D:\\Program Files\\QwenWorkCN", path__namespace.join(localAppData, "Programs", "QwenWorkCN"), path__namespace.join(programFiles, "QwenWorkCN")],
     rendererHints: ["out/renderer/index.html", "renderer/index.html"],
     kind: "generic-work",
-    devToolsActivePort: path__namespace.join(roamingAppData, "QwenWorkCN", "DevToolsActivePort")
+    devToolsActivePort: path__namespace.join(roamingAppData, "QwenWorkCN", "DevToolsActivePort"),
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ["QwenWorkCN.app", "Qwen Work.app"], executableNames: ["QwenWorkCN", "Qwen Work"] },
+    linux: { executableNames: ["qwen-work", "qwenwork", "QwenWorkCN"], desktopFiles: ["qwen-work.desktop", "qwenwork.desktop"] }
   },
   {
     id: "hana-agent",
@@ -119,13 +140,29 @@ const APP_DEFINITIONS = [
     defaultPort: 9346,
     installPaths: [path__namespace.join(localAppData, "Programs", "HanaAgent"), path__namespace.join(programFiles, "HanaAgent"), path__namespace.join(programFilesX86, "HanaAgent")],
     rendererHints: [".hanako/artifacts/renderer/", "artifacts/renderer/", "/index.html"],
-    kind: "generic-work"
+    kind: "generic-work",
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ["HanaAgent.app"], executableNames: ["HanaAgent"] },
+    linux: { executableNames: ["hana-agent", "HanaAgent"], desktopFiles: ["hana-agent.desktop"] }
+  },
+  {
+    id: "kimi",
+    name: "Kimi Work",
+    exeNames: ["Kimi.exe"],
+    processName: "Kimi.exe",
+    defaultPort: 9347,
+    installPaths: ["D:\\Program Files\\Kimi", path__namespace.join(localAppData, "Programs", "Kimi"), path__namespace.join(programFiles, "Kimi"), path__namespace.join(programFilesX86, "Kimi")],
+    rendererHints: ["kimi-agent.html", "kimichat.html", "https://www.kimi.com/"],
+    kind: "generic-work",
+    devToolsActivePort: path__namespace.join(roamingAppData, "kimi-desktop", "DevToolsActivePort"),
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ["Kimi.app"], executableNames: ["Kimi"] },
+    linux: { executableNames: ["kimi", "Kimi"], desktopFiles: ["kimi.desktop"] }
   }
 ];
 function getAppDefinition(appId) {
   return APP_DEFINITIONS.find((app) => app.id === appId);
 }
-util.promisify(child_process.exec);
 const execFileAsync$2 = util.promisify(child_process.execFile);
 function findWindowsAppsOpenAIExes() {
   const results = [];
@@ -170,6 +207,14 @@ if (Test-Path -LiteralPath $full -PathType Leaf) { Write-Output $full } else { e
 }
 async function discoverApps() {
   const results = [];
+  const platform = os__namespace.platform();
+  if (platform !== "win32") {
+    for (const definition of APP_DEFINITIONS) {
+      const found = await findDefinitionOnCurrentPlatform(definition);
+      if (found) results.push({ appId: definition.id, name: definition.name, path: found });
+    }
+    return results;
+  }
   for (const definition of APP_DEFINITIONS.filter((app) => app.id !== "codex")) {
     const found = findWindowsExecutable(definition.exeNames, definition.installPaths);
     if (found) results.push({ appId: definition.id, name: definition.name, path: found });
@@ -183,6 +228,52 @@ async function discoverApps() {
   if (codexAppx) results.push({ appId: "codex", name: "Codex", path: codexAppx });
   else if (codex) results.push({ appId: "codex", name: "Codex", path: codex });
   return results;
+}
+async function findDefinitionOnCurrentPlatform(definition) {
+  var _a, _b, _c;
+  const platform = os__namespace.platform();
+  if (platform === "darwin") {
+    for (const bundleName of ((_a = definition.darwin) == null ? void 0 : _a.appBundles) ?? []) {
+      const bundlePath = path__namespace.join("/Applications", bundleName);
+      if (fs__namespace.existsSync(bundlePath)) return bundlePath;
+    }
+    return null;
+  }
+  if (platform === "linux") {
+    for (const desktopFile of ((_b = definition.linux) == null ? void 0 : _b.desktopFiles) ?? []) {
+      const executablePath = await findLinuxDesktopExecutable$1(desktopFile);
+      if (executablePath) return executablePath;
+    }
+    for (const executableName of ((_c = definition.linux) == null ? void 0 : _c.executableNames) ?? []) {
+      try {
+        const { stdout } = await execFileAsync$2("which", [executableName], { encoding: "utf8" });
+        const executablePath = stdout.trim();
+        if (executablePath && fs__namespace.existsSync(executablePath)) return executablePath;
+      } catch {
+      }
+    }
+  }
+  return null;
+}
+async function findLinuxDesktopExecutable$1(desktopFile) {
+  for (const desktopPath of [
+    path__namespace.join(os__namespace.homedir(), ".local", "share", "applications", desktopFile),
+    path__namespace.join("/usr/share/applications", desktopFile),
+    path__namespace.join("/usr/local/share/applications", desktopFile)
+  ]) {
+    if (!fs__namespace.existsSync(desktopPath)) continue;
+    const match = fs__namespace.readFileSync(desktopPath, "utf8").match(/^Exec=(?:env\s+\S+=\S+\s+)*(?:"([^"]+)"|(\S+))/m);
+    const executable = (match == null ? void 0 : match[1]) || (match == null ? void 0 : match[2]);
+    if (!executable) continue;
+    if (path__namespace.isAbsolute(executable) && fs__namespace.existsSync(executable)) return executable;
+    try {
+      const { stdout } = await execFileAsync$2("which", [executable], { encoding: "utf8" });
+      const resolved = stdout.trim();
+      if (resolved && fs__namespace.existsSync(resolved)) return resolved;
+    } catch {
+    }
+  }
+  return null;
 }
 function findWindowsExecutable(exeNames, installPaths) {
   for (const base of installPaths) {
@@ -210,7 +301,7 @@ const execFileAsync$1 = util.promisify(child_process.execFile);
 async function isAppRunning(appId) {
   const definition = getAppDefinition(appId);
   if (!definition) return false;
-  const processNames = [...new Set([definition.processName, ...definition.exeNames].filter(Boolean))];
+  const processNames = getPlatformProcessNames(definition);
   if (os__namespace.platform() === "win32") {
     for (const processName of processNames) {
       try {
@@ -246,7 +337,7 @@ async function launchApp(appId, themeId) {
   if (appId === "codex") {
     args.push("--disable-extensions");
   }
-  if (themeId) {
+  if (themeId && appId !== "kimi") {
     args.push(`--dream-theme=${themeId}`);
   }
   try {
@@ -254,36 +345,83 @@ async function launchApp(appId, themeId) {
     console.log(`[launcher] Killing existing ${appId} instances...`);
     await killExistingInstances(appId);
     await waitForPortToClose(port, 15e3);
-    if (profile.devToolsActivePort) {
+    const devToolsActivePort = os__namespace.platform() === "win32" ? profile.devToolsActivePort : void 0;
+    if (devToolsActivePort) {
       try {
-        fs__namespace.unlinkSync(profile.devToolsActivePort);
+        fs__namespace.unlinkSync(devToolsActivePort);
       } catch {
       }
     }
     console.log(`[launcher] Launching ${appPath} with args: ${args.join(" ")}`);
-    const child = child_process.spawn(appPath, args, {
-      detached: true,
-      stdio: "ignore",
-      env: getCleanLaunchEnvironment()
-    });
-    child.unref();
-    console.log(`[launcher] Spawned process with PID: ${child.pid}`);
+    const pid = appId === "kimi" && os__namespace.platform() === "win32" ? await launchKimiDetached(appPath, args) : launchDetached(appPath, args);
+    console.log(`[launcher] Spawned process${pid ? ` with PID: ${pid}` : ""}`);
     console.log(`[launcher] Waiting for CDP port ${port} to be ready...`);
     let actualPort = port;
-    if (profile.devToolsActivePort) {
-      actualPort = await waitForDevToolsActivePort(profile.devToolsActivePort, profile.rendererHints, 3e4);
+    if (devToolsActivePort) {
+      actualPort = await waitForDevToolsActivePort(devToolsActivePort, profile.rendererHints, 3e4);
     } else {
       await waitForPort(port, 3e4);
     }
     console.log(`[launcher] CDP port ${actualPort} is ready`);
-    if (appId === "hana-agent") {
-      await waitForStableRenderer(actualPort, profile.rendererHints, 3e4);
+    if (appId === "hana-agent" || appId === "kimi") {
+      await waitForStableRenderer(actualPort, profile.rendererHints, 3e4, appId === "kimi" ? 750 : 3e3);
     }
     return { success: true, port: actualPort };
   } catch (error) {
     console.error(`[launcher] Launch failed:`, error);
     return { success: false, error: error.message };
   }
+}
+function launchDetached(appPath, args) {
+  const child = child_process.spawn(appPath, args, {
+    detached: true,
+    stdio: "ignore",
+    env: getCleanLaunchEnvironment()
+  });
+  child.unref();
+  return child.pid;
+}
+async function launchKimiDetached(appPath, args) {
+  const shortcutPath = path__namespace.join(os__namespace.tmpdir(), `dream-work-kimi-${process.pid}-${Date.now()}.lnk`);
+  const env = {
+    ...getCleanLaunchEnvironment(),
+    DREAM_WORK_LAUNCH_EXE: appPath,
+    DREAM_WORK_LAUNCH_ARGS: JSON.stringify(args),
+    DREAM_WORK_LAUNCH_CWD: path__namespace.dirname(appPath),
+    DREAM_WORK_LAUNCH_SHORTCUT: shortcutPath
+  };
+  const script = [
+    "[string[]]$launchArgs = @($env:DREAM_WORK_LAUNCH_ARGS | ConvertFrom-Json)",
+    "$shell = New-Object -ComObject WScript.Shell",
+    "$shortcut = $shell.CreateShortcut($env:DREAM_WORK_LAUNCH_SHORTCUT)",
+    "$shortcut.TargetPath = $env:DREAM_WORK_LAUNCH_EXE",
+    "$shortcut.Arguments = [string]::Join(' ', $launchArgs)",
+    "$shortcut.WorkingDirectory = $env:DREAM_WORK_LAUNCH_CWD",
+    "$shortcut.Save()"
+  ].join("; ");
+  await execFileAsync$1("powershell.exe", [
+    "-NoLogo",
+    "-NoProfile",
+    "-NonInteractive",
+    "-ExecutionPolicy",
+    "Bypass",
+    "-Command",
+    script
+  ], { env, windowsHide: true });
+  const explorer = child_process.spawn(path__namespace.join(process.env.WINDIR || "C:\\Windows", "explorer.exe"), [shortcutPath], {
+    detached: true,
+    stdio: "ignore",
+    env: getCleanLaunchEnvironment()
+  });
+  explorer.unref();
+  const cleanupTimer = setTimeout(() => {
+    try {
+      fs__namespace.unlinkSync(shortcutPath);
+    } catch {
+    }
+  }, 15e3);
+  cleanupTimer.unref();
+  return void 0;
 }
 function getCleanLaunchEnvironment() {
   const env = { ...process.env };
@@ -296,6 +434,12 @@ function getCleanLaunchEnvironment() {
     delete env[key];
   }
   return env;
+}
+function getPlatformProcessNames(definition) {
+  var _a, _b;
+  if (os__namespace.platform() === "darwin") return ((_a = definition.darwin) == null ? void 0 : _a.executableNames) ?? [];
+  if (os__namespace.platform() === "linux") return ((_b = definition.linux) == null ? void 0 : _b.executableNames) ?? [];
+  return [...new Set([definition.processName, ...definition.exeNames].filter(Boolean))];
 }
 async function waitForDevToolsActivePort(filePath, rendererHints, timeoutMs) {
   const start = Date.now();
@@ -330,7 +474,7 @@ async function verifyRendererEndpoint(port, rendererHints, timeoutMs) {
   }
   throw new Error(`CDP renderer endpoint is not ready on port ${port}`);
 }
-async function waitForStableRenderer(port, rendererHints, timeoutMs) {
+async function waitForStableRenderer(port, rendererHints, timeoutMs, stableMs) {
   const startedAt = Date.now();
   let stableId = "";
   let stableSince = 0;
@@ -343,8 +487,8 @@ async function waitForStableRenderer(port, rendererHints, timeoutMs) {
         if (target.id !== stableId) {
           stableId = target.id;
           stableSince = Date.now();
-        } else if (Date.now() - stableSince >= 3e3) {
-          console.log(`[launcher] Stable HanaAgent renderer ${stableId} confirmed`);
+        } else if (Date.now() - stableSince >= stableMs) {
+          console.log(`[launcher] Stable renderer ${stableId} confirmed`);
           return;
         }
       }
@@ -352,7 +496,7 @@ async function waitForStableRenderer(port, rendererHints, timeoutMs) {
     }
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
-  throw new Error(`HanaAgent renderer did not stabilize on port ${port}`);
+  throw new Error(`Renderer did not stabilize on port ${port}`);
 }
 async function waitForPort(port, timeoutMs) {
   const start = Date.now();
@@ -430,7 +574,7 @@ async function killExistingInstances(appId) {
   const platform = os__namespace.platform();
   const definition = getAppDefinition(appId);
   if (!definition) return;
-  const exeNames = [...new Set([definition.processName, ...definition.exeNames].filter(Boolean))];
+  const exeNames = getPlatformProcessNames(definition);
   try {
     if (platform === "win32") {
       const { execSync } = require("child_process");
@@ -488,6 +632,7 @@ async function waitForPortToClose(port, timeoutMs) {
   throw new Error(`Existing ${port} CDP service did not stop; refusing to inject into the old application instance`);
 }
 function getAppPath(appId) {
+  var _a, _b, _c, _d;
   const definition = getAppDefinition(appId);
   if (!definition) throw new Error(`Unknown app: ${appId}`);
   const platform = os__namespace.platform();
@@ -549,12 +694,20 @@ function getAppPath(appId) {
       }
     }
   } else if (platform === "darwin") {
-    const apps = ["/Applications/WorkBuddy.app", "/Applications/ChatGPT.app"];
-    for (const app of apps) {
-      if (fs__namespace.existsSync(app)) return app;
+    for (const bundleName of ((_a = definition.darwin) == null ? void 0 : _a.appBundles) ?? []) {
+      const appBundle = path__namespace.join("/Applications", bundleName);
+      if (!fs__namespace.existsSync(appBundle)) continue;
+      for (const executableName of ((_b = definition.darwin) == null ? void 0 : _b.executableNames) ?? []) {
+        const executable = path__namespace.join(appBundle, "Contents", "MacOS", executableName);
+        if (fs__namespace.existsSync(executable)) return executable;
+      }
     }
   } else if (platform === "linux") {
-    const exeNames = appId === "workbuddy" ? ["workbuddy", "WorkBuddy"] : ["codex", "Codex"];
+    const exeNames = ((_c = definition.linux) == null ? void 0 : _c.executableNames) ?? [];
+    for (const desktopFile of ((_d = definition.linux) == null ? void 0 : _d.desktopFiles) ?? []) {
+      const desktopExecutable = findLinuxDesktopExecutable(desktopFile);
+      if (desktopExecutable) return desktopExecutable;
+    }
     const searchPaths = [
       "/usr/bin",
       "/usr/local/bin",
@@ -571,14 +724,34 @@ function getAppPath(appId) {
     }
     for (const exe of exeNames) {
       try {
-        const { execSync } = require("child_process");
-        const resolved = execSync(`which ${exe} 2>/dev/null || echo ''`).toString().trim();
+        const { execFileSync } = require("child_process");
+        const resolved = execFileSync("which", [exe], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
         if (resolved && fs__namespace.existsSync(resolved)) return resolved;
       } catch {
       }
     }
   }
   throw new Error(`Could not find ${appId} executable`);
+}
+function findLinuxDesktopExecutable(desktopFile) {
+  for (const desktopPath of [
+    path__namespace.join(os__namespace.homedir(), ".local", "share", "applications", desktopFile),
+    path__namespace.join("/usr/share/applications", desktopFile),
+    path__namespace.join("/usr/local/share/applications", desktopFile)
+  ]) {
+    if (!fs__namespace.existsSync(desktopPath)) continue;
+    const match = fs__namespace.readFileSync(desktopPath, "utf8").match(/^Exec=(?:env\s+\S+=\S+\s+)*(?:"([^"]+)"|(\S+))/m);
+    const executable = (match == null ? void 0 : match[1]) || (match == null ? void 0 : match[2]);
+    if (!executable) continue;
+    if (path__namespace.isAbsolute(executable) && fs__namespace.existsSync(executable)) return executable;
+    try {
+      const { execFileSync } = require("child_process");
+      const resolved = execFileSync("which", [executable], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+      if (resolved && fs__namespace.existsSync(resolved)) return resolved;
+    } catch {
+    }
+  }
+  return void 0;
 }
 const DEFAULT_WAIT_TIMEOUT_MS = 5e3;
 const DEFAULT_POLL_MS = 100;
@@ -965,7 +1138,6 @@ function getThemeSearchDirs() {
 }
 const heroHashCache = /* @__PURE__ */ new Map();
 function listThemes(appId) {
-  var _a;
   const entries = [];
   const seenIds = /* @__PURE__ */ new Set();
   for (const themesDir of getThemeSearchDirs()) {
@@ -982,7 +1154,7 @@ function listThemes(appId) {
         if (seenIds.has(manifest.id)) continue;
         const heroPath = path__namespace.join(themeDir, manifest.hero);
         if (!fs__namespace.existsSync(heroPath) || !fs__namespace.statSync(heroPath).isFile()) throw new Error(`theme hero is missing: ${manifest.hero}`);
-        if (appId && ((_a = manifest.apps[appId]) == null ? void 0 : _a.compat) !== true && appId !== "hana-agent") continue;
+        if (appId && !isThemeCompatible(manifest, appId)) continue;
         seenIds.add(manifest.id);
         entries.push({
           id: manifest.id,
@@ -1005,6 +1177,12 @@ function listThemes(appId) {
     if (!current || isPreferredThemeId(entry.id, current.id)) uniqueEntries.set(contentKey, entry);
   }
   return [...uniqueEntries.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+function isThemeCompatible(manifest, appId) {
+  var _a, _b;
+  const declaredCompatibility = (_a = manifest.apps[appId]) == null ? void 0 : _a.compat;
+  if (declaredCompatibility !== void 0) return declaredCompatibility;
+  return ((_b = getAppDefinition(appId)) == null ? void 0 : _b.acceptsGenericThemes) === true;
 }
 function getHeroHash(heroPath) {
   const stats = fs__namespace.statSync(heroPath);
@@ -1280,6 +1458,9 @@ const MENU_ID = "dream-work-menu";
 const hanaAgentPersistentScripts = /* @__PURE__ */ new Map();
 const hanaAgentWatchers = /* @__PURE__ */ new Map();
 const hanaAgentGenerations = /* @__PURE__ */ new Map();
+const kimiPersistentScripts = /* @__PURE__ */ new Map();
+const kimiWatchers = /* @__PURE__ */ new Map();
+const kimiGenerations = /* @__PURE__ */ new Map();
 const WORKBUDDY_CSS_PLACEHOLDERS = {
   id: "wb-dream-sentinel-id",
   hero: "data:image/png;base64,WBDREAMHEROSENTINEL",
@@ -1317,6 +1498,14 @@ async function applyTheme(appId, themeId, port, options = {}) {
     } catch (e) {
       lastError = e.message;
       console.log(`[injector] Hint "${hint}" failed: ${e.message}`);
+    }
+  }
+  if (appId === "kimi") {
+    try {
+      const allTargets = await fetchKimiTargets(port);
+      if (allTargets.length > 0) targets = allTargets;
+    } catch (e) {
+      console.log(`[injector] Failed to collect all Kimi targets: ${e.message}`);
     }
   }
   if (targets.length === 0) {
@@ -1460,12 +1649,18 @@ async function applyTheme(appId, themeId, port, options = {}) {
         const session = new CdpSession(target.webSocketDebuggerUrl);
         await session.open();
         if (appId === "workbuddy") {
-          const isWorkBuddy = await session.evaluate(`(() => {
-            const body = document.body;
-            return body?.dataset.applicationName === 'workbuddy' && Boolean(
-              document.querySelector('[data-view-id], .teams-container, .conversation-list, .main-content')
-            );
-          })()`);
+          let isWorkBuddy = false;
+          const deadline = Date.now() + 15e3;
+          while (Date.now() < deadline) {
+            isWorkBuddy = await session.evaluate(`(() => {
+              const body = document.body;
+              return body?.dataset.applicationName === 'workbuddy' && Boolean(
+                document.querySelector('[data-view-id], .teams-container, .conversation-list, .main-content')
+              );
+            })()`).catch(() => false);
+            if (isWorkBuddy) break;
+            await new Promise((resolve) => setTimeout(resolve, 100));
+          }
           if (!isWorkBuddy) {
             console.warn(`[injector] Skipping non-WorkBuddy target ${target.id}: ${target.url}`);
             session.close();
@@ -1486,7 +1681,7 @@ async function applyTheme(appId, themeId, port, options = {}) {
             })()`);
           }
         }
-        if (appId === "hana-agent") {
+        if (appId === "hana-agent" || appId === "kimi") {
           const persistentScript = `(() => {
             const inject = () => ${menuScript};
             if (document.readyState === 'loading') {
@@ -1495,13 +1690,14 @@ async function applyTheme(appId, themeId, port, options = {}) {
               inject();
             }
           })()`;
-          const previousIdentifier = hanaAgentPersistentScripts.get(target.id);
+          const persistentScripts = appId === "hana-agent" ? hanaAgentPersistentScripts : kimiPersistentScripts;
+          const previousIdentifier = persistentScripts.get(target.id);
           if (previousIdentifier) {
             await session.removeScriptToEvaluateOnNewDocument(previousIdentifier).catch(() => {
             });
           }
           const identifier = await session.addScriptToEvaluateOnNewDocument(persistentScript);
-          if (identifier) hanaAgentPersistentScripts.set(target.id, identifier);
+          if (identifier) persistentScripts.set(target.id, identifier);
         }
         const evalResult = await session.evaluate(appId === "hana-agent" ? `(() => { window.__dreamWorkForceApply = true; return ${menuScript}; })()` : menuScript);
         console.log(`[injector] Injection result for target ${target.id}:`, evalResult);
@@ -1682,12 +1878,77 @@ async function applyTheme(appId, themeId, port, options = {}) {
       }
       return { success: false, applied: 0, error: "HanaAgent renderer did not stabilize with the injected theme" };
     }
+    if (appId === "kimi" && applied > 0) {
+      startKimiWatcher(port, menuScript, new Set(targets.map((target) => target.id)));
+    }
     if (applied > 0) recordThemeUsage(appId, themeId);
     return { success: applied > 0, applied };
   } catch (error) {
     console.error("[injector] Injection failed:", error);
     return { success: false, applied: 0, error: error.message };
   }
+}
+async function fetchKimiTargets(port) {
+  const response = await fetch(`http://127.0.0.1:${port}/json/list`, { signal: AbortSignal.timeout(2e3) });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const targets = await response.json();
+  return (Array.isArray(targets) ? targets : []).filter((target) => {
+    if ((target == null ? void 0 : target.type) !== "page" || !target.webSocketDebuggerUrl) return false;
+    const url = String(target.url ?? "");
+    return url.includes("kimi-agent.html") || url.includes("kimichat.html") || /^https:\/\/(?:www\.)?kimi\.com\//.test(url);
+  });
+}
+function startKimiWatcher(port, menuScript, injectedTargetIds) {
+  const existing = kimiWatchers.get(port);
+  if (existing) clearInterval(existing);
+  const generation = (kimiGenerations.get(port) ?? 0) + 1;
+  kimiGenerations.set(port, generation);
+  let busy = false;
+  const timer = setInterval(async () => {
+    if (busy || kimiGenerations.get(port) !== generation) return;
+    busy = true;
+    try {
+      const targets = await fetchKimiTargets(port);
+      for (const target of targets) {
+        if (kimiGenerations.get(port) !== generation) return;
+        const session = new CdpSession(target.webSocketDebuggerUrl);
+        try {
+          await session.open();
+          const state = await session.evaluate(`(() => ({
+            ready: Boolean(document.getElementById('${STYLE_ID}') && document.documentElement.dataset.dreamTheme),
+            restored: document.documentElement.dataset.dreamThemeRestored === 'true'
+          }))()`).catch(() => ({ ready: false, restored: false }));
+          if (state.ready || state.restored) {
+            injectedTargetIds.add(target.id);
+            continue;
+          }
+          console.log(`[injector] Kimi watcher restoring theme on target ${target.id}: ${target.url}`);
+          if (!injectedTargetIds.has(target.id)) {
+            const persistentScript = `(() => {
+              const inject = () => ${menuScript};
+              if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', inject, { once: true });
+              else inject();
+            })()`;
+            const identifier = await session.addScriptToEvaluateOnNewDocument(persistentScript);
+            if (identifier) kimiPersistentScripts.set(target.id, identifier);
+          }
+          await session.evaluate(menuScript);
+          injectedTargetIds.add(target.id);
+        } finally {
+          session.close();
+        }
+      }
+    } catch {
+      if (!await isPortReachable(port)) {
+        clearInterval(timer);
+        kimiWatchers.delete(port);
+      }
+    } finally {
+      busy = false;
+    }
+  }, 750);
+  timer.unref();
+  kimiWatchers.set(port, timer);
 }
 async function getStatus(appId, port, options = {}) {
   return readStatusOnce(appId, port, options);
@@ -1840,6 +2101,12 @@ async function removeSkin(appId, port, options = {}) {
     if (watcher) clearInterval(watcher);
     hanaAgentWatchers.delete(port);
   }
+  if (appId === "kimi") {
+    kimiGenerations.set(port, (kimiGenerations.get(port) ?? 0) + 1);
+    const watcher = kimiWatchers.get(port);
+    if (watcher) clearInterval(watcher);
+    kimiWatchers.delete(port);
+  }
   const rendererUrlHint = options.rendererUrlHint ?? ((_a = getAppDefinition(appId)) == null ? void 0 : _a.rendererHints[0]) ?? "renderer/index.html";
   let targets = [];
   try {
@@ -1914,6 +2181,9 @@ function buildAppCss(appId, manifest, heroDataUrl) {
   if ((definition == null ? void 0 : definition.kind) === "generic-work") {
     if (appId === "hana-agent") {
       return buildHanaAgentCss(manifest, heroDataUrl, colors);
+    }
+    if (appId === "kimi") {
+      return buildKimiCss(manifest, heroDataUrl, colors);
     }
     return buildGenericWorkCss(appId, manifest, heroDataUrl, colors);
   }
@@ -2212,6 +2482,132 @@ html, body, #react-root, .app-shell {
 :where(button[class*="primary"], button[type="submit"]) {
   background-color: ${colors.accent} !important;
   color: #ffffff !important;
+}`;
+}
+function buildKimiCss(manifest, heroDataUrl, colors) {
+  const accent = colors.accent;
+  colors.secondary;
+  const surface = colors.surface;
+  const text = colors.text;
+  return `/* DREAM_THEME:${manifest.id} */
+html.dark, html {
+  --Bg-Primary: color-mix(in srgb, ${surface} 54%, transparent) !important;
+  --Bg-Primary90: color-mix(in srgb, ${surface} 48%, transparent) !important;
+  --Bg-Secondary: color-mix(in srgb, ${surface} 46%, transparent) !important;
+  --Bg-Tertiary: color-mix(in srgb, ${surface} 36%, transparent) !important;
+  --Bg-Quaternary: color-mix(in srgb, ${surface} 28%, transparent) !important;
+  --BgGp-Primary: color-mix(in srgb, ${surface} 54%, transparent) !important;
+  --BgGp-Primary90: color-mix(in srgb, ${surface} 48%, transparent) !important;
+  --BgGp-Secondary: color-mix(in srgb, ${surface} 46%, transparent) !important;
+  --BgGp-Tertiary: color-mix(in srgb, ${surface} 36%, transparent) !important;
+  --Bg-GroundPC: color-mix(in srgb, ${surface} 20%, transparent) !important;
+  --Labels-Primary: color-mix(in srgb, ${text} 88%, #000000) !important;
+  --Labels-Secondary: color-mix(in srgb, ${text} 62%, transparent) !important;
+  --Labels-Tertiary: color-mix(in srgb, ${text} 44%, transparent) !important;
+  --Labels-Quaternary: color-mix(in srgb, ${text} 28%, transparent) !important;
+  --Colors-KMBlue: ${accent} !important;
+  --Others-KMBlue10: color-mix(in srgb, ${accent} 12%, transparent) !important;
+  --Others-BubbleBlue: color-mix(in srgb, ${accent} 26%, ${surface}) !important;
+  --Others-TextSelected: color-mix(in srgb, ${accent} 22%, transparent) !important;
+  --Syntax-Mark: ${accent} !important;
+}
+html, body, .page {
+  background-color: ${surface} !important;
+  color: ${text} !important;
+}
+body {
+  background-image: url(${JSON.stringify(heroDataUrl)}) !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+}
+.page, #app, .n-config-provider,
+.home-view, .home-scroll, .home-scroll-content,
+.conversation-tab, .conversation-view {
+  background: transparent !important;
+}
+.sidebar, main.main-pane {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.sidebar {
+  background: color-mix(in srgb, ${surface} 30%, transparent) !important;
+  border-right: 1px solid color-mix(in srgb, ${accent} 18%, transparent) !important;
+  color: ${text} !important;
+}
+main.main-pane {
+  background: color-mix(in srgb, ${surface} 16%, transparent) !important;
+  border-radius: 12px !important;
+  color: ${text} !important;
+}
+.app > .main {
+  background: color-mix(in srgb, ${surface} 16%, transparent) !important;
+}
+.app > .main :where(.publisher-stage, .layout-sticky-space, .layout-sticky-group, .layout-header) {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.app > .main :where(#chat-box, .home-input-options) {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.app > .main .chat-editor-content {
+  background: color-mix(in srgb, ${surface} 42%, transparent) !important;
+  border-color: color-mix(in srgb, ${accent} 24%, transparent) !important;
+}
+main.main-pane .conversation-tab,
+main.main-pane .conversation-view,
+main.main-pane [class*="conversation"] {
+  background: transparent !important;
+  color: ${text} !important;
+}
+main.main-pane :where([class*="message"], [class*="chat"], [class*="composer"], [class*="input"], [contenteditable="true"], textarea) {
+  background-color: color-mix(in srgb, ${surface} 66%, transparent) !important;
+  border-color: color-mix(in srgb, ${accent} 30%, transparent) !important;
+  color: ${text} !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+main.main-pane :where(.message-list, .message-scroller, .message-list-inner, .messages, .msg-assistant, .chat-markdown) {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+main.main-pane :where(.composer-dock, .composer-inner, .composer-wrap, .composer-editor, .composer-toolbar) {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+main.main-pane .composer.docked {
+  background: color-mix(in srgb, ${surface} 42%, transparent) !important;
+}
+main.main-pane :where([class*="message"], [class*="chat"], [class*="composer"], [class*="input"]) :where(p, span, li, h1, h2, h3, h4, strong, em, a) {
+  color: ${text} !important;
+}
+[contenteditable="true"], textarea, input {
+  color: ${text} !important;
+  caret-color: ${accent} !important;
+}
+:where(button[class*="primary"], button[mode="primary"]) {
+  background-color: ${accent} !important;
+  color: #ffffff !important;
+}
+.nav-item, .mode-tab, .sidebar-scroll a, .sidebar-scroll span, .sidebar-footer, .account {
+  color: ${text} !important;
+}
+.nav-item:hover, .mode-tab:hover, [class*="nav-item"]:hover {
+  background-color: color-mix(in srgb, ${accent} 18%, transparent) !important;
+}
+.win-titlebar-drag {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.message-list-container:where(.top) {
+  display: none !important;
 }`;
 }
 function buildHanaAgentMenuScript(options) {
@@ -2817,35 +3213,39 @@ function buildCodexCss(manifest, heroDataUrl, colors) {
   --dream-skin-art: url(${JSON.stringify(heroDataUrl)});
 }`;
   const bodyArt = `/* DREAM_THEME_BODY:${manifest.id} */
-html.codex-dream-skin body {
-  background-color: ${colors.surface} !important;
-  background-image: none !important;
-}
-
-html.codex-dream-skin main.main-surface {
-  position: relative !important;
-  isolation: isolate !important;
-  background-color: ${colors.surface} !important;
-  background-image: none !important;
-}
-
-html.codex-dream-skin main.main-surface::before {
-  content: "" !important;
-  position: absolute !important;
-  inset: 0 !important;
-  z-index: -1 !important;
-  pointer-events: none !important;
+html.codex-dream-skin[data-dream-theme],
+html.codex-dream-skin[data-dream-theme] body {
   background-color: ${colors.surface} !important;
   background-image: var(--dream-skin-art) !important;
   background-position: center center !important;
   background-size: cover !important;
   background-repeat: no-repeat !important;
-  opacity: 1 !important;
+  background-attachment: fixed !important;
 }
 
-html.codex-dream-skin main.main-surface > header.app-header-tint {
-  background: color-mix(in srgb, ${colors.surface} 76%, transparent) !important;
-  backdrop-filter: blur(14px) saturate(108%) !important;
+html.codex-dream-skin[data-dream-theme] main.main-surface,
+html.codex-dream-skin[data-dream-theme] main.main-surface:not(.dream-skin-home-shell) {
+  position: relative !important;
+  isolation: isolate !important;
+  background-color: color-mix(in srgb, ${colors.surface} 12%, transparent) !important;
+  background-image: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme] main.main-surface::before {
+  content: none !important;
+  background: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme] aside.app-shell-left-panel {
+  background: color-mix(in srgb, ${colors.surface} 30%, transparent) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.codex-dream-skin[data-dream-theme] main.main-surface > header.app-header-tint {
+  background: color-mix(in srgb, ${colors.surface} 16%, transparent) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 html.codex-dream-skin main.main-surface [role="main"],
@@ -3386,7 +3786,7 @@ function buildMenuScript(options) {
     if (!theme) return;
     window.__dreamWorkThemeStyle.textContent = materializeCss(theme.css, theme.id);
     document.documentElement.dataset.dreamTheme = themeId;
-    if (appId !== 'hana-agent') applyMode(theme.surface);
+    if (appId !== 'hana-agent' && appId !== 'kimi') applyMode(theme.surface);
     
     // Codex themes require the codex-dream-skin class on <html> for CSS selectors to match
     if (appId === 'codex') {
@@ -3421,7 +3821,7 @@ function buildMenuScript(options) {
   const restoreNative = () => {
     window.__dreamWorkThemeStyle.textContent = '';
     delete document.documentElement.dataset.dreamTheme;
-    if (appId !== 'hana-agent') applyMode('#ffffff');
+    if (appId !== 'hana-agent' && appId !== 'kimi') applyMode('#ffffff');
     if (appId === 'codex') {
       document.documentElement.classList.remove('codex-dream-skin');
       delete document.documentElement.dataset.dreamShell;
@@ -3777,7 +4177,6 @@ const THEMES_ENDPOINT = `${API_ORIGIN}/v1/themes`;
 const MAX_PACKAGE_BYTES = 32 * 1024 * 1024;
 const PAGE_SIZE = 6;
 let nextOffset = 0;
-const SUPPORTED_APPS = ["workbuddy", "codex", "trae-work", "qoder-work", "catpaw", "zcode", "qwen-office", "hana-agent"];
 async function updateCommunityThemes() {
   const offset = nextOffset;
   const pageResult = await fetchRecentThemes(offset);
@@ -3897,7 +4296,7 @@ function convertTheme(source, metadata, id, hero) {
       text: parseColor(colors.text, appearance === "dark" ? "#eef2f7" : "#1f2937", base)
     },
     copy: null,
-    apps: Object.fromEntries(SUPPORTED_APPS.map((appId) => [appId, { compat: true }]))
+    apps: Object.fromEntries(APP_DEFINITIONS.filter((app) => !app.acceptsGenericThemes).map((app) => [app.id, { compat: true }]))
   };
 }
 function parseColor(value, fallback, base) {
@@ -3969,15 +4368,9 @@ if (launchArgs) {
         const result = await launchApp(appId, themeId);
         if (result.success) {
           console.log(`[main] Launched ${appId} with theme ${themeId} on port ${result.port}`);
-          setTimeout(async () => {
-            try {
-              console.log(`[main] Starting theme injection for ${appId}:${themeId} on port ${result.port}`);
-              const injectResult = await applyTheme(appId, themeId, result.port);
-              console.log(`[main] Injection result:`, injectResult);
-            } catch (e) {
-              console.error("[main] Failed to inject theme:", e);
-            }
-          }, 3e3);
+          console.log(`[main] Starting theme injection for ${appId}:${themeId} on port ${result.port}`);
+          const injectResult = await applyTheme(appId, themeId, result.port);
+          console.log(`[main] Injection result:`, injectResult);
         } else {
           console.error(`[main] Failed to launch ${appId}: ${result.error}`);
         }
