@@ -55,6 +55,14 @@ export function mergeSharedCustomThemes(input: unknown): SharedCustomTheme[] {
   return limited;
 }
 
+export function deleteSharedCustomTheme(themeId: string): SharedCustomTheme[] {
+  if (!/^custom-[a-z0-9-]+$/i.test(themeId)) throw new Error('Invalid custom theme id');
+  const themes = listSharedCustomThemes().filter(theme => theme.id !== themeId);
+  writeSharedCustomThemes(themes);
+  console.log(`[custom-theme-store] Deleted ${themeId}; ${themes.length} custom themes remain`);
+  return themes;
+}
+
 export function selectQuickThemeIds(appId: string, availableThemeIds: string[], currentThemeId: string, limit = 4): string[] {
   const usage = readThemeUsage()[appId] ?? {};
   return [...availableThemeIds]
@@ -85,7 +93,7 @@ export function ensureSharedCustomThemeService(): Promise<SharedCustomThemeServi
     const server = http.createServer((request, response) => {
       response.setHeader('Access-Control-Allow-Origin', '*');
       response.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
-      response.setHeader('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS');
+      response.setHeader('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS');
       response.setHeader('Access-Control-Allow-Private-Network', 'true');
       if (request.method === 'OPTIONS') {
         response.writeHead(204).end();
@@ -101,6 +109,21 @@ export function ensureSharedCustomThemeService(): Promise<SharedCustomThemeServi
           recordThemeUsage(value.appId, value.themeId);
           sendJson(response, 200, { success: true });
         });
+        return;
+      }
+      if (request.url === '/custom-themes/delete' && request.method === 'POST') {
+        readJsonBody(request, response, (value) => {
+          if (typeof value?.themeId !== 'string' || !/^custom-[a-z0-9-]+$/i.test(value.themeId)) throw new Error('Invalid custom theme id');
+          const themes = deleteSharedCustomTheme(value.themeId);
+          sendJson(response, 200, themes);
+        });
+        return;
+      }
+      const deleteMatch = request.url?.match(/^\/custom-themes\/([a-z0-9-]+)$/i);
+      if (deleteMatch && request.method === 'DELETE') {
+        const themeId = decodeURIComponent(deleteMatch[1]);
+        const themes = deleteSharedCustomTheme(themeId);
+        sendJson(response, 200, themes);
         return;
       }
       if (request.url !== '/custom-themes') {

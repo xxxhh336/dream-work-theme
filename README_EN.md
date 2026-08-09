@@ -46,6 +46,10 @@ Dream Work Theme is a desktop theme manager for supported Electron work applicat
 
 ![Dream Work Theme Interface preview](preview10.png)
 
+![Dream Work Theme Interface preview](preview11.png)
+
+![Dream Work Theme Interface preview](preview12.png)
+
 </details>
 
 ## Support Applications
@@ -60,9 +64,11 @@ The current application registry supports:
 - Qwen Office (`QwenWorkCN`)
 - HanaAgent
 - Kimi Work
+- OpenCode Desktop
+- Doubao Desktop
 - Codex / ChatGPT Desktop
 
-Some applications use fixed debugging ports, while QoderWork and Qwen Office read their live port from `DevToolsActivePort`. HanaAgent uses port `9346`, and Kimi Work uses `9347`. Dream Work Theme waits for renderers that are likely to be recreated and restores missing injection while the application is running.
+Some applications use fixed debugging ports, while QoderWork, Qwen Office, and OpenCode Desktop read their live port from `DevToolsActivePort`. HanaAgent uses port `9346`, Kimi Work uses `9347`, and Doubao Desktop uses `9349`. Dream Work Theme waits for renderers that are likely to be recreated and restores missing injection while the application is running.
 
 The application registry is the shared source for Windows installation paths, macOS app bundles, Linux executable/desktop-file candidates, and theme compatibility policy. Normal applications use detached spawn on all three platforms. Kimi on Windows mistakes Node, Electron, or PowerShell parents for a development supervisor, so Windows delegates its launch to Explorer through a temporary shortcut; macOS and Linux use the normal detached spawn path.
 
@@ -82,7 +88,7 @@ The application registry is the shared source for Windows installation paths, ma
 
 - Node.js 22 or newer
 - pnpm
-- At least one supported Electron application
+- At least one supported Electron or customized Chromium application
 
 Install dependencies:
 
@@ -165,6 +171,25 @@ The floating menu shows up to four quick preset themes and is no longer tied to 
 - Kimi-specific CSS makes the home page, conversation list, publisher area, and large input wrappers transparent while keeping a light surface on the actual editor card, messages, and controls that need contrast.
 - Kimi backgrounds do not use `backdrop-filter: blur()`, preventing the image from becoming blurred in Work or Chat.
 - On Windows, Explorer must be Kimi's real parent process. Otherwise Kimi can skip its internal `app://` registration and exit after startup. This restriction does not apply to the generic macOS/Linux launch path.
+
+### OpenCode Desktop Notes
+
+- The Windows installation at `C:\Users\<user>\AppData\Local\Programs\@opencode-aidesktop\OpenCode.exe` has been verified on a real installation.
+- OpenCode uses the `oc://renderer/index.html` renderer and exposes its runtime CDP port through `%APPDATA%\ai.opencode.desktop\DevToolsActivePort`.
+- Applying a theme from Dream Work Theme, switching from the floating menu, and restoring the native theme have all been verified.
+- The OpenCode home and conversation surfaces share the same transparent background, while the prompt card keeps a translucent glass surface for readability.
+- Process shutdown is scoped to the full OpenCode Desktop executable path and does not terminate the same-named `opencode` CLI.
+
+### Doubao Desktop Notes
+
+- Doubao for Windows is a customized Chromium application whose actual runtime binary is `%LOCALAPPDATA%\Doubao\Application\app\Doubao.exe`.
+- Its main chat renderer is `doubao://doubao-chat/chat`; Dream Work Theme does not inject into its background or launcher helper pages.
+- Doubao uses fixed CDP port `9349`. Themes are injected at runtime without modifying the Doubao installation.
+- Doubao only provides a native light appearance. Dark themes remap its `dbx` and `s-color` text tokens for the sidebar account, search, history, top title, home suggestions, conversation content, and prompt action bar so black text is not left on dark backgrounds.
+- Navigating to Skills, New Work Task, or conversation history can reload Doubao's main renderer. Dream Work Theme combines document-level injection with a CDP watcher so the theme, menu, and dark-text adaptations return after navigation; restoring the native theme stops the watcher and records the restored state.
+- The New Chat prompt placeholder and bottom action icons follow dark themes. The AI Creation page also makes its native white content container transparent and adapts the Tiptap placeholder plus Image/Video tabs.
+- The AI Creation sticky title bar remains transparent. Long conversation message groups are excluded from the generic blurred bubble treatment so they do not obscure the theme artwork.
+- Doubao skips the generic `[class*="message"]` bubble blur rule entirely, and its `message-list-*` content surface is forced transparent with no filter. Only the sidebar and bottom prompt retain local glass effects.
 
 ## Theme Storage
 

@@ -19,6 +19,9 @@ const APP_PORTS: Record<string, number> = {
   zcode: 9344,
   'qwen-office': 9345,
   'hana-agent': 9346,
+  kimi: 9347,
+  opencode: 9348,
+  doubao: 9349,
 };
 
 interface ThemeInfo {

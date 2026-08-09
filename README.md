@@ -46,6 +46,10 @@ Dream Work Theme 是面向 Electron Work 类桌面应用的主题管理器。它
 
 ![Dream Work Theme 界面预览](preview10.png)
 
+![Dream Work Theme 界面预览](preview11.png)
+
+![Dream Work Theme 界面预览](preview12.png)
+
 </details>
 
 ## 支持应用
@@ -60,9 +64,11 @@ Dream Work Theme 是面向 Electron Work 类桌面应用的主题管理器。它
 - 千问办公（`QwenWorkCN`）
 - HanaAgent
 - Kimi Work
+- OpenCode Desktop
+- 豆包 Desktop
 - Codex / ChatGPT Desktop
 
-部分应用使用固定调试端口；QoderWork 和千问办公通过 `DevToolsActivePort` 获取运行时动态端口。HanaAgent 使用固定端口 `9346`，Kimi Work 使用端口 `9347`。Dream Work Theme 会等待易重建的 renderer 稳定，并在运行期间自动恢复丢失的主题。
+部分应用使用固定调试端口；QoderWork、千问办公和 OpenCode Desktop 通过 `DevToolsActivePort` 获取运行时端口。HanaAgent 使用固定端口 `9346`，Kimi Work 使用 `9347`，豆包 Desktop 使用 `9349`。Dream Work Theme 会等待易重建的 renderer 稳定，并在运行期间自动恢复丢失的主题。
 
 应用注册表集中声明 Windows 安装路径、macOS app bundle、Linux executable/desktop 文件候选以及主题兼容策略。普通应用在三个平台使用 detached spawn；Kimi Windows 版会把 Node/Electron/PowerShell 父进程误判为开发监督进程，因此 Windows 使用临时快捷方式交给 Explorer 启动，macOS 和 Linux 仍使用通用 detached spawn。
 
@@ -82,7 +88,7 @@ Dream Work Theme 是面向 Electron Work 类桌面应用的主题管理器。它
 
 - Node.js 22 或更高版本
 - pnpm
-- 至少一个受支持的 Electron 应用
+- 至少一个受支持的 Electron 或定制 Chromium 应用
 
 安装依赖：
 
@@ -165,6 +171,25 @@ Vite 的 CJS API deprecation 当前只是警告，不会导致构建失败。
 - Kimi 专属 CSS 会透明化首页、对话列表、顶部 publisher 区域以及输入框外层大背景，只为实际输入卡片、消息和必要控件保留轻透明底色。
 - Kimi 的背景图不使用 `backdrop-filter: blur()`，避免 Work 与 Chat 页面中的图片被模糊。
 - Windows 必须由 Explorer 成为 Kimi 的真实父进程，否则 Kimi 可能不注册内部 `app://` 协议并在启动后退出。该限制不适用于 macOS/Linux 的通用启动路径。
+
+### OpenCode Desktop 说明
+
+- Windows 安装路径 `C:\Users\<用户名>\AppData\Local\Programs\@opencode-aidesktop\OpenCode.exe` 已完成实机验证。
+- OpenCode 使用 `oc://renderer/index.html` renderer，并通过 `%APPDATA%\ai.opencode.desktop\DevToolsActivePort` 暴露运行时 CDP 端口。
+- 已验证从 Dream Work Theme 应用主题、右下角浮动菜单切换主题以及还原原生主题。
+- OpenCode 首页和对话主面板使用相同的透明背景，输入框保留半透明玻璃底色以保证可读性。
+- 启动器按完整路径结束 OpenCode Desktop 进程，不会误杀同名的 `opencode` CLI。
+
+### 豆包 Desktop 说明
+
+- Windows 版豆包是定制 Chromium 应用，实际运行文件位于 `%LOCALAPPDATA%\Doubao\Application\app\Doubao.exe`。
+- 主聊天 renderer 为 `doubao://doubao-chat/chat`；Dream Work Theme 不向后台页和 launcher 辅助页注入主题。
+- 豆包使用固定 CDP 端口 `9349`，主题仅在运行时注入，不修改豆包安装目录。
+- 豆包原生界面只有亮色模式。暗色主题会重映射侧栏账号、搜索、历史对话、顶部标题、首页建议、对话内容以及输入框操作栏的 `dbx` / `s-color` 文字 token，避免黑色文字落在暗色背景上。
+- 豆包在技能、新工作任务和历史对话等页面导航时会重新加载主 renderer。Dream Work Theme 使用页面级注入和 CDP 守护器，使主题、菜单和暗色文字适配在页面切换后自动恢复；执行还原主题时会停止守护器并记录还原状态。
+- 新对话输入框的占位文字和底部操作图标会跟随暗色主题切换；AI 创作页会透明化原生白色内容容器，并适配 Tiptap 占位文字及图片/视频切换控件。
+- AI 创作页的 sticky 标题栏会保持透明；对话页的长消息组不会套用通用消息气泡的背景模糊，避免大面积遮挡主题图片。
+- 豆包完全跳过通用的 `[class*="message"]` 气泡模糊规则，并强制 `message-list-*` 内容层透明无滤镜；仅保留侧栏和底部输入框的局部玻璃效果。
 
 ## 主题存储
 

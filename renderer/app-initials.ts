@@ -6,5 +6,7 @@ export function getAppInitials(appId: string, name: string): string {
   if (appId === 'qwen-office') return 'QO';
   if (appId === 'hana-agent') return 'HA';
   if (appId === 'kimi') return 'KW';
+  if (appId === 'opencode') return 'OC';
+  if (appId === 'doubao') return 'DB';
   return name.slice(0, 2).toUpperCase();
 }

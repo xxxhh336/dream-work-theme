@@ -3,7 +3,7 @@ import * as path from 'path';
 import { CdpSession, fetchRendererTargets, waitForRendererTargets, isAnyPageTarget } from './cdp';
 import { getThemeHeroDataUrl, listThemes } from './theme-store';
 import { getAppDefinition } from './app-registry';
-import { ensureSharedCustomThemeService, listSharedCustomThemes, mergeSharedCustomThemes, recordThemeUsage, selectQuickThemeIds } from './custom-theme-store';
+import { deleteSharedCustomTheme, ensureSharedCustomThemeService, listSharedCustomThemes, mergeSharedCustomThemes, recordThemeUsage, selectQuickThemeIds } from './custom-theme-store';
 
 const STYLE_ID = 'dream-work-style';
 const MENU_ID = 'dream-work-menu';
@@ -13,6 +13,12 @@ const hanaAgentGenerations = new Map<number, number>();
 const kimiPersistentScripts = new Map<string, string>();
 const kimiWatchers = new Map<number, NodeJS.Timeout>();
 const kimiGenerations = new Map<number, number>();
+const doubaoPersistentScripts = new Map<string, string>();
+const doubaoWatchers = new Map<number, NodeJS.Timeout>();
+const doubaoGenerations = new Map<number, number>();
+const KIMI_RESTORE_KEY = 'dream-work-theme:kimi:restored';
+const KIMI_ACTION_KEY = 'dream-work-theme:kimi:action-at';
+const kimiDeletedCustomThemeIds = new Set<string>();
 const WORKBUDDY_CSS_PLACEHOLDERS = {
   id: 'wb-dream-sentinel-id',
   hero: 'data:image/png;base64,WBDREAMHEROSENTINEL',
@@ -68,6 +74,7 @@ export async function applyTheme(
     try {
       const allTargets = await fetchKimiTargets(port);
       if (allTargets.length > 0) targets = allTargets;
+      await clearKimiRestoreState(targets);
     } catch (e: any) {
       console.log(`[injector] Failed to collect all Kimi targets: ${e.message}`);
     }
@@ -135,7 +142,7 @@ export async function applyTheme(
         try {
           await session.open();
           const serialized = await session.evaluate(`(() => localStorage.getItem(${JSON.stringify(storageKey)}) || '[]')()`);
-          const localThemes = JSON.parse(serialized);
+          const localThemes = JSON.parse(serialized).filter((theme: any) => !kimiDeletedCustomThemeIds.has(theme?.id));
           if (Array.isArray(localThemes) && localThemes.length > 0) {
             sharedCustomThemes = mergeSharedCustomThemes(localThemes);
             break;
@@ -258,7 +265,7 @@ export async function applyTheme(
           }
         }
         
-        if (appId === 'hana-agent' || appId === 'kimi') {
+        if (appId === 'hana-agent' || appId === 'kimi' || appId === 'doubao') {
           const persistentScript = `(() => {
             const inject = () => ${menuScript};
             if (document.readyState === 'loading') {
@@ -267,7 +274,11 @@ export async function applyTheme(
               inject();
             }
           })()`;
-          const persistentScripts = appId === 'hana-agent' ? hanaAgentPersistentScripts : kimiPersistentScripts;
+          const persistentScripts = appId === 'hana-agent'
+            ? hanaAgentPersistentScripts
+            : appId === 'kimi'
+              ? kimiPersistentScripts
+              : doubaoPersistentScripts;
           const previousIdentifier = persistentScripts.get(target.id);
           if (previousIdentifier) {
             await session.removeScriptToEvaluateOnNewDocument(previousIdentifier).catch(() => {});
@@ -470,6 +481,9 @@ export async function applyTheme(
     if (appId === 'kimi' && applied > 0) {
       startKimiWatcher(port, menuScript, new Set(targets.map(target => target.id)));
     }
+    if (appId === 'doubao' && applied > 0) {
+      startDoubaoWatcher(port, menuScript);
+    }
     if (applied > 0) recordThemeUsage(appId, themeId);
     return { success: applied > 0, applied };
   } catch (error: any) {
@@ -489,6 +503,63 @@ async function fetchKimiTargets(port: number): Promise<any[]> {
   });
 }
 
+function startDoubaoWatcher(port: number, menuScript: string): void {
+  const existing = doubaoWatchers.get(port);
+  if (existing) clearInterval(existing);
+  const generation = (doubaoGenerations.get(port) ?? 0) + 1;
+  doubaoGenerations.set(port, generation);
+  let busy = false;
+  const timer = setInterval(async () => {
+    if (busy || doubaoGenerations.get(port) !== generation) return;
+    busy = true;
+    try {
+      const targets = await fetchRendererTargets(port, 'doubao://doubao-chat/chat', { timeoutMs: 2000, quiet: true });
+      for (const target of targets) {
+        const session = new CdpSession(target.webSocketDebuggerUrl);
+        try {
+          await session.open();
+          const state = await session.evaluate(`(() => ({
+            restored: document.documentElement.dataset.dreamThemeRestored === 'true' || (() => {
+              try { return localStorage.getItem('dream-work-theme:doubao:restored') === '1'; } catch { return false; }
+            })(),
+            ready: Boolean(document.getElementById('${STYLE_ID}')?.textContent && document.documentElement.dataset.dreamTheme)
+          }))()`).catch(() => ({ restored: false, ready: false }));
+          if (!state.restored && !state.ready) {
+            console.log(`[injector] Doubao renderer ${target.id} lost theme after navigation; reinjecting`);
+            await session.evaluate(menuScript);
+          }
+        } finally {
+          session.close();
+        }
+      }
+    } catch (error) {
+      if (doubaoGenerations.get(port) === generation) {
+        console.warn('[injector] Doubao watcher check failed:', (error as Error).message);
+      }
+    } finally {
+      busy = false;
+    }
+  }, 500);
+  timer.unref?.();
+  doubaoWatchers.set(port, timer);
+}
+
+async function clearKimiRestoreState(targets: any[]): Promise<void> {
+  for (const target of targets) {
+    const session = new CdpSession(target.webSocketDebuggerUrl);
+    try {
+      await session.open();
+      await session.evaluate(`(() => {
+        try { localStorage.removeItem('${KIMI_RESTORE_KEY}'); } catch {}
+        delete document.documentElement.dataset.dreamThemeRestored;
+        return true;
+      })()`);
+    } finally {
+      session.close();
+    }
+  }
+}
+
 function startKimiWatcher(port: number, menuScript: string, injectedTargetIds: Set<string>): void {
   const existing = kimiWatchers.get(port);
   if (existing) clearInterval(existing);
@@ -500,6 +571,49 @@ function startKimiWatcher(port: number, menuScript: string, injectedTargetIds: S
     busy = true;
     try {
       const targets = await fetchKimiTargets(port);
+      const states: Array<{ target: any; restored: boolean; themeId: string; actionAt: number; ready: boolean; deleteCustomThemeId: string }> = [];
+      for (const target of targets) {
+        const session = new CdpSession(target.webSocketDebuggerUrl);
+        try {
+          await session.open();
+          const state = await session.evaluate(`(() => {
+            let storedRestored = false;
+            let actionAt = 0;
+            try {
+              storedRestored = localStorage.getItem('${KIMI_RESTORE_KEY}') === '1';
+              actionAt = Number(localStorage.getItem('${KIMI_ACTION_KEY}') || '0');
+            } catch {}
+            const themeId = document.documentElement.dataset.dreamTheme || '';
+            return {
+              restored: document.documentElement.dataset.dreamThemeRestored === 'true' || storedRestored,
+              themeId,
+              actionAt,
+              ready: Boolean(document.getElementById('${STYLE_ID}')?.textContent && themeId)
+              ,deleteCustomThemeId: window.__dreamWorkDeleteCustomThemeId || ''
+            };
+          })()`).catch(() => ({ restored: false, themeId: '', actionAt: 0, ready: false, deleteCustomThemeId: '' }));
+          states.push({ target, ...state });
+        } finally {
+          session.close();
+        }
+      }
+      const deleteRequest = states.find(state => state.deleteCustomThemeId)?.deleteCustomThemeId;
+      if (deleteRequest) {
+        const latestCustomThemes = deleteSharedCustomTheme(deleteRequest);
+        kimiDeletedCustomThemeIds.add(deleteRequest);
+        await syncKimiCustomThemes(targets, latestCustomThemes, deleteRequest);
+      }
+      const latest = [...states].sort((left, right) => right.actionAt - left.actionAt)[0];
+      if (latest?.restored) {
+        console.log(`[injector] Kimi watcher observed restore state; preserving menus without theme`);
+        await syncKimiRestoreState(targets, menuScript, injectedTargetIds, latest.actionAt);
+        return;
+      }
+      if (latest?.ready && latest.themeId && states.some(state => state.restored || !state.ready || state.themeId !== latest.themeId)) {
+        console.log(`[injector] Kimi watcher synchronizing selected theme ${latest.themeId} across targets`);
+        await syncKimiActiveTheme(targets, menuScript, injectedTargetIds, latest.themeId, latest.actionAt);
+        return;
+      }
       for (const target of targets) {
         if (kimiGenerations.get(port) !== generation) return;
         const session = new CdpSession(target.webSocketDebuggerUrl);
@@ -540,6 +654,100 @@ function startKimiWatcher(port: number, menuScript: string, injectedTargetIds: S
   }, 750);
   timer.unref();
   kimiWatchers.set(port, timer);
+}
+
+async function syncKimiCustomThemes(targets: any[], themes: any[], deletedThemeId: string): Promise<void> {
+  const serializedThemes = JSON.stringify(themes);
+  for (const target of targets) {
+    const session = new CdpSession(target.webSocketDebuggerUrl);
+    try {
+      await session.open();
+      await session.evaluate(`(() => {
+        delete window.__dreamWorkDeleteCustomThemeId;
+        try { localStorage.setItem('dreamCodexCustomThemes', ${JSON.stringify(serializedThemes)}); } catch {}
+        const host = document.getElementById('${MENU_ID}-host');
+        const menu = host?.shadowRoot?.getElementById('${MENU_ID}');
+        for (const row of Array.from(menu?.querySelectorAll('div') || [])) {
+          if (row.dataset?.customThemeId === ${JSON.stringify(deletedThemeId)}) row.remove();
+        }
+        window.__dreamTheme?.replaceCustomThemes?.(${serializedThemes});
+        return true;
+      })()`);
+    } finally {
+      session.close();
+    }
+  }
+}
+
+async function syncKimiRestoreState(targets: any[], menuScript: string, injectedTargetIds: Set<string>, actionAt: number): Promise<void> {
+  for (const target of targets) {
+    const session = new CdpSession(target.webSocketDebuggerUrl);
+    try {
+      await session.open();
+      if (!kimiPersistentScripts.has(target.id)) {
+        const persistentScript = `(() => {
+          const inject = () => ${menuScript};
+          if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', inject, { once: true });
+          else inject();
+        })()`;
+        const identifier = await session.addScriptToEvaluateOnNewDocument(persistentScript);
+        if (identifier) kimiPersistentScripts.set(target.id, identifier);
+      }
+      await session.evaluate(`(() => {
+        try { localStorage.setItem('${KIMI_RESTORE_KEY}', '1'); } catch {}
+        try { localStorage.setItem('${KIMI_ACTION_KEY}', '${actionAt}'); } catch {}
+        document.documentElement.dataset.dreamThemeRestored = 'true';
+        return true;
+      })()`);
+      const hasMenu = await session.evaluate(`(() => {
+        const host = document.getElementById('${MENU_ID}-host');
+        return Boolean(host?.shadowRoot?.getElementById('${MENU_ID}'));
+      })()`).catch(() => false);
+      if (!hasMenu) await session.evaluate(menuScript);
+      await session.evaluate(`(() => {
+        try { localStorage.setItem('${KIMI_RESTORE_KEY}', '1'); } catch {}
+        try { localStorage.setItem('${KIMI_ACTION_KEY}', '${actionAt}'); } catch {}
+        document.documentElement.dataset.dreamThemeRestored = 'true';
+        const style = document.getElementById('${STYLE_ID}');
+        if (style) style.textContent = '';
+        delete document.documentElement.dataset.dreamTheme;
+        delete document.documentElement.dataset.dreamShell;
+        return true;
+      })()`);
+      injectedTargetIds.add(target.id);
+    } finally {
+      session.close();
+    }
+  }
+}
+
+async function syncKimiActiveTheme(
+  targets: any[],
+  menuScript: string,
+  injectedTargetIds: Set<string>,
+  themeId: string,
+  actionAt: number
+): Promise<void> {
+  for (const target of targets) {
+    const session = new CdpSession(target.webSocketDebuggerUrl);
+    try {
+      await session.open();
+      await session.evaluate(`(() => {
+        try {
+          localStorage.removeItem('${KIMI_RESTORE_KEY}');
+          localStorage.setItem('${KIMI_ACTION_KEY}', '${actionAt}');
+        } catch {}
+        delete document.documentElement.dataset.dreamThemeRestored;
+        return true;
+      })()`);
+      const hasMenu = await session.evaluate(`(() => Boolean(window.__dreamTheme?.activateTheme))()`).catch(() => false);
+      if (!hasMenu) await session.evaluate(menuScript);
+      await session.evaluate(`(() => window.__dreamTheme?.activateTheme(${JSON.stringify(themeId)}, ${actionAt}))()`);
+      injectedTargetIds.add(target.id);
+    } finally {
+      session.close();
+    }
+  }
 }
 
 export async function getStatus(
@@ -701,23 +909,27 @@ export async function removeSkin(
   port: number,
   options: { rendererUrlHint?: string } = {}
 ): Promise<{ success: boolean }> {
+  const restoreActionAt = Date.now();
   if (appId === 'hana-agent') {
     hanaAgentGenerations.set(port, (hanaAgentGenerations.get(port) ?? 0) + 1);
     const watcher = hanaAgentWatchers.get(port);
     if (watcher) clearInterval(watcher);
     hanaAgentWatchers.delete(port);
   }
-  if (appId === 'kimi') {
-    kimiGenerations.set(port, (kimiGenerations.get(port) ?? 0) + 1);
-    const watcher = kimiWatchers.get(port);
+  if (appId === 'doubao') {
+    doubaoGenerations.set(port, (doubaoGenerations.get(port) ?? 0) + 1);
+    const watcher = doubaoWatchers.get(port);
     if (watcher) clearInterval(watcher);
-    kimiWatchers.delete(port);
+    doubaoWatchers.delete(port);
   }
+  // Keep the Kimi watcher alive after restore so menus survive renderer changes.
   const rendererUrlHint = options.rendererUrlHint ?? getAppDefinition(appId)?.rendererHints[0] ?? 'renderer/index.html';
   let targets: any[] = [];
 
   try {
-    targets = await fetchRendererTargets(port, rendererUrlHint);
+    targets = appId === 'kimi'
+      ? await fetchKimiTargets(port)
+      : await fetchRendererTargets(port, rendererUrlHint);
   } catch {}
 
   // Relaxed fallback
@@ -738,7 +950,7 @@ export async function removeSkin(
     return { success: false };
   }
 
-  for (const target of appId === 'hana-agent' ? targets : targets.slice(0, 1)) {
+  for (const target of appId === 'hana-agent' || appId === 'kimi' ? targets : targets.slice(0, 1)) {
     const session = new CdpSession(target.webSocketDebuggerUrl);
     await session.open();
     if (appId === 'hana-agent') {
@@ -748,10 +960,25 @@ export async function removeSkin(
         hanaAgentPersistentScripts.delete(target.id);
       }
     }
+    if (appId === 'doubao') {
+      const identifier = doubaoPersistentScripts.get(target.id);
+      if (identifier) {
+        await session.removeScriptToEvaluateOnNewDocument(identifier).catch(() => {});
+        doubaoPersistentScripts.delete(target.id);
+      }
+    }
     await session.evaluate(`(() => {
       ${appId === 'hana-agent' ? `try { localStorage.setItem('dream-work-theme:hana-agent:restored', '1'); } catch {}
       document.documentElement.dataset.dreamThemeRestored = 'true';` : ''}
-      document.getElementById('${STYLE_ID}')?.remove();
+      ${appId === 'doubao' ? `document.documentElement.dataset.dreamThemeRestored = 'true';` : ''}
+      ${appId === 'doubao' ? `try { localStorage.setItem('dream-work-theme:doubao:restored', '1'); } catch {}` : ''}
+      ${appId === 'kimi' ? `try { localStorage.setItem('${KIMI_RESTORE_KEY}', '1'); } catch {}
+      try { localStorage.setItem('${KIMI_ACTION_KEY}', '${restoreActionAt}'); } catch {}
+      document.documentElement.dataset.dreamThemeRestored = 'true';` : ''}
+      ${appId === 'kimi'
+        ? `const style = document.getElementById('${STYLE_ID}');
+      if (style) style.textContent = '';`
+        : `document.getElementById('${STYLE_ID}')?.remove();
       document.getElementById('${MENU_ID}')?.remove();
       document.getElementById('${MENU_ID}-host')?.remove();
       clearInterval(window.__dreamWorkMenuGuard);
@@ -759,7 +986,7 @@ export async function removeSkin(
       if (window.__dreamWorkOutsideClick) {
         document.removeEventListener('pointerdown', window.__dreamWorkOutsideClick, true);
         delete window.__dreamWorkOutsideClick;
-      }
+      }`}
       delete document.documentElement.dataset.dreamTheme;
       delete document.documentElement.dataset.dreamShell;
       return true;
@@ -1011,6 +1238,10 @@ function buildGenericWorkCss(appId: string, manifest: any, heroDataUrl: string, 
     ? buildQoderWorkShellCss(colors)
     : appId === 'catpaw'
       ? buildCatPawCss(heroDataUrl, colors)
+      : appId === 'opencode'
+        ? buildOpenCodeCss(colors)
+        : appId === 'doubao'
+          ? buildDoubaoCss(colors)
       : '';
   return `/* DREAM_THEME:${manifest.id} */
 :root {
@@ -1039,13 +1270,280 @@ html, body, #root { background: ${colors.surface} !important; color: ${colors.te
 :is(${main}) :where([class*="message"], [class*="chat"], [class*="composer"], [class*="editor"], [contenteditable="true"], textarea) {
   color: ${colors.text} !important;
 }
-:is(${main}) :where([class*="message"], [class*="bubble"], [class*="composer"], [class*="input-container"]) {
+${appId === 'doubao' ? '' : `:is(${main}) :where([class*="message"], [class*="bubble"], [class*="composer"], [class*="input-container"]) {
   background-color: color-mix(in srgb, ${colors.surface} 88%, transparent) !important;
   backdrop-filter: blur(16px) saturate(108%);
-}
+}`}
 :is(${main}) :where(p, span, li, h1, h2, h3, h4, strong, em) { color: ${colors.text} !important; }
 button[class*="bg-primary"], button[class*="bg-accent"] { background-color: ${colors.accent} !important; color: #fff !important; }
 ${appSpecificCss}`;
+}
+
+function buildOpenCodeCss(colors: any): string {
+  return `
+:root {
+  --v2-background-bg-deep: transparent !important;
+  --v2-background-bg-base: transparent !important;
+  --v2-background-bg-raised: color-mix(in srgb, ${colors.surface} 42%, transparent) !important;
+  --v2-text-text-base: ${colors.text} !important;
+  --v2-text-text-strong: ${colors.text} !important;
+}
+main > div[class*="bg-v2-background-bg-deep"],
+main div[class*="bg-v2-background-bg-deep"][class*="flex-1"][class*="overflow-hidden"] {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+main div[class*="flex-1"][class*="flex-col"][class*="bg-v2-background-bg-base"][class*="rounded-"][class*="overflow-hidden"],
+main div[class*="shrink-0"][class*="bg-v2-background-bg-base"][class*="pointer-events-none"] {
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+main form[class*="group/prompt-input"] {
+  background: color-mix(in srgb, ${colors.surface} 68%, transparent) !important;
+  border: 1px solid color-mix(in srgb, ${colors.accent} 28%, transparent) !important;
+  box-shadow: 0 18px 52px color-mix(in srgb, #000000 28%, transparent) !important;
+  backdrop-filter: blur(18px) saturate(112%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(112%) !important;
+}
+main form[class*="group/prompt-input"] :where([contenteditable="true"], textarea, input) {
+  background: transparent !important;
+  color: ${colors.text} !important;
+  caret-color: ${colors.accent} !important;
+}
+main form[class*="group/prompt-input"] :where([class*="toolbar"], [class*="footer"], [class*="controls"]) {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+main form[class*="group/prompt-input"] :where(button, [role="button"]):hover {
+  background-color: color-mix(in srgb, ${colors.accent} 16%, transparent) !important;
+}`;
+}
+
+function buildDoubaoCss(colors: any): string {
+  return `
+:root {
+  --s-color-bg-body: transparent !important;
+  --s-color-text-primary: ${colors.text} !important;
+  --s-color-text-secondary: color-mix(in srgb, ${colors.text} 76%, transparent) !important;
+  --s-color-text-tertiary: color-mix(in srgb, ${colors.text} 58%, transparent) !important;
+  --dbx-text-primary: ${colors.text} !important;
+  --dbx-text-secondary: color-mix(in srgb, ${colors.text} 76%, transparent) !important;
+  --dbx-text-tertiary: color-mix(in srgb, ${colors.text} 58%, transparent) !important;
+  --color-dbx-text-disable: color-mix(in srgb, ${colors.text} 38%, transparent) !important;
+  --input-guidance-input-container-background: color-mix(in srgb, ${colors.surface} 68%, transparent) !important;
+  --input-guidance-input-container-border: 1px solid color-mix(in srgb, ${colors.accent} 28%, transparent) !important;
+}
+#chat-route-layout [class*="bg-dbx-bg-float"],
+#chat-route-layout [class*="bg-dbx-bg-base-web"] {
+  background-color: color-mix(in srgb, ${colors.surface} 82%, transparent) !important;
+  color: ${colors.text} !important;
+  border-color: color-mix(in srgb, ${colors.accent} 18%, transparent) !important;
+}
+#chat-route-layout [class*="bg-dbx-fill-trans-20"],
+#chat-route-layout [class*="bg-dbx-fill-trans-10"] {
+  background-color: color-mix(in srgb, ${colors.surface} 28%, transparent) !important;
+}
+html, body, #root,
+#chat-route-layout,
+#chat-route-main,
+#flow-chat-guidance-page {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+#chat-route-main > main,
+main[class*="center-bg-"] {
+  color: ${colors.text} !important;
+}
+#chat-route-layout nav,
+#chat-route-main nav,
+nav[class*="panel-"] {
+  background: color-mix(in srgb, ${colors.surface} 46%, transparent) !important;
+  border-color: color-mix(in srgb, ${colors.accent} 18%, transparent) !important;
+  color: ${colors.text} !important;
+  backdrop-filter: blur(18px) saturate(108%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(108%) !important;
+}
+#chat-route-main :where([class*="conversation"], [class*="message-list"], [class*="scroll-view"], [class*="chat-content"]) {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+#chat-route-main div[class*="bg-(--input-guidance-input-container-background)"],
+#chat-route-main div[class*="input-container"] {
+  background: color-mix(in srgb, ${colors.surface} 68%, transparent) !important;
+  border-color: color-mix(in srgb, ${colors.accent} 28%, transparent) !important;
+  color: ${colors.text} !important;
+  box-shadow: 0 18px 52px color-mix(in srgb, #000000 24%, transparent) !important;
+  backdrop-filter: blur(18px) saturate(110%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(110%) !important;
+}
+#chat-route-main :where(textarea, input, [contenteditable="true"]) {
+  background: transparent !important;
+  color: ${colors.text} !important;
+  caret-color: ${colors.accent} !important;
+}
+#chat-route-main :where(textarea, input)::placeholder {
+  color: color-mix(in srgb, ${colors.text} 58%, transparent) !important;
+  opacity: 1 !important;
+}
+#chat-route-main :where(.tiptap, .ProseMirror)[data-placeholder]::before,
+#chat-route-main :where(.tiptap, .ProseMirror) p.is-editor-empty:first-child::before,
+#chat-route-main :where(.tiptap, .ProseMirror) p.is-empty:first-child::before,
+#chat-route-main :where(.tiptap, .ProseMirror):empty::before {
+  color: color-mix(in srgb, ${colors.text} 58%, transparent) !important;
+  opacity: 1 !important;
+}
+#flow-chat-guidance-page img[class*="dark:hidden"],
+#chat-route-main div[class*="input-guidance"] img[class*="dark:hidden"] {
+  display: none !important;
+}
+#flow-chat-guidance-page img[class*="hidden"][class*="dark:block"],
+#chat-route-main div[class*="input-guidance"] img[class*="hidden"][class*="dark:block"] {
+  display: block !important;
+}
+#flow-chat-guidance-page img[class*="object-contain"]:not([class*="image-item-img"]),
+#chat-route-main div[class*="input-guidance"] img[class*="object-contain"]:not([class*="image-item-img"]) {
+  filter: brightness(0) saturate(100%) invert(94%) sepia(5%) saturate(140%) hue-rotate(185deg) brightness(103%) contrast(95%) !important;
+}
+#flow-chat-guidance-page :where(svg, svg *),
+#chat-route-main div[class*="input-guidance"] :where(svg, svg *) {
+  color: ${colors.text} !important;
+  fill: currentColor !important;
+  stroke: currentColor;
+}
+#chat-route-layout :is([class*="text-dbx-text-primary"], [class*="text-s-color-text-primary"]),
+#chat-route-layout :is(button, [role="button"])[class*="text-dbx-text-primary"],
+#chat-route-layout :is(button, [role="button"])[class*="text-s-color-text-primary"] {
+  color: ${colors.text} !important;
+}
+#chat-route-layout :is([class*="text-dbx-text-secondary"], [class*="text-s-color-text-secondary"]) {
+  color: color-mix(in srgb, ${colors.text} 76%, transparent) !important;
+}
+#chat-route-layout :is([class*="text-dbx-text-tertiary"], [class*="text-s-color-text-tertiary"]) {
+  color: color-mix(in srgb, ${colors.text} 58%, transparent) !important;
+}
+#flow_chat_sidebar,
+#flow_chat_sidebar :where(button, [role="button"], a, div, span),
+#chat-route-main > main > :where(header, [class*="header"]),
+#chat-route-main > main > :where(header, [class*="header"]) :where(button, [role="button"], div, span),
+#flow-chat-guidance-page,
+#flow-chat-guidance-page :where(button, [role="button"], div, span),
+#chat-route-main :where([class*="message"], [class*="conversation"], [class*="markdown"], article),
+#chat-route-main :where([class*="message"], [class*="conversation"], [class*="markdown"], article) :where(p, div, span, li, h1, h2, h3, h4, strong, em, a),
+#chat-route-main div[class*="bg-(--input-guidance-input-container-background)"],
+#chat-route-main div[class*="bg-(--input-guidance-input-container-background)"] :where(button, [role="button"], div, span) {
+  color: ${colors.text} !important;
+}
+#flow-chat-guidance-page [class*="greeting-text-"]::after {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+#flow_chat_sidebar [class*="text-dbx-text-tertiary"],
+#flow_chat_sidebar [class*="text-s-color-text-tertiary"] {
+  color: color-mix(in srgb, ${colors.text} 58%, transparent) !important;
+}
+#chat-route-main :where(p, span, li, h1, h2, h3, h4, strong, em) {
+  color: ${colors.text} !important;
+}
+#chat-route-main :where(button, [role="button"]):hover {
+  background-color: color-mix(in srgb, ${colors.accent} 15%, transparent) !important;
+}
+#chat-route-main [class*="page-"] {
+  background-color: transparent !important;
+  color: ${colors.text} !important;
+}
+#chat-route-main [class*="container-SrVXPg"],
+#chat-route-main [class*="chrome70-container"] {
+  background-color: transparent !important;
+  background-image: none !important;
+  color: ${colors.text} !important;
+}
+#chat-route-main [class*="layout-padding-x-"][class*="sticky"][class*="bg-s-color-bg-body"] {
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+#chat-route-main div[class*="max-w-(--content-max-width)"][class*="my-0"][class*="mx-auto"] {
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+#chat-route-main [class*="message-list-"] {
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+#chat-route-main [class*="page-"] :where(h1, h2, h3, h4, p, span, div, button, a, [role="button"]) {
+  color: ${colors.text} !important;
+}
+#chat-route-main [class*="searchBox-"] > div,
+#chat-route-main [class*="searchBox-"] [class*="border-dbx-line"] {
+  background: color-mix(in srgb, ${colors.surface} 62%, transparent) !important;
+  border-color: color-mix(in srgb, ${colors.accent} 28%, transparent) !important;
+  color: ${colors.text} !important;
+  backdrop-filter: blur(14px) saturate(108%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(108%) !important;
+}
+#chat-route-main [class*="searchBox-"] input {
+  background: transparent !important;
+  color: ${colors.text} !important;
+  caret-color: ${colors.accent} !important;
+}
+#chat-route-main [class*="searchBox-"] input::placeholder {
+  color: color-mix(in srgb, ${colors.text} 58%, transparent) !important;
+}
+#chat-route-main [class*="page-"] :is([class*="category"], [class*="tab"], [class*="filter"]),
+#chat-route-main [class*="page-"] :is([class*="category"], [class*="tab"], [class*="filter"]) * {
+  color: ${colors.text} !important;
+}
+#chat-route-main [class*="group/carousel"] [role="tab"],
+#chat-route-main [class*="group/carousel"] button {
+  background: transparent !important;
+  color: color-mix(in srgb, ${colors.text} 76%, transparent) !important;
+}
+#chat-route-main [class*="group/carousel"] [role="tab"][data-state="active"],
+#chat-route-main [class*="group/carousel"] button[data-state="active"] {
+  background: color-mix(in srgb, ${colors.accent} 24%, ${colors.surface}) !important;
+  color: ${colors.text} !important;
+}
+#flow_chat_sidebar .group\/sidebar_nav_item[class*="bg-dbx-bg-float"],
+#flow_chat_sidebar .group\/sidebar_nav_item[class*="shadow-"] {
+  background: color-mix(in srgb, ${colors.accent} 22%, ${colors.surface}) !important;
+  color: ${colors.text} !important;
+  border-color: color-mix(in srgb, ${colors.accent} 32%, transparent) !important;
+  box-shadow: none !important;
+}
+#flow_chat_sidebar .group\/sidebar_nav_item[class*="bg-dbx-bg-float"] *,
+#flow_chat_sidebar .group\/sidebar_nav_item[class*="shadow-"] * {
+  color: ${colors.text} !important;
+}
+#flow_chat_sidebar [class*="chat-item-"] {
+  color: ${colors.text} !important;
+  border-color: transparent !important;
+}
+#flow_chat_sidebar [class*="chat-item-"] * {
+  color: ${colors.text} !important;
+}
+#flow_chat_sidebar a[id^="conversation_"],
+#flow_chat_sidebar a[id^="conversation_"] * {
+  color: ${colors.text} !important;
+}
+#flow_chat_sidebar a[id^="conversation_"] :where(svg, svg *) {
+  color: ${colors.text} !important;
+  fill: currentColor !important;
+  stroke: currentColor !important;
+}
+#flow_chat_sidebar [class*="chat-item-"][class*="bg-dbx"],
+#flow_chat_sidebar [class*="chat-item-"][aria-current="page"],
+#flow_chat_sidebar [class*="chat-item-"][data-active="true"] {
+  background: color-mix(in srgb, ${colors.accent} 22%, ${colors.surface}) !important;
+  color: ${colors.text} !important;
+}`;
 }
 
 function buildHanaAgentCss(manifest: any, heroDataUrl: string, colors: any): string {
@@ -2443,9 +2941,25 @@ export function buildMenuScript(options: {
     window.__dreamWorkThemeStyle = style;
   }
 
-  const applyTheme = (themeId) => {
+  const markKimiAction = (restored, actionAt = Date.now()) => {
+    if (appId !== 'kimi') return actionAt;
+    try {
+      localStorage.setItem('${KIMI_ACTION_KEY}', String(actionAt));
+      if (restored) localStorage.setItem('${KIMI_RESTORE_KEY}', '1');
+      else localStorage.removeItem('${KIMI_RESTORE_KEY}');
+    } catch {}
+    document.documentElement.dataset.dreamThemeRestored = restored ? 'true' : undefined;
+    if (!restored) delete document.documentElement.dataset.dreamThemeRestored;
+    return actionAt;
+  };
+  const applyTheme = (themeId, actionAt = Date.now()) => {
     const theme = themes.find(t => t.id === themeId);
     if (!theme) return;
+    markKimiAction(false, actionAt);
+    if (appId === 'doubao') {
+      try { localStorage.removeItem('dream-work-theme:doubao:restored'); } catch {}
+      delete document.documentElement.dataset.dreamThemeRestored;
+    }
     window.__dreamWorkThemeStyle.textContent = materializeCss(theme.css, theme.id);
     document.documentElement.dataset.dreamTheme = themeId;
     if (appId !== 'hana-agent' && appId !== 'kimi') applyMode(theme.surface);
@@ -2481,6 +2995,11 @@ export function buildMenuScript(options: {
   };
 
   const restoreNative = () => {
+    markKimiAction(true);
+    if (appId === 'doubao') {
+      try { localStorage.setItem('dream-work-theme:doubao:restored', '1'); } catch {}
+      document.documentElement.dataset.dreamThemeRestored = 'true';
+    }
     window.__dreamWorkThemeStyle.textContent = '';
     delete document.documentElement.dataset.dreamTheme;
     if (appId !== 'hana-agent' && appId !== 'kimi') applyMode('#ffffff');
@@ -2619,9 +3138,9 @@ export function buildMenuScript(options: {
   };
   const localCustomThemes = loadCustoms();
   const initialCustomThemes = sharedCustomThemes.length > 0 ? sharedCustomThemes : localCustomThemes;
-  writeLocalCustoms(initialCustomThemes);
-  if (sharedCustomThemes.length === 0 && localCustomThemes.length > 0) void saveCustoms(localCustomThemes);
-  const applyCustomTheme = (slot) => {
+  let customRefreshGeneration = 0;
+  const applyCustomTheme = (slot, actionAt = Date.now()) => {
+    markKimiAction(false, actionAt);
     window.__dreamWorkThemeStyle.textContent = materializeCss(buildCustomCss(slot.dataUrl, slot.colors, slot.id), slot.id);
     document.documentElement.dataset.dreamTheme = slot.id;
     if (appId !== 'hana-agent') applyMode(slot.colors.surface);
@@ -2629,14 +3148,38 @@ export function buildMenuScript(options: {
     ensureCustomRow(slot);
   };
   const deleteCustom = async (slotId) => {
-    const saved = loadCustoms();
-    const index = saved.findIndex((theme) => theme.id === slotId);
-    if (index < 0) return;
+    customRefreshGeneration += 1;
+    if (appId === 'kimi') {
+      window.__dreamWorkDeleteCustomThemeId = slotId;
+      const saved = loadCustoms().filter((theme) => theme.id !== slotId);
+      if (document.documentElement.dataset.dreamTheme === slotId) restoreNative();
+      writeLocalCustoms(saved);
+      customRows.get(slotId)?.remove();
+      customRows.delete(slotId);
+      return;
+    }
+    let saved = [];
+    try {
+      const response = await fetch(sharedCustomThemeService.endpoint + '/delete', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + sharedCustomThemeService.token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ themeId: slotId }),
+      });
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      const latest = await response.json();
+      saved = Array.isArray(latest) ? latest : [];
+      if (window.__dreamTheme) window.__dreamTheme.lastCustomDeleteError = null;
+    } catch (error) {
+      if (window.__dreamTheme) window.__dreamTheme.lastCustomDeleteError = String(error?.message || error);
+      console.warn('Dream Theme: 共享图片删除失败', error);
+      saved = loadCustoms().filter((theme) => theme.id !== slotId);
+      await saveCustoms(saved);
+    }
     if (document.documentElement.dataset.dreamTheme === slotId) restoreNative();
-    saved.splice(index, 1);
-    await saveCustoms(saved);
+    writeLocalCustoms(saved);
     customRows.get(slotId)?.remove();
     customRows.delete(slotId);
+    void refreshCustomThemes();
   };
   const ensureCustomRow = (slot) => {
     const existing = customRows.get(slot.id);
@@ -2650,6 +3193,7 @@ export function buildMenuScript(options: {
       applyCustomTheme(current);
       panel.style.display = 'none';
     }, uploadRow);
+    item.dataset.customThemeId = slot.id;
     const text = item.querySelector('span + span');
     text.style.cssText = 'flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
     const remove = document.createElement('span');
@@ -2707,10 +3251,14 @@ export function buildMenuScript(options: {
   uploadRow.style.borderTop = '1px solid rgba(0,0,0,.08)';
   const native = row('还原主题', 'rgba(0,0,0,.24)', () => restoreNative());
   initialCustomThemes.forEach(ensureCustomRow);
-  fetch(sharedCustomThemeService.endpoint, {
-    headers: { Authorization: 'Bearer ' + sharedCustomThemeService.token },
-  }).then((response) => response.ok ? response.json() : Promise.reject(new Error('HTTP ' + response.status)))
-    .then((latest) => {
+  const refreshCustomThemes = () => {
+    const generation = ++customRefreshGeneration;
+    return fetch(sharedCustomThemeService.endpoint, {
+      headers: { Authorization: 'Bearer ' + sharedCustomThemeService.token },
+      cache: 'no-store',
+    }).then((response) => response.ok ? response.json() : Promise.reject(new Error('HTTP ' + response.status)))
+      .then((latest) => {
+      if (generation !== customRefreshGeneration) return;
       if (!Array.isArray(latest)) return;
       for (const slotId of [...customRows.keys()]) {
         if (!latest.some((item) => item.id === slotId)) {
@@ -2721,8 +3269,11 @@ export function buildMenuScript(options: {
       writeLocalCustoms(latest);
       latest.forEach(ensureCustomRow);
     }).catch((error) => console.warn('Dream Theme: 共享图片读取失败', error));
+  };
+  void refreshCustomThemes();
 
   button.addEventListener('click', () => {
+    void refreshCustomThemes();
     panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
   });
 
@@ -2749,7 +3300,30 @@ export function buildMenuScript(options: {
   window.__dreamWorkMenuGuard = setInterval(() => {
     ensureInjectedNodes();
   }, 250);
-  applyTheme(currentThemeId);
+  let restoredAtStart = false;
+  if (appId === 'kimi') {
+    try { restoredAtStart = localStorage.getItem('${KIMI_RESTORE_KEY}') === '1'; } catch {}
+  }
+  if (restoredAtStart) restoreNative();
+  else applyTheme(currentThemeId);
+  window.__dreamTheme = {
+    ...(window.__dreamTheme || {}),
+    activateTheme: (themeId, actionAt) => applyTheme(themeId, actionAt),
+    deleteCustom,
+    refreshCustomThemes,
+    replaceCustomThemes: (latest) => {
+      if (!Array.isArray(latest)) return;
+      for (const slotId of [...customRows.keys()]) {
+        if (!latest.some((item) => item.id === slotId)) {
+          customRows.get(slotId)?.remove();
+          customRows.delete(slotId);
+        }
+      }
+      writeLocalCustoms(latest);
+      latest.forEach(ensureCustomRow);
+    },
+    customThemeEndpoint: sharedCustomThemeService.endpoint,
+  };
   ensureInjectedNodes();
 })()`;
 }

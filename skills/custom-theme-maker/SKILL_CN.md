@@ -20,6 +20,9 @@ catpaw
 zcode
 qwen-office
 hana-agent
+kimi
+opencode
+doubao
 ```
 
 ## 输出

@@ -11,6 +11,7 @@ export interface AppDefinition {
   rendererHints: string[];
   kind: 'workbuddy' | 'codex' | 'vscode-work' | 'generic-work';
   devToolsActivePort?: string;
+  windowsPathScopedKill?: boolean;
   acceptsGenericThemes: boolean;
   darwin?: { appBundles: string[]; executableNames: string[] };
   linux?: { executableNames: string[]; desktopFiles: string[] };
@@ -90,6 +91,25 @@ export const APP_DEFINITIONS: AppDefinition[] = [
     acceptsGenericThemes: true,
     darwin: { appBundles: ['Kimi.app'], executableNames: ['Kimi'] },
     linux: { executableNames: ['kimi', 'Kimi'], desktopFiles: ['kimi.desktop'] },
+  },
+  {
+    id: 'opencode', name: 'OpenCode', exeNames: ['OpenCode.exe'], processName: 'OpenCode.exe', defaultPort: 9348,
+    installPaths: [path.join(localAppData, 'Programs', '@opencode-aidesktop'), path.join(localAppData, 'Programs', 'OpenCode'), path.join(programFiles, 'OpenCode'), path.join(programFilesX86, 'OpenCode')],
+    rendererHints: ['oc://renderer/index.html'], kind: 'generic-work',
+    devToolsActivePort: path.join(roamingAppData, 'ai.opencode.desktop', 'DevToolsActivePort'),
+    windowsPathScopedKill: true,
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ['OpenCode.app'], executableNames: ['OpenCode'] },
+    linux: { executableNames: ['opencode-desktop', 'OpenCode'], desktopFiles: ['opencode-desktop.desktop'] },
+  },
+  {
+    id: 'doubao', name: '豆包', exeNames: ['Doubao.exe'], processName: 'Doubao.exe', defaultPort: 9349,
+    installPaths: [path.join(localAppData, 'Doubao', 'Application', 'app'), path.join(localAppData, 'Doubao', 'Application'), path.join(programFiles, 'Doubao'), path.join(programFilesX86, 'Doubao')],
+    rendererHints: ['doubao://doubao-chat/chat'], kind: 'generic-work',
+    windowsPathScopedKill: true,
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ['Doubao.app'], executableNames: ['Doubao'] },
+    linux: { executableNames: ['doubao', 'Doubao'], desktopFiles: ['doubao.desktop'] },
   },
 ];
 

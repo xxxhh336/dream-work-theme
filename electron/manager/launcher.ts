@@ -60,7 +60,7 @@ export async function launchApp(appId: string, themeId?: string): Promise<{ succ
     
     // Kill existing instances to ensure fresh launch with debug port
     console.log(`[launcher] Killing existing ${appId} instances...`);
-    await killExistingInstances(appId);
+    await killExistingInstances(appId, appPath);
     await waitForPortToClose(port, 15000);
 
     const devToolsActivePort = os.platform() === 'win32' ? profile.devToolsActivePort : undefined;
@@ -322,7 +322,7 @@ async function verifyCdpEndpoint(port: number, timeoutMs: number): Promise<void>
   }
 }
 
-async function killExistingInstances(appId: string): Promise<void> {
+async function killExistingInstances(appId: string, appPath: string): Promise<void> {
   const platform = os.platform();
   const definition = getAppDefinition(appId);
   if (!definition) return;
@@ -330,6 +330,26 @@ async function killExistingInstances(appId: string): Promise<void> {
   
   try {
     if (platform === 'win32') {
+      if (definition.windowsPathScopedKill) {
+        const script = `$target = [IO.Path]::GetFullPath($env:DREAM_WORK_TARGET_EXE); ` +
+          `Get-CimInstance Win32_Process -Filter "Name='${definition.processName.replace(/'/g, "''")}'" ` +
+          '| Where-Object { $_.ExecutablePath -and [IO.Path]::GetFullPath($_.ExecutablePath) -ieq $target } ' +
+          '| ForEach-Object { taskkill.exe /T /F /PID $_.ProcessId *> $null }';
+        await execFileAsync('powershell.exe', [
+          '-NoLogo',
+          '-NoProfile',
+          '-NonInteractive',
+          '-ExecutionPolicy',
+          'Bypass',
+          '-Command',
+          script,
+        ], {
+          env: { ...process.env, DREAM_WORK_TARGET_EXE: appPath },
+          windowsHide: true,
+        }).catch(() => {});
+        console.log(`[launcher] Killed existing ${appId} instances at ${appPath}`);
+        return;
+      }
       const { execSync } = require('child_process');
       for (const exeName of exeNames) {
         try {
