@@ -111,6 +111,24 @@ export const APP_DEFINITIONS: AppDefinition[] = [
     darwin: { appBundles: ['Doubao.app'], executableNames: ['Doubao'] },
     linux: { executableNames: ['doubao', 'Doubao'], desktopFiles: ['doubao.desktop'] },
   },
+  {
+    id: 'agnes-code', name: 'AgnesCode', exeNames: ['AgnesCode.exe'], processName: 'AgnesCode.exe', defaultPort: 9350,
+    installPaths: ['D:\\Program Files\\AgnesCode', path.join(localAppData, 'Programs', 'AgnesCode'), path.join(programFiles, 'AgnesCode'), path.join(programFilesX86, 'AgnesCode')],
+    rendererHints: ['app.asar/.vite/renderer/main_window/index.html'], kind: 'generic-work',
+    windowsPathScopedKill: true,
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ['AgnesCode.app'], executableNames: ['AgnesCode'] },
+    linux: { executableNames: ['agnes-code', 'agnescode', 'AgnesCode'], desktopFiles: ['agnes-code.desktop', 'agnescode.desktop'] },
+  },
+  {
+    id: 'minimax-code', name: 'MiniMax Code', exeNames: ['MiniMax Code.exe'], processName: 'MiniMax Code.exe', defaultPort: 9351,
+    installPaths: ['D:\\Program Files\\MiniMax Code', path.join(localAppData, 'Programs', 'MiniMax Code'), path.join(programFiles, 'MiniMax Code'), path.join(programFilesX86, 'MiniMax Code')],
+    rendererHints: ['app://./archon'], kind: 'generic-work',
+    windowsPathScopedKill: true,
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ['MiniMax Code.app'], executableNames: ['MiniMax Code'] },
+    linux: { executableNames: ['minimax-code', 'MiniMax Code'], desktopFiles: ['minimax-code.desktop'] },
+  },
 ];
 
 export function getAppDefinition(appId: string): AppDefinition | undefined {

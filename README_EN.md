@@ -50,6 +50,10 @@ Dream Work Theme is a desktop theme manager for supported Electron work applicat
 
 ![Dream Work Theme Interface preview](preview12.png)
 
+![Dream Work Theme Interface preview](preview13.png)
+
+![Dream Work Theme Interface preview](preview14.png)
+
 </details>
 
 ## Support Applications
@@ -66,9 +70,15 @@ The current application registry supports:
 - Kimi Work
 - OpenCode Desktop
 - Doubao Desktop
+- AgnesCode
+- MiniMax Code
 - Codex / ChatGPT Desktop
 
-Some applications use fixed debugging ports, while QoderWork, Qwen Office, and OpenCode Desktop read their live port from `DevToolsActivePort`. HanaAgent uses port `9346`, Kimi Work uses `9347`, and Doubao Desktop uses `9349`. Dream Work Theme waits for renderers that are likely to be recreated and restores missing injection while the application is running.
+Some applications use fixed debugging ports, while QoderWork, Qwen Office, and OpenCode Desktop read their live port from `DevToolsActivePort`. HanaAgent uses port `9346`, Kimi Work uses `9347`, Doubao Desktop uses `9349`, AgnesCode uses `9350`, and MiniMax Code uses `9351`. Dream Work Theme waits for renderers that are likely to be recreated and restores missing injection while the application is running.
+
+The AgnesCode release build actively removes a normal `--remote-debugging-port` argument. Dream Work Theme enables CDP through AgnesCode's built-in Playwright debugging entry point and explicitly preserves the packaged `resources/bin/agnesd.exe` backend path. This entry point marks the AgnesCode session as a development session, so its logs may contain update-configuration errors that do not affect theming or chat functionality.
+
+On Windows, AgnesCode also paints a fixed dark background behind the native minimize, maximize, and close buttons. On first theme application, Dream Work Theme backs up `AgnesCode.exe` and the target ASAR code fragment, disables embedded ASAR integrity validation using Electron's official fuse-wire format, and changes the native title-bar overlay color to transparent. The patch is detected and reapplied against the new version after an AgnesCode update.
 
 The application registry is the shared source for Windows installation paths, macOS app bundles, Linux executable/desktop-file candidates, and theme compatibility policy. Normal applications use detached spawn on all three platforms. Kimi on Windows mistakes Node, Electron, or PowerShell parents for a development supervisor, so Windows delegates its launch to Explorer through a temporary shortcut; macOS and Linux use the normal detached spawn path.
 
@@ -141,7 +151,7 @@ The Vite CJS API deprecation message is currently a warning and does not fail th
 5. Open **Application Settings** to inspect injection, menu, current-theme, and process status.
 6. Use the floating menu inside the target application to switch or restore themes.
 
-Applying a theme may restart the target application so it can be launched with a debugging port. Runtime injection is not a modification of the target application's packaged files.
+Applying a theme may restart the target application so it can be launched with a debugging port. Except for the native transparent-title-bar patch required by AgnesCode on Windows, runtime injection does not modify the target application's packaged files.
 
 The floating menu shows up to four quick preset themes and is no longer tied to fixed theme IDs. Dream Work Theme ranks themes by switch count for the current application, using most recent use as the tie-breaker. With no history, it fills the menu from themes that are actually compatible with the current application, so removed or incompatible themes do not leave empty entries.
 
@@ -190,6 +200,28 @@ The floating menu shows up to four quick preset themes and is no longer tied to 
 - The New Chat prompt placeholder and bottom action icons follow dark themes. The AI Creation page also makes its native white content container transparent and adapts the Tiptap placeholder plus Image/Video tabs.
 - The AI Creation sticky title bar remains transparent. Long conversation message groups are excluded from the generic blurred bubble treatment so they do not obscure the theme artwork.
 - Doubao skips the generic `[class*="message"]` bubble blur rule entirely, and its `message-list-*` content surface is forced transparent with no filter. Only the sidebar and bottom prompt retain local glass effects.
+
+### AgnesCode Notes
+
+- The verified Windows version is AgnesCode `1.0.26`, installed at `D:\Program Files\AgnesCode\AgnesCode.exe`, with fixed CDP port `9350`.
+- The first difference from a normal Electron application is that the AgnesCode release main process actively removes `remote-debugging-port`, `remote-debugging-address`, and `remote-debugging-pipe`. Dream Work Theme must use its built-in Playwright debugging entry point with `AGNES_DEV=1`, `ENABLE_PLAYWRIGHT=1`, and `PLAYWRIGHT_DEBUG_PORT=9350`.
+- Enabling `AGNES_DEV` makes the packaged application resolve its backend as a source development build, so the launcher also pins `AGNESD_BINARY` to the packaged `resources/bin/agnesd.exe`. This is why its logs can contain update-configuration errors that do not affect chat or theming.
+- The second difference is that the three top-right buttons are Electron's native Window Controls Overlay, not DOM elements. Other applications either render their title bar in HTML or use an acceptable native overlay color, so CSS injection is enough. AgnesCode instead calls `setTitleBarOverlay()` whenever the window is created, shown, or loaded, forcing a `#2d323a` / `#22252a` background that webpage CSS cannot override.
+- To make that native area transparent, Dream Work Theme backs up `AgnesCode.exe` as `AgnesCode.exe.dream-work-original` and records the original ASAR bytes, offset, and archive size in `resources/app.asar.dream-work-titlebar.json`. It then disables `EnableEmbeddedAsarIntegrityValidation` using Electron's fuse-wire format and performs an equal-length replacement of the code that produces `titleBarOverlay.color`, changing it to `#00000000`.
+- The external `app.asar` must be accessed through Electron's `original-fs`. Normal `fs` treats it as an ASAR virtual directory and produces `ENOENT, not found in ...app.asar`. Vite therefore keeps `original-fs` external in the Electron main-process build, and Electron provides it at runtime.
+- The patch leaves `OnlyLoadAppFromAsar` and every unrelated fuse unchanged. After an AgnesCode update, the launcher backs up and reapplies the patch if the new title-bar implementation is recognized; otherwise it stops before writing and returns an explicit error.
+- AgnesCode uses the dedicated `buildAgnesCodeCss()` path and skips the generic Work gradients and large blur surfaces. Home, Search, Scheduled Tasks, Extensions, and the Settings overlay/sidebar/content surfaces remain transparent, while prompt and extension cards keep only local translucent contrast.
+- AgnesCode stores its native light/dark selection in `localStorage.theme`. Restore reads the current selection or `use_system_theme`, removes injected `vscode-*` / `cb-*` classes, and restores native `html.light` or `html.dark` so the sidebar and prompt do not end up in a mixed light/dark state.
+- This native title-bar patch is currently the only adapter that modifies target application files. Every other supported application still uses only launch parameters, CDP, and runtime CSS/JavaScript injection.
+
+### MiniMax Code Notes
+
+- The verified Windows version is MiniMax Code `3.0.60`, installed at `D:\Program Files\MiniMax Code\MiniMax Code.exe`, with fixed CDP port `9351`.
+- Its main renderer is `app://./archon`. Theme injection is restricted to that page and excludes helper pages such as `react-screenshots`.
+- MiniMax Code uses the dedicated `buildMiniMaxCodeCss()` path. The theme image is attached to `html`, `body`, `#root`, and `#__next`, while the application shell, sidebar, feature-page canvas, and large conversation-footer wrapper remain transparent.
+- The New Task and conversation composers share a `62%` translucent theme surface, `20px` radius, `30%` accent border, and `16px` blur. Their outer scrims remain transparent.
+- Restore reads `localStorage.theme` at action time. When the application follows the operating system, it also reads `use_system_theme` and `prefers-color-scheme`, restoring the current native light or dark mode instead of an outdated injection-time snapshot.
+- The MiniMax Code adapter does not modify installed files; it only uses launch arguments, CDP, and runtime CSS/JavaScript injection.
 
 ## Theme Storage
 

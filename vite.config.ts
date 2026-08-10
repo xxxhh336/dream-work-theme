@@ -12,6 +12,13 @@ export default defineConfig({
         entry: path.resolve(__dirname, 'electron/main.ts'),
         outDir: path.resolve(__dirname, 'dist-electron'),
         onstart: process.env.DREAM_WORK_MANUAL_ELECTRON ? () => {} : undefined,
+        vite: {
+          build: {
+            rollupOptions: {
+              external: ['original-fs'],
+            },
+          },
+        },
       },
       {
         entry: path.resolve(__dirname, 'electron/preload.ts'),

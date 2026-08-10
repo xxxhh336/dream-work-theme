@@ -22,6 +22,8 @@ const APP_PORTS: Record<string, number> = {
   kimi: 9347,
   opencode: 9348,
   doubao: 9349,
+  'agnes-code': 9350,
+  'minimax-code': 9351,
 };
 
 interface ThemeInfo {

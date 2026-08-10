@@ -950,7 +950,7 @@ export async function removeSkin(
     return { success: false };
   }
 
-  for (const target of appId === 'hana-agent' || appId === 'kimi' ? targets : targets.slice(0, 1)) {
+  for (const target of appId === 'hana-agent' || appId === 'kimi' || appId === 'agnes-code' ? targets : targets.slice(0, 1)) {
     const session = new CdpSession(target.webSocketDebuggerUrl);
     await session.open();
     if (appId === 'hana-agent') {
@@ -987,6 +987,7 @@ export async function removeSkin(
         document.removeEventListener('pointerdown', window.__dreamWorkOutsideClick, true);
         delete window.__dreamWorkOutsideClick;
       }`}
+      ${appId === 'minimax-code' || appId === 'agnes-code' ? `window.__dreamWorkRestoreNativeMode?.();` : ''}
       delete document.documentElement.dataset.dreamTheme;
       delete document.documentElement.dataset.dreamShell;
       return true;
@@ -1225,12 +1226,16 @@ function buildGenericWorkCss(appId: string, manifest: any, heroDataUrl: string, 
     catpaw: '.main-area, .main-content-container, .main-content, .chat-content-area',
     zcode: 'main, main > div, [class*="min-h-0"][class*="flex-1"]',
     'qwen-office': '.agents-content-area, .agents-parchment-paper-surface',
+    'agnes-code': ':not(*)',
+    'minimax-code': ':not(*)',
   };
   const sidebarSelectors: Record<string, string> = {
     'qoder-work': '[class*="sidebar"]',
     catpaw: '.sidebar-wrapper, .sidebar',
     zcode: '#sidebar, aside',
     'qwen-office': '.agents-sidebar, .group\\/sidebar',
+    'agnes-code': ':not(*)',
+    'minimax-code': ':not(*)',
   };
   const main = mainSelectors[appId] ?? 'main, [role="main"], [class*="main-content"]';
   const sidebar = sidebarSelectors[appId] ?? 'aside, nav, [class*="sidebar"]';
@@ -1242,6 +1247,10 @@ function buildGenericWorkCss(appId: string, manifest: any, heroDataUrl: string, 
         ? buildOpenCodeCss(colors)
         : appId === 'doubao'
           ? buildDoubaoCss(colors)
+          : appId === 'agnes-code'
+            ? buildAgnesCodeCss(heroDataUrl, colors)
+            : appId === 'minimax-code'
+              ? buildMiniMaxCodeCss(heroDataUrl, colors)
       : '';
   return `/* DREAM_THEME:${manifest.id} */
 :root {
@@ -1277,6 +1286,198 @@ ${appId === 'doubao' ? '' : `:is(${main}) :where([class*="message"], [class*="bu
 :is(${main}) :where(p, span, li, h1, h2, h3, h4, strong, em) { color: ${colors.text} !important; }
 button[class*="bg-primary"], button[class*="bg-accent"] { background-color: ${colors.accent} !important; color: #fff !important; }
 ${appSpecificCss}`;
+}
+
+function buildAgnesCodeCss(heroDataUrl: string, colors: any): string {
+  return `
+:root {
+  --agnes-surface: transparent !important;
+  --agnes-sidebar: transparent !important;
+  --agnes-sidebar-panel: transparent !important;
+  --agnes-current-sidebar-bg: transparent !important;
+  --color-background-secondary: transparent !important;
+  --color-background-primary: transparent !important;
+  --background-primary: transparent !important;
+  --agnes-card-bg: color-mix(in srgb, ${colors.surface} 18%, transparent) !important;
+  --agnes-text: ${colors.text} !important;
+  --agnes-composer-hub-shell: color-mix(in srgb, ${colors.surface} 78%, transparent) !important;
+  --agnes-composer-input-bg: color-mix(in srgb, ${colors.surface} 68%, transparent) !important;
+  --agnes-composer-border: color-mix(in srgb, ${colors.accent} 36%, transparent) !important;
+  --agnes-brand: ${colors.accent} !important;
+}
+html,
+body,
+#root,
+#__next {
+  background-color: ${colors.surface} !important;
+  background-image: url(${JSON.stringify(heroDataUrl)}) !important;
+  background-position: center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+}
+#root > div[class*="h-screen"][class*="w-screen"],
+.agnes-shell,
+.agnes-shell > div[class*="flex-1"],
+.agnes-shell div[class*="bg-[var(--agnes-surface)]"] {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+.agnes-shell > div[class*="flex-1"][class*="flex-row"] {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.windows-title-bar {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.agnes-shell > div[class*="flex-row"] > div[class*="absolute"][class*="left-0"][class*="bg-[var(--agnes-current-sidebar-bg)]"] {
+  background: transparent !important;
+  color: ${colors.text} !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.agnes-shell div[class*="bg-[var(--agnes-sidebar-panel)]"],
+.agnes-shell div[class*="bg-[var(--agnes-surface)]"],
+.agnes-shell .bg-background-primary {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+}
+.agnes-settings-route-overlay,
+.agnes-settings-route-overlay > div,
+.agnes-settings-route-overlay div[class*="bg-[var(--agnes-sidebar-panel)]"],
+.agnes-settings-route-overlay div[class*="bg-[var(--agnes-surface)]"] {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+}
+.agnes-settings-route-overlay div[class*="shadow-elevated"] {
+  box-shadow: none !important;
+}
+.agnes-shell div[class*="bg-[var(--agnes-surface)]"][class*="shadow-elevated"] {
+  box-shadow: none !important;
+}
+.agnes-shell div[class*="bg-[var(--agnes-card-bg)]"] {
+  background: color-mix(in srgb, ${colors.surface} 18%, transparent) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.agnes-shell div[class*="rounded-input-modal"] {
+  background: color-mix(in srgb, ${colors.surface} 72%, transparent) !important;
+  border-color: color-mix(in srgb, ${colors.accent} 34%, transparent) !important;
+  backdrop-filter: blur(18px) saturate(112%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(112%) !important;
+}
+.agnes-shell :where(input, textarea, [contenteditable="true"]) {
+  color: ${colors.text} !important;
+  caret-color: ${colors.accent} !important;
+}
+.agnes-shell :where(p, span, li, h1, h2, h3, h4, strong, em, label) {
+  color: inherit;
+}
+`;
+}
+
+function buildMiniMaxCodeCss(heroDataUrl: string, colors: any): string {
+  return `
+:root {
+  --color-bg-grouped-secondary: transparent !important;
+  --color-bg-primary: transparent !important;
+  --color-bg-secondary: transparent !important;
+  --color-bg-tertiary: color-mix(in srgb, ${colors.surface} 72%, transparent) !important;
+}
+html,
+body,
+#root {
+  min-height: 100% !important;
+  background-color: ${colors.surface} !important;
+  background-image: url(${JSON.stringify(heroDataUrl)}) !important;
+  background-position: center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+}
+body div.relative.flex.h-screen.overflow-hidden,
+body div[class~="h-screen"][class~="bg-bg_grouped_secondary"],
+#root > div.relative.flex.h-screen.overflow-hidden,
+#root > div[class~="h-screen"][class~="bg-bg_grouped_secondary"],
+#__next > div.relative.flex.h-screen.overflow-hidden,
+#__next > div[class~="h-screen"][class~="bg-bg_grouped_secondary"] {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+body :where(
+  main,
+  [role="main"],
+  [class~="bg-bg_grouped_secondary"],
+  [class~="bg-bg_primary"],
+  [class~="bg-bg_secondary"]
+) {
+  background-color: transparent !important;
+}
+body div[class~="bg-bg_default_scrim"][class~="z-50"][class~="select-none"],
+body div[class~="bg-bg_default_scrim"]:has(.message-input-container) {
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+body div.flex.h-full.w-full.overflow-hidden[class~="bg-bg_default_primary"],
+body div.absolute.inset-x-0.bottom-0.w-full[class~="bg-bg_grouped_secondary"],
+body div.absolute.inset-0.z-10.flex.flex-col[class~="bg-bg_grouped_secondary"] {
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+body div[class~="bg-bg_grouped_secondary_elevated"]:has(.message-input-container),
+body div.w-full.border[class~="rounded-[20px]"][class~="bg-bg_grouped_secondary_elevated"],
+body .message-input-container div[class~="bg-bg_grouped_secondary_elevated"] {
+  background-color: color-mix(in srgb, ${colors.surface} 62%, transparent) !important;
+  background-image: none !important;
+  border-color: color-mix(in srgb, ${colors.accent} 30%, transparent) !important;
+  backdrop-filter: blur(16px) saturate(108%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(108%) !important;
+}
+body .message-input-home-container {
+  width: 100% !important;
+}
+body div[class~="max-w-[743px]"]:has(.message-input-home-container) {
+  max-width: 800px !important;
+}
+body div[class~="bg-bg_default_scrim"]:has(.message-input-home-container) {
+  width: 100% !important;
+  max-width: 768px !important;
+  padding-bottom: 0 !important;
+  gap: 0 !important;
+  border-radius: 20px !important;
+}
+body div[class~="bg-bg_default_scrim"]:has(.message-input-home-container)
+  > div[class~="bg-bg_grouped_secondary_elevated"] {
+  width: 100% !important;
+  border-radius: 20px !important;
+  box-shadow: 0 0 20px rgba(10, 10, 10, 0.08) !important;
+}
+#root :where(
+  textarea,
+  input,
+  [contenteditable="true"],
+  [class*="composer"],
+  [class*="rounded"]
+) {
+  caret-color: ${colors.accent} !important;
+}
+#root :where(textarea, input, [contenteditable="true"]) {
+  color: ${colors.text} !important;
+}
+`;
 }
 
 function buildOpenCodeCss(colors: any): string {
@@ -2885,6 +3086,7 @@ export function buildMenuScript(options: {
   const sentinels = ${JSON.stringify(WORKBUDDY_CSS_PLACEHOLDERS)};
   const currentThemeId = '${options.currentThemeId}';
   const appId = '${appId}';
+  const nativeModeKey = '__dreamWorkNativeMode';
   const customStorageKey = 'dreamCodexCustomThemes';
   const sharedCustomThemes = ${JSON.stringify(options.sharedCustomThemes)};
   const sharedCustomThemeService = ${JSON.stringify(options.sharedCustomThemeService)};
@@ -2930,6 +3132,53 @@ export function buildMenuScript(options: {
       html.classList.toggle(cls, dark ? isDarkCls : !isDarkCls);
     });
   };
+  if (!window[nativeModeKey]) {
+    const html = document.documentElement;
+    const body = document.body;
+    window[nativeModeKey] = {
+      htmlClasses: Array.from(html.classList),
+      bodyClasses: Array.from(body.classList),
+      colorScheme: html.style.colorScheme,
+      bodyThemeKind: body.dataset.vscodeThemeKind,
+      bodyThemeName: body.dataset.vscodeThemeName,
+    };
+  }
+  const restoreNativeMode = () => {
+    const nativeMode = window[nativeModeKey];
+    if (!nativeMode) return;
+    const html = document.documentElement;
+    const body = document.body;
+    let nativeDark = nativeMode.htmlClasses.includes('dark') || nativeMode.bodyClasses.includes('dark');
+    if (appId === 'minimax-code' || appId === 'agnes-code') {
+      try {
+        const storedTheme = localStorage.getItem('theme');
+        const followsSystem = localStorage.getItem('use_system_theme') === 'true' || storedTheme === 'system';
+        if (followsSystem) nativeDark = matchMedia('(prefers-color-scheme: dark)').matches;
+        else if (storedTheme === 'dark') nativeDark = true;
+        else if (storedTheme === 'light') nativeDark = false;
+      } catch {}
+      ["light", "vscode-light", "cb-light", "dark", "vscode-dark", "cb-dark"].forEach((className) => {
+        html.classList.remove(className);
+        body.classList.remove(className);
+      });
+      html.classList.add(nativeDark ? 'dark' : 'light');
+      html.style.colorScheme = nativeDark ? 'dark' : 'light';
+      delete body.dataset.vscodeThemeKind;
+      delete body.dataset.vscodeThemeName;
+    } else {
+      ["light", "vscode-light", "cb-light", "dark", "vscode-dark", "cb-dark"].forEach((className) => {
+        html.classList.toggle(className, nativeMode.htmlClasses.includes(className));
+        body.classList.toggle(className, nativeMode.bodyClasses.includes(className));
+      });
+      html.style.colorScheme = nativeMode.colorScheme;
+      if (nativeMode.bodyThemeKind === undefined) delete body.dataset.vscodeThemeKind;
+      else body.dataset.vscodeThemeKind = nativeMode.bodyThemeKind;
+      if (nativeMode.bodyThemeName === undefined) delete body.dataset.vscodeThemeName;
+      else body.dataset.vscodeThemeName = nativeMode.bodyThemeName;
+    }
+    delete html.dataset.dreamShell;
+  };
+  window.__dreamWorkRestoreNativeMode = restoreNativeMode;
 
   const style = document.getElementById('${options.styleId}');
   if (!style) {
@@ -3002,7 +3251,8 @@ export function buildMenuScript(options: {
     }
     window.__dreamWorkThemeStyle.textContent = '';
     delete document.documentElement.dataset.dreamTheme;
-    if (appId !== 'hana-agent' && appId !== 'kimi') applyMode('#ffffff');
+    if (appId === 'minimax-code' || appId === 'agnes-code') restoreNativeMode();
+    else if (appId !== 'hana-agent' && appId !== 'kimi') applyMode('#ffffff');
     if (appId === 'codex') {
       document.documentElement.classList.remove('codex-dream-skin');
       delete document.documentElement.dataset.dreamShell;
@@ -3309,6 +3559,7 @@ export function buildMenuScript(options: {
   window.__dreamTheme = {
     ...(window.__dreamTheme || {}),
     activateTheme: (themeId, actionAt) => applyTheme(themeId, actionAt),
+    restoreNative,
     deleteCustom,
     refreshCustomThemes,
     replaceCustomThemes: (latest) => {

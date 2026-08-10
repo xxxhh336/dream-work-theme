@@ -3,6 +3,7 @@ import { promisify } from 'util';
 import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as originalFs from 'original-fs';
 import * as http from 'http';
 import * as net from 'net';
 import { getAppDefinition } from './app-registry';
@@ -63,15 +64,20 @@ export async function launchApp(appId: string, themeId?: string): Promise<{ succ
     await killExistingInstances(appId, appPath);
     await waitForPortToClose(port, 15000);
 
+    if (appId === 'agnes-code' && os.platform() === 'win32') {
+      await enableAgnesCodeTransparentTitleBar(appPath);
+    }
+
     const devToolsActivePort = os.platform() === 'win32' ? profile.devToolsActivePort : undefined;
     if (devToolsActivePort) {
       try { fs.unlinkSync(devToolsActivePort); } catch {}
     }
     
     console.log(`[launcher] Launching ${appPath} with args: ${args.join(' ')}`);
+    const launchEnvironment = getLaunchEnvironment(appId, appPath, port);
     const pid = appId === 'kimi' && os.platform() === 'win32'
       ? await launchKimiDetached(appPath, args)
-      : launchDetached(appPath, args);
+      : launchDetached(appPath, args, launchEnvironment);
 
     console.log(`[launcher] Spawned process${pid ? ` with PID: ${pid}` : ''}`);
 
@@ -96,11 +102,11 @@ export async function launchApp(appId: string, themeId?: string): Promise<{ succ
   }
 }
 
-function launchDetached(appPath: string, args: string[]): number | undefined {
+function launchDetached(appPath: string, args: string[], env: NodeJS.ProcessEnv): number | undefined {
   const child = spawn(appPath, args, {
     detached: true,
     stdio: 'ignore',
-    env: getCleanLaunchEnvironment(),
+    env,
   });
   child.unref();
   return child.pid;
@@ -162,6 +168,97 @@ function getCleanLaunchEnvironment(): NodeJS.ProcessEnv {
     delete env[key];
   }
   return env;
+}
+
+function getLaunchEnvironment(appId: string, appPath: string, port: number): NodeJS.ProcessEnv {
+  const env = getCleanLaunchEnvironment();
+  if (appId === 'agnes-code') {
+    env.AGNES_DEV = '1';
+    env.ENABLE_PLAYWRIGHT = '1';
+    env.PLAYWRIGHT_DEBUG_PORT = String(port);
+    env.AGNESD_BINARY = path.join(path.dirname(appPath), 'resources', 'bin', os.platform() === 'win32' ? 'agnesd.exe' : 'agnesd');
+  }
+  return env;
+}
+
+async function enableAgnesCodeTransparentTitleBar(appPath: string): Promise<void> {
+  const appDirectory = path.dirname(appPath);
+  const asarPath = path.join(appDirectory, 'resources', 'app.asar');
+  const executableBackupPath = `${appPath}.dream-work-original`;
+  const asarBackupPath = `${asarPath}.dream-work-titlebar.json`;
+
+  const archive = originalFs.readFileSync(asarPath);
+  const source = archive.toString('latin1');
+  const patchedPattern = /function ([\w$]+)\(e,t="sidebar"\)\{return\{color:"#00000000",symbolColor:([\w$]+)\[e\],height:32\}\}/;
+  if (patchedPattern.test(source)) {
+    disableEmbeddedAsarIntegrityValidation(appPath);
+    console.log('[launcher] AgnesCode native title bar overlay is already transparent');
+    return;
+  }
+
+  const originalPattern = /function ([\w$]+)\(e,t="sidebar"\)\{return\{color:t==="content"\?([\w$]+)\(e\):([\w$]+)\(e\),symbolColor:([\w$]+)\[e\],height:32\}\}/;
+  const match = originalPattern.exec(source);
+  if (!match || match.index < 0) {
+    throw new Error('AgnesCode title bar implementation was not recognized; the installed version may have changed');
+  }
+
+  originalFs.copyFileSync(appPath, executableBackupPath);
+
+  disableEmbeddedAsarIntegrityValidation(appPath);
+
+  const original = match[0];
+  const replacement = `function ${match[1]}(e,t="sidebar"){return{color:"#00000000",symbolColor:${match[4]}[e],height:32}}`;
+  if (replacement.length > original.length) {
+    throw new Error('AgnesCode title bar patch does not fit the original ASAR entry');
+  }
+
+  originalFs.writeFileSync(asarBackupPath, JSON.stringify({
+    archiveSize: archive.length,
+    offset: match.index,
+    original: Buffer.from(original, 'latin1').toString('base64'),
+  }));
+
+  const paddedReplacement = Buffer.from(replacement.padEnd(original.length, ' '), 'latin1');
+  const file = originalFs.openSync(asarPath, 'r+');
+  try {
+    originalFs.writeSync(file, paddedReplacement, 0, paddedReplacement.length, match.index);
+    originalFs.fsyncSync(file);
+  } finally {
+    originalFs.closeSync(file);
+  }
+  console.log('[launcher] Patched AgnesCode native window controls overlay to transparent');
+}
+
+function disableEmbeddedAsarIntegrityValidation(appPath: string): void {
+  const sentinel = Buffer.from('dL7pKGdnNz796PbbjQWNKmHXBZaB9tsX', 'ascii');
+  const executable = originalFs.readFileSync(appPath);
+  const firstSentinel = executable.indexOf(sentinel);
+  const lastSentinel = executable.lastIndexOf(sentinel);
+  if (firstSentinel < 0) {
+    throw new Error('AgnesCode Electron fuse wire was not found');
+  }
+
+  const sentinels = firstSentinel === lastSentinel ? [firstSentinel] : [firstSentinel, lastSentinel];
+  let changed = false;
+  for (const sentinelOffset of sentinels) {
+    const wireOffset = sentinelOffset + sentinel.length;
+    const version = executable[wireOffset];
+    const length = executable[wireOffset + 1];
+    if (version !== 1 || length <= 4) {
+      throw new Error(`Unsupported AgnesCode Electron fuse wire: version=${version}, length=${length}`);
+    }
+
+    const integrityFuseOffset = wireOffset + 2 + 4;
+    if (executable[integrityFuseOffset] !== 48) {
+      executable[integrityFuseOffset] = 48;
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    originalFs.writeFileSync(appPath, executable);
+    console.log('[launcher] Disabled AgnesCode embedded ASAR integrity validation');
+  }
 }
 
 function getPlatformProcessNames(definition: NonNullable<ReturnType<typeof getAppDefinition>>): string[] {

@@ -50,6 +50,10 @@ Dream Work Theme 是面向 Electron Work 类桌面应用的主题管理器。它
 
 ![Dream Work Theme 界面预览](preview12.png)
 
+![Dream Work Theme 界面预览](preview13.png)
+
+![Dream Work Theme 界面预览](preview14.png)
+
 </details>
 
 ## 支持应用
@@ -66,9 +70,15 @@ Dream Work Theme 是面向 Electron Work 类桌面应用的主题管理器。它
 - Kimi Work
 - OpenCode Desktop
 - 豆包 Desktop
+- AgnesCode
+- MiniMax Code
 - Codex / ChatGPT Desktop
 
-部分应用使用固定调试端口；QoderWork、千问办公和 OpenCode Desktop 通过 `DevToolsActivePort` 获取运行时端口。HanaAgent 使用固定端口 `9346`，Kimi Work 使用 `9347`，豆包 Desktop 使用 `9349`。Dream Work Theme 会等待易重建的 renderer 稳定，并在运行期间自动恢复丢失的主题。
+部分应用使用固定调试端口；QoderWork、千问办公和 OpenCode Desktop 通过 `DevToolsActivePort` 获取运行时端口。HanaAgent 使用固定端口 `9346`，Kimi Work 使用 `9347`，豆包 Desktop 使用 `9349`，AgnesCode 使用 `9350`，MiniMax Code 使用 `9351`。Dream Work Theme 会等待易重建的 renderer 稳定，并在运行期间自动恢复丢失的主题。
+
+AgnesCode 正式版会主动移除普通的 `--remote-debugging-port` 参数。Dream Work Theme 通过 AgnesCode 内置的 Playwright 调试入口开启 CDP，并显式保留正式安装包中的 `resources/bin/agnesd.exe` 后端路径。该调试入口会让 AgnesCode 将当前会话标记为开发模式，因此其日志中可能出现不影响主题和聊天功能的更新配置检查错误。
+
+Windows 上的 AgnesCode 还会在原生最小化、最大化和关闭按钮后绘制固定深色背景。首次应用主题时，Dream Work Theme 会备份 `AgnesCode.exe` 和目标 ASAR 代码片段，按 Electron 官方 fuse wire 格式关闭该应用的嵌入式 ASAR 完整性校验，并将原生标题栏覆盖色改为透明。AgnesCode 更新后会按新版本重新检测和应用补丁。
 
 应用注册表集中声明 Windows 安装路径、macOS app bundle、Linux executable/desktop 文件候选以及主题兼容策略。普通应用在三个平台使用 detached spawn；Kimi Windows 版会把 Node/Electron/PowerShell 父进程误判为开发监督进程，因此 Windows 使用临时快捷方式交给 Explorer 启动，macOS 和 Linux 仍使用通用 detached spawn。
 
@@ -141,7 +151,7 @@ Vite 的 CJS API deprecation 当前只是警告，不会导致构建失败。
 5. 在「应用设置」中查看进程、注入、菜单和当前主题状态。
 6. 在目标应用右下角使用浮动菜单切换或还原主题。
 
-应用主题时，Dream Work Theme 可能会重启目标应用，以便加入 CDP 调试端口。主题只存在于运行时渲染进程，不会写入目标应用安装包。
+应用主题时，Dream Work Theme 可能会重启目标应用，以便加入 CDP 调试端口。除 Windows 版 AgnesCode 的原生标题栏透明补丁外，主题只存在于运行时渲染进程，不会写入目标应用安装包。
 
 右下角菜单最多显示 4 个快捷预置主题，不再固定绑定某几个主题 ID。Dream Work Theme 会按当前应用中的切换次数排序，次数相同时优先最近使用的主题；没有使用记录时从当前应用实际兼容的主题中补足，因此已删除或不兼容的主题不会显示空白入口。
 
@@ -190,6 +200,28 @@ Vite 的 CJS API deprecation 当前只是警告，不会导致构建失败。
 - 新对话输入框的占位文字和底部操作图标会跟随暗色主题切换；AI 创作页会透明化原生白色内容容器，并适配 Tiptap 占位文字及图片/视频切换控件。
 - AI 创作页的 sticky 标题栏会保持透明；对话页的长消息组不会套用通用消息气泡的背景模糊，避免大面积遮挡主题图片。
 - 豆包完全跳过通用的 `[class*="message"]` 气泡模糊规则，并强制 `message-list-*` 内容层透明无滤镜；仅保留侧栏和底部输入框的局部玻璃效果。
+
+### AgnesCode 说明
+
+- Windows 实机验证版本为 AgnesCode `1.0.26`，安装路径为 `D:\Program Files\AgnesCode\AgnesCode.exe`，使用固定 CDP 端口 `9350`。
+- AgnesCode 与普通 Electron 应用的第一处差异是：正式版主进程会主动删除 `remote-debugging-port`、`remote-debugging-address` 和 `remote-debugging-pipe`。Dream Work Theme 必须通过应用内置的 Playwright 调试入口设置 `AGNES_DEV=1`、`ENABLE_PLAYWRIGHT=1` 和 `PLAYWRIGHT_DEBUG_PORT=9350`。
+- 开启 `AGNES_DEV` 会让正式安装包按开发环境寻找后端，因此启动器同时将 `AGNESD_BINARY` 固定到安装包内的 `resources/bin/agnesd.exe`。这也是日志中可能出现不影响聊天和主题功能的更新配置错误的原因。
+- 第二处差异是右上角三个按钮使用 Electron 的原生 Window Controls Overlay，不属于网页 DOM。其他应用的标题栏通常是网页元素，或原生覆盖色本身可接受，因此 CSS 注入即可；AgnesCode 主进程却在每次创建、显示和加载窗口时调用 `setTitleBarOverlay()`，强制写入 `#2d323a` / `#22252a` 深色背景，网页 CSS 无法覆盖这块原生区域。
+- 为透明化原生按钮背景，Dream Work Theme 会备份 `AgnesCode.exe` 为 `AgnesCode.exe.dream-work-original`，并将原始 ASAR 代码片段、偏移和 archive 大小记录到 `resources/app.asar.dream-work-titlebar.json`。随后按 Electron fuse wire 格式关闭 `EnableEmbeddedAsarIntegrityValidation`，再对 `app.asar` 中生成 `titleBarOverlay.color` 的代码做等长替换，将颜色改为 `#00000000`。
+- 外部 `app.asar` 必须通过 Electron 的 `original-fs` 读取和写入；普通 `fs` 会把它当作 ASAR 虚拟目录，并产生 `ENOENT, not found in ...app.asar`。`original-fs` 在 Vite 主进程构建中保持 external，由 Electron 运行时提供。
+- 补丁不会关闭 `OnlyLoadAppFromAsar`，也不会修改其他 fuse。AgnesCode 更新后，如果新版本仍能识别标题栏函数，启动器会重新备份并应用；如果结构改变，会停止写入并返回明确错误。
+- AgnesCode 使用专属 `buildAgnesCodeCss()`，跳过通用 Work 的大面积渐变和模糊规则。主页面、搜索、定时任务、插件和设置 overlay/侧栏/内容层保持透明；输入框和插件卡片只保留局部轻透明底色。
+- AgnesCode 的原生浅色/深色选择保存在 `localStorage.theme`；还原主题时会实时读取当前选择或 `use_system_theme`，移除注入产生的 `vscode-*` / `cb-*` 类，再恢复原生 `html.light` 或 `html.dark`，避免侧边栏和输入框出现深浅混合。
+- 该原生标题栏补丁是目前唯一会修改目标应用安装文件的适配。其他受支持应用仍然只使用启动参数、CDP 和运行时 CSS/JavaScript 注入。
+
+### MiniMax Code 说明
+
+- Windows 实机验证版本为 MiniMax Code `3.0.60`，安装路径为 `D:\Program Files\MiniMax Code\MiniMax Code.exe`，使用固定 CDP 端口 `9351`。
+- 主 renderer 为 `app://./archon`。主题只注入该页面，不影响 `react-screenshots` 等辅助页面。
+- MiniMax Code 使用专属 `buildMiniMaxCodeCss()`。主题背景挂载到 `html`、`body`、`#root` 和 `#__next`，应用壳、左侧栏、技能/定时任务等功能页主体及对话页底部大容器保持透明。
+- 新建任务页和历史对话页的输入框统一使用主题 surface `62%` 半透明背景、`20px` 圆角、主题 accent `30%` 边框和 `16px` 模糊；外层遮挡保持透明。
+- 还原主题时实时读取 `localStorage.theme`。当应用设置为跟随系统时，同时读取 `use_system_theme` 和 `prefers-color-scheme`，恢复 MiniMax Code 当前原生浅色或深色模式，而不是恢复首次注入时的旧快照。
+- MiniMax Code 适配不修改安装文件，只使用启动参数、CDP 和运行时 CSS/JavaScript 注入。
 
 ## 主题存储
 

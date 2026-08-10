@@ -4,13 +4,13 @@
 
 ## 1. 目标
 
-构建一个 **跨平台桌面应用**，支持给市面上主流 Electron 或定制 Chromium Work 工具（WorkBuddy、TRAE Work、QoderWork、CatPaw、ZCode、千问办公、Codex / ChatGPT Desktop、HanaAgent、Kimi Work、OpenCode Desktop、豆包 Desktop 等）一键切换主题。核心机制：**不改安装包、只注入运行中渲染进程的 CDP 层**。
+构建一个 **跨平台桌面应用**，支持给市面上主流 Electron 或定制 Chromium Work 工具（WorkBuddy、TRAE Work、QoderWork、CatPaw、ZCode、千问办公、Codex / ChatGPT Desktop、HanaAgent、Kimi Work、OpenCode Desktop、豆包 Desktop、AgnesCode、MiniMax Code 等）一键切换主题。核心机制是通过 CDP 修改运行中的渲染进程；Windows 版 AgnesCode 的原生 Window Controls Overlay 是当前唯一需要备份并补丁目标安装文件的例外。
 
 交付物：
 - 完整 Electron 项目
-- 默认 4 套主题
+- 默认 12 套主题
 - 自定义主题制作 SKILL
-- 当前注册 11 款主流 Work 工具
+- 当前注册 13 款主流 Work 工具
 - 每款工具支持创建"主题+应用"桌面快捷启动图标
 - 注入后右下角显示统一主题菜单按钮（切换/上传/还原）
 - 支持 macOS / Windows / Linux 三端
@@ -32,7 +32,7 @@
 
 ### 技术可行性
 
-当前目标应用主要为 Electron 构建，豆包 Desktop 是定制 Chromium 应用。它们均支持 `--remote-debugging-port`，因此可以统一使用 CDP 注入，不需要修改 `app.asar` 或目标应用安装目录。
+当前目标应用主要为 Electron 构建，豆包 Desktop 是定制 Chromium 应用。大部分应用支持 `--remote-debugging-port` 或 `DevToolsActivePort`，可以统一使用 CDP 注入且不修改目标安装目录。AgnesCode 正式版会主动删除普通远程调试参数，需要通过其 Playwright 调试入口开启 CDP；Windows 原生窗口按钮背景由主进程 `setTitleBarOverlay()` 绘制，因此还需要一个受控、可备份的 fuse wire 与 ASAR 等长补丁。
 
 ---
 
@@ -344,11 +344,11 @@ dream-work-theme/
 
 ## 9. 当前实现状态与实机适配分析
 
-> 本节记录 2026-08-02 至 2026-08-09 在 Windows 实机上的适配结果。前文是项目早期计划，其中应用数量、主题数量、目录结构、主题兼容模型和 CDP 端口策略已有变化；后续维护应以本节和当前代码为准。
+> 本节记录 2026-08-02 至 2026-08-10 在 Windows 实机上的适配结果。前文是项目早期计划，其中应用数量、主题数量、目录结构、主题兼容模型和 CDP 端口策略已有变化；后续维护应以本节和当前代码为准。
 
 ### 9.1 当前支持范围
 
-项目目前注册以下 11 款 Work 类桌面应用：
+项目目前注册以下 13 款 Work 类桌面应用：
 
 | 应用 ID | 显示名称 | 应用类型 | 默认 CDP 端口 | 当前状态 |
 |---------|----------|----------|---------------|----------|
@@ -362,11 +362,13 @@ dream-work-theme/
 | `kimi` | Kimi Work | Work/Chat 双 renderer，专属 CSS 与守护策略 | `9347` | 已适配 Windows Explorer 启动、双 target 注入、自动重注入和透明层 |
 | `opencode` | OpenCode | Electron 桌面应用，专属透明层 | `9348`，运行时读取 `DevToolsActivePort` | 已验证应用、浮动菜单切换、还原和 CLI 进程隔离 |
 | `doubao` | 豆包 | 定制 Chromium 桌面应用，专属 CSS 与导航守护 | `9349` | 已验证应用、切换、还原、暗色文字、技能页、AI 创作页和对话透明层 |
+| `agnes-code` | AgnesCode | Electron 桌面应用，Playwright CDP、专属 CSS 与原生标题栏补丁 | `9350` | 已验证应用、切换、主页/功能页/设置页透明层以及原生窗口按钮透明背景 |
+| `minimax-code` | MiniMax Code | Electron 桌面应用，专属页面透明层与原生深浅模式还原 | `9351` | 已验证背景图、侧栏、对话/新建任务输入框、技能/功能页主体以及深浅模式还原 |
 | `codex` | Codex | Codex 专用结构 | `9340` | 已适配 |
 
-源码 `themes/` 当前包含 239 份 `theme.json`。运行时会按主题名称、作者和 hero 内容去重，因此实际菜单/画廊数量可能略少于 manifest 数量。
+源码 `themes/` 当前包含 257 份 `theme.json`。运行时会按主题名称、作者和 hero 内容去重，因此实际菜单/画廊数量可能略少于 manifest 数量。
 
-主题兼容不再依赖为每个应用批量写入 `theme.json.apps`。`listThemes(appId)` 先读取 manifest 的显式 `compat`，未声明时再使用应用注册表的 `acceptsGenericThemes` 默认值。当前 11 款应用均接受通用主题；主题仍可用 `compat:false` 拒绝某款应用，或通过 `layout` 提供应用特例。
+主题兼容不再依赖为每个应用批量写入 `theme.json.apps`。`listThemes(appId)` 先读取 manifest 的显式 `compat`，未声明时再使用应用注册表的 `acceptsGenericThemes` 默认值。当前 13 款应用均接受通用主题；主题仍可用 `compat:false` 拒绝某款应用，或通过 `layout` 提供应用特例。
 
 ### 9.2 当前应用注册架构
 
@@ -594,9 +596,28 @@ Windows 外层入口：
 
 豆包不是标准 Electron `app.asar` 应用，而是定制 Chromium `147.0.7727.149`。用户数据目录为 `%LOCALAPPDATA%\Doubao\User Data`。启动和路径限定进程管理直接使用 `Application\app\Doubao.exe`，避免外层更新器入口丢失调试参数。
 
+#### MiniMax Code
+
+Windows 实机安装位置：
+
+```text
+D:\Program Files\MiniMax Code\MiniMax Code.exe
+```
+
+程序元数据与运行特征：
+
+- 版本：`3.0.60`
+- Electron/Chromium：Chrome `140.0.7339.240`
+- 应用入口：`resources/app.asar`
+- 主 renderer：`app://./archon`
+- 固定 CDP 端口：`9351`
+- 辅助页面包括 `react-screenshots/dist/electron.html`，不能作为主题注入目标
+
+MiniMax Code 使用 `windowsPathScopedKill`，Windows 重启时按安装路径结束进程。macOS 注册候选为 `MiniMax Code.app`，Linux 注册候选为 `minimax-code` / `MiniMax Code` 和 `minimax-code.desktop`；非 Windows 候选尚待对应平台安装样本验证。
+
 ### 9.4 CDP 启动与端口差异
 
-所有应用仍采用 CDP 注入，不修改目标应用安装包。标准启动参数为：
+所有应用仍采用 CDP 注入。除 Windows 版 AgnesCode 的受控原生标题栏补丁外，不修改目标应用安装包。普通应用的标准启动参数为：
 
 ```text
 --remote-debugging-port=<port>
@@ -604,7 +625,7 @@ Windows 外层入口：
 
 #### 固定端口应用
 
-以下应用会将传入端口继续传递给 renderer，可以直接通过预定端口访问 `/json/list`：
+以下应用使用可预期的固定 CDP 端口，可以直接通过预定端口访问 `/json/list`。AgnesCode 通过 Playwright 环境变量绑定端口，其余应用使用启动参数：
 
 - WorkBuddy
 - TRAE Work
@@ -613,9 +634,11 @@ Windows 外层入口：
 - HanaAgent
 - Kimi Work
 - 豆包 Desktop
+- AgnesCode
+- MiniMax Code
 - Codex
 
-OpenCode 默认分配 `9348`，但实际运行端口通过 `%APPDATA%\ai.opencode.desktop\DevToolsActivePort` 读取和验证。豆包使用固定端口 `9349`。
+OpenCode 默认分配 `9348`，但实际运行端口通过 `%APPDATA%\ai.opencode.desktop\DevToolsActivePort` 读取和验证。豆包使用固定端口 `9349`，AgnesCode 使用 Playwright 调试入口绑定 `9350`，MiniMax Code 使用固定端口 `9351`。
 
 #### 随机或动态端口应用
 
@@ -670,6 +693,8 @@ Kimi Work 使用固定端口 `9347`。启动器在 CDP 可用后执行约 `750ms
 | Kimi Work | Work：`kimi-agent.html`；Chat：`kimichat.html` 或 `https://www.kimi.com/` |
 | OpenCode Desktop | `oc://renderer/index.html` |
 | 豆包 Desktop | `doubao://doubao-chat/chat`，同时匹配其导航后的 `/chat/...` 页面 |
+| AgnesCode | `app.asar/.vite/renderer/main_window/index.html` |
+| MiniMax Code | `app://./archon` |
 | Codex | `index.html`、`renderer/index.html` |
 
 QoderWork 和千问办公还存在 `voice-overlay.html` 页面，ZCode 存在 Stripe iframe 和 worker target，CatPaw 存在 `about:blank` page。HanaAgent 会替换 renderer target；Kimi Work 的 Work 与 Chat 本来就是两个独立 target；豆包还存在 `doubao-launcher` 和 `doubao-background` 辅助页面。URL hint 可以避免菜单和主题被错误注入辅助页面，HanaAgent、Kimi 和豆包还需要在正确 URL hint 的基础上持续处理 target 创建、导航和更替。
@@ -963,19 +988,89 @@ launcher：doubao://doubao-launcher/chat?viewId=101
 - 技能、新工作任务、AI 创作和历史对话导航可能重载主 renderer。豆包 watcher 每 `500ms` 检查主题节点；导航后丢失时自动重注入。
 - 浮动菜单或管理器执行还原时记录 `dream-work-theme:doubao:restored`，停止守护或阻止自动恢复；再次主动应用主题会清除还原状态。
 
+#### AgnesCode
+
+实机验证环境：
+
+```text
+主 renderer：app.asar/.vite/renderer/main_window/index.html
+```
+
+CDP 启动差异：
+
+- 正式版主进程会主动执行 `removeSwitch()`，删除 `remote-debugging-port`、`remote-debugging-address` 和 `remote-debugging-pipe`，不能像普通 Electron 应用一样只追加 CLI 参数。
+- 通过 AgnesCode 内置 Playwright 调试入口设置 `AGNES_DEV=1`、`ENABLE_PLAYWRIGHT=1`、`PLAYWRIGHT_DEBUG_PORT=9350`。
+- `AGNES_DEV=1` 会让正式包按源码开发环境寻找 `agnesd`，因此必须同时设置 `AGNESD_BINARY=<安装目录>/resources/bin/agnesd.exe`，否则聊天后端无法启动。
+- Playwright 入口会让 AgnesCode 认为当前是开发会话，可能打印缺少 `app-update.yml` 的更新检查错误；已验证不影响 `agnesd`、ACP、聊天和主题注入。
+
+原生标题栏差异：
+
+- 右上角最小化、最大化和关闭按钮由 Electron Window Controls Overlay 原生绘制，不存在于 renderer DOM，CSS 和 CDP `Runtime.evaluate` 无法改变按钮背后的区域。
+- AgnesCode 在 BrowserWindow 创建时提供 `titleBarOverlay`，并在窗口 `ready-to-show`、`did-finish-load` 和主题变化时再次调用 `setTitleBarOverlay()`。深色模式固定使用 `#2d323a`（sidebar）或 `#22252a`（content），所以只透明化网页 `.windows-title-bar` 仍会留下约 `136px × 32px` 的原生深色块。
+- 其他已适配应用没有同时满足“原生 overlay + 主进程重复强制颜色 + renderer 无透明控制接口”这三个条件，因此通常只需 CSS 或原生颜色本身无需处理。
+
+标题栏补丁流程：
+
+1. 按完整路径结束 AgnesCode 进程，等待 `9350` 关闭。
+2. 通过 Electron fuse sentinel `dL7pKGdnNz796PbbjQWNKmHXBZaB9tsX` 定位 V1 fuse wire，只将索引 `4` 的 `EnableEmbeddedAsarIntegrityValidation` 从 enabled 改为 disabled；`OnlyLoadAppFromAsar` 和其他 fuse 保持不变。
+3. 首次处理或应用升级后，将原始 `AgnesCode.exe` 备份为 `AgnesCode.exe.dream-work-original`。
+4. 使用 `original-fs` 读取外部 `resources/app.asar`，匹配生成 `titleBarOverlay.color` 的完整压缩函数。
+5. 将函数中的动态深色表达式做等长替换，固定为 `#00000000`；剩余字节用空格填充，不改变 archive 大小和 ASAR entry 布局。
+6. 将原始代码片段、字节偏移和 archive 大小写入 `resources/app.asar.dream-work-titlebar.json`。
+7. 再启动 AgnesCode，等待 `9350/json/version` 和主 renderer，随后执行主题注入。
+
+文件访问约束：
+
+- Electron 普通 `fs.readFileSync(<external app.asar>)` 会启用 ASAR 虚拟文件语义，并将读取 archive 本身解释为空内部路径，产生 `ENOENT, not found in ...app.asar`。
+- 启动器必须使用 Electron 内置的 `original-fs` 读写 AgnesCode EXE/ASAR；`vite.config.ts` 将 `original-fs` 标记为 Electron 主进程 external。
+- 不应重新引入运行时 `@electron/fuses`。该包被 Vite 打进单文件后，其依赖的包内路径和 `fs-extra` 资源定位会失效，曾导致相同 `ENOENT`。
+
+专属 CSS：
+
+- 使用 `buildAgnesCodeCss()`，并让 AgnesCode 的通用 main/sidebar selector 设为 `:not(*)`，避免命中通用大面积渐变和 `backdrop-filter`。
+- 背景图挂载到 `html`、`body`、`#root`；`.agnes-shell`、`--agnes-surface`、`--agnes-sidebar-panel`、`--agnes-current-sidebar-bg` 和 `bg-background-primary` 外壳透明。
+- 搜索、定时任务、插件和设置路由使用独立容器。设置页的 `.agnes-settings-route-overlay`、232px 设置菜单网格和右侧内容层均透明无滤镜。
+- 输入框 `rounded-input-modal` 和插件卡片只保留局部半透明 surface，以保证文字和控件可读。
+- 原生主题恢复不再使用注入开始时的一次性快照。执行还原时实时读取 `localStorage.theme`；`use_system_theme=true` 或 `theme=system` 时读取 `prefers-color-scheme`。还原过程移除 `vscode-*` / `cb-*` 兼容类，只恢复 `html.light` 或 `html.dark`，避免浅色变量与深色类混用。
+
+#### MiniMax Code
+
+实机验证环境：
+
+```text
+主 renderer：app://./archon
+```
+
+专属 CSS：
+
+- 使用 `buildMiniMaxCodeCss()`，并让通用 main/sidebar selector 设为 `:not(*)`，避免通用大面积渐变和模糊规则干扰 MiniMax Code 的 Tailwind 页面结构。
+- 背景图挂载到 `html`、`body`、`#root` 和 `#__next`。根应用壳 `bg-bg_grouped_secondary`、左侧 `bg-bg_default_scrim`、功能页 `bg-bg_default_primary` / `bg-bg_grouped_secondary` 主体以及对话页底部固定外壳保持透明。
+- 技能、定时任务、连接等功能页可能使用 `absolute inset-0 z-10 flex flex-col bg-bg_grouped_secondary` 覆盖右侧画布，该层单独透明化，功能卡片本身仍保留局部对比度。
+- 对话页底部固定输入区和新建任务页首页输入区使用不同外层布局，但实际输入卡片统一为 theme surface `62%` 半透明、accent `30%` 边框、`20px` 圆角、`16px` 模糊和轻阴影。
+- CSS 使用稳定类组合和属性选择器匹配 Tailwind 的 `rounded-[20px]`，避免无效转义导致浏览器丢弃整组规则。
+
+原生主题还原：
+
+- MiniMax Code 原生选择保存在 `localStorage.theme`。还原时实时读取 `light` / `dark`，不再恢复可能过期的首次注入快照。
+- 当应用跟随系统时，结合 `use_system_theme` 和 `matchMedia('(prefers-color-scheme: dark)')` 计算当前模式。
+- 还原会清空主题 CSS、背景图和主题标识，移除注入产生的 `vscode-*` / `cb-*` 与 body 深浅类，只在 `html` 恢复原生 `light` 或 `dark` 以及对应 `color-scheme`。
+- 已验证浅色还原为原生 `rgb(255, 255, 255)`，深色还原为原生 `rgb(28, 28, 28)`。
+
 ### 9.7 CSS 生成器分层
 
-当前 `electron/manager/injector.ts` 中存在 8 个 CSS 生成器，对应 4 类注册类型以及 HanaAgent、Kimi、OpenCode、豆包的专属分支：
+当前 `electron/manager/injector.ts` 中存在 10 个 CSS 生成器，对应 4 类注册类型以及 HanaAgent、Kimi、OpenCode、豆包、AgnesCode、MiniMax Code 的专属分支：
 
 | 生成器 | 应用 |
 |--------|------|
 | `buildWorkBuddyCss()` | WorkBuddy |
 | `buildVsCodeWorkCss()` | TRAE Work |
-| `buildGenericWorkCss()` | QoderWork、CatPaw、ZCode、千问办公 |
+| `buildGenericWorkCss()` | QoderWork、CatPaw、ZCode、千问办公、AgnesCode/MiniMax Code 外壳入口 |
 | `buildHanaAgentCss()` | HanaAgent |
 | `buildKimiCss()` | Kimi Work |
 | `buildOpenCodeCss()` | OpenCode Desktop |
 | `buildDoubaoCss()` | 豆包 Desktop |
+| `buildAgnesCodeCss()` | AgnesCode |
+| `buildMiniMaxCodeCss()` | MiniMax Code |
 | `buildCodexCss()` | Codex |
 
 通用主题语义仍由以下字段提供：
@@ -1048,6 +1143,8 @@ Codex、HanaAgent、Kimi 和其他非 WorkBuddy 应用使用 Shadow DOM host：
 | Kimi Work | 通过，固定端口并确认 Work/Chat target | 通过 | 通过，双 target | 通过，双 target |
 | OpenCode Desktop | 通过，读取动态端口并匹配 `oc://renderer/index.html` | 通过 | 通过 | 通过 |
 | 豆包 Desktop | 通过，固定端口并排除 launcher/background 页面 | 通过 | 通过，导航后自动恢复 | 通过，导航后自动恢复 |
+| AgnesCode | 通过，Playwright 调试入口和固定端口 `9350` | 通过 | 通过，主页/搜索/定时任务/插件/设置页 | 通过 |
+| MiniMax Code | 通过，固定端口并匹配 `app://./archon` | 通过 | 通过，新建任务/对话/技能/功能页 | 通过 |
 | Codex / ChatGPT Desktop | 通过 | 通过 | 通过 | 通过 |
 
 构建验证：
@@ -1055,12 +1152,15 @@ Codex、HanaAgent、Kimi 和其他非 WorkBuddy 应用使用 Shadow DOM host：
 - `pnpm typecheck` 通过。
 - `pnpm build:app` 通过。
 - 根目录 `dist-electron/main.js` 与 Vite 最新 Electron 输出保持同步。
-- 11 款应用通过 `acceptsGenericThemes` 默认兼容和 manifest 显式覆盖模型读取主题，无 HanaAgent/Kimi/OpenCode/豆包硬编码放行。
+- 13 款应用通过 `acceptsGenericThemes` 默认兼容和 manifest 显式覆盖模型读取主题，无 HanaAgent/Kimi/OpenCode/豆包/AgnesCode/MiniMax Code 硬编码放行。
 - Kimi Work 首次注入实测同时覆盖 Work 与 Chat，返回 `applied: 2`；两个 target 重载后均能恢复主题。
 - OpenCode Desktop 实测主题应用返回 `applied: 1`，浮动菜单切换和还原正常；主题重启不会终止同名 OpenCode CLI。
 - 豆包 Desktop 实测主题应用返回 `applied: 1`，菜单切换和还原正常；技能、新工作任务、AI 创作和历史对话导航后主题会自动恢复。
 - 豆包暗色适配已逐项验证：账号与导航文字、历史对话激活项、新对话 placeholder、底部图标、技能搜索/分类、AI 创作 placeholder 与图片/视频 tab 均可读。
 - 豆包首页问候语白色伪元素、AI 创作白色主容器和 sticky 标题栏已透明化；对话内容区除侧栏和输入框外，大面积模糊/着色层检测结果为 `0`。
+- AgnesCode 已完成端到端验证：启动器可重复识别透明标题栏补丁，`9350` CDP、`agnesd`、ACP 和主题注入均正常；主页、搜索、定时任务、插件和设置页的大面积背景/滤镜已透明化。
+- AgnesCode 浅色/深色还原矩阵已验证：浅色侧栏变量恢复为 `#fbfbfb`、主体为 `#fdfeff`；深色恢复 `html.dark`，不会残留 `vscode-*` / `cb-*` 兼容类。
+- MiniMax Code `3.0.60` 已完成端到端验证：`9351` CDP、背景图、左侧栏、新建任务/历史对话输入框、技能/功能页右侧主体均正常；浅色还原为 `rgb(255, 255, 255)`，深色还原为 `rgb(28, 28, 28)`。
 - 高频快捷主题已通过实测：不再依赖固定主题 ID，可按应用统计菜单和管理器中的主动切换，并在主题缺失时只显示实际可用项。
 - 跨应用自定义图片共享已通过实测：集中图片库可被后续启动的其他受支持应用读取。
 
@@ -1123,6 +1223,31 @@ HanaAgent 的 renderer 会在启动和部分界面切换期间被替换。维护
 - 允许保留局部玻璃效果的区域只有侧栏和实际底部输入卡片；对话内容层应保持透明且无 `backdrop-filter`。
 - 带 hash 的类名可能在升级后变化，维护时优先结合语义 ID、token 类、页面 URL 和结构组合，不单独依赖完整 hash 类名。
 
+#### AgnesCode Playwright CDP、fuse 与 ASAR 标题栏补丁
+
+- 禁止退回普通 `--remote-debugging-port` 方案；AgnesCode 会在正式版主进程中主动删除该 switch。
+- `AGNES_DEV`、`ENABLE_PLAYWRIGHT`、`PLAYWRIGHT_DEBUG_PORT` 和 `AGNESD_BINARY` 必须作为一组维护，缺少后端路径会导致 `agnesd binary not found`。
+- 标题栏补丁写入前必须完整匹配压缩函数结构和 ASAR 大小，禁止按单个颜色字符串盲目替换。
+- fuse wire 只能修改 `EnableEmbeddedAsarIntegrityValidation`。不得关闭 `OnlyLoadAppFromAsar`，不得启用 RunAsNode、Node options 或 Node inspector。
+- `AgnesCode.exe.dream-work-original` 是当前版本 EXE 的恢复备份；`app.asar.dream-work-titlebar.json` 保存当前版本 ASAR 原始片段。应用升级后应覆盖 EXE 备份并按新 archive 生成新的片段备份。
+- 必须通过 `original-fs` 访问外部 EXE/ASAR。普通 `fs` 和被 Vite bundle 的 `@electron/fuses` 都会重新触发 `ENOENT, not found in ...app.asar`。
+- 补丁改变 AgnesCode 安装文件，可能使厂商签名/自更新校验失效。维护和发布说明中必须把它标记为 Windows AgnesCode 专属例外，并保留清晰的备份与失败停止策略。
+- AgnesCode 版本升级后需要重新实测：应用启动、`9350/json/version`、主 renderer URL、`agnesd`、ACP、标题栏按钮透明度、主页/功能页/设置页背景和浮动菜单。
+
+#### AgnesCode 与 MiniMax Code 原生模式恢复
+
+- 两款应用都使用 `localStorage.theme` 保存原生浅色/深色选择，不能只保存主题注入开始时的 DOM 类名快照。
+- `use_system_theme=true` 或 `theme=system` 时必须在还原动作发生时读取系统颜色偏好，不能缓存启动时结果。
+- 主题模式兼容类只为自定义主题服务。还原时必须移除 `vscode-light`、`vscode-dark`、`cb-light`、`cb-dark` 以及 body 上的注入深浅类，避免应用原生 CSS 变量和兼容类产生混合状态。
+- AgnesCode 的启动器、主工作区和会话窗口可能是多个 renderer；管理器级还原需要处理所有匹配 AgnesCode 主窗口 URL 的 page target。
+
+#### MiniMax Code Tailwind 页面结构
+
+- MiniMax Code 大量依赖 Tailwind token 类和结构组合。维护时优先使用 `bg-bg_*` 语义类与 `h-screen`、`inset-0`、`bottom-0`、`.message-input-container` 等结构组合，不依赖 React 自动 ID。
+- 新建任务页通过 `.message-input-home-container` 区分首页输入框；历史对话页使用相同稳定输入卡片类但不同停靠外壳。两者视觉规则必须保持一致。
+- 功能页右侧主体可能有 `bg-bg_default_primary` 和 `bg-bg_grouped_secondary` 两层覆盖。只透明化页面画布，保留技能卡片、输入卡片和弹窗的局部 surface。
+- MiniMax Code 更新后优先回归：背景图、侧栏、新建任务、历史对话、技能、定时任务、连接、输入框导航稳定性以及浅色/深色还原矩阵。
+
 #### 视觉验收
 
 通用 Work 类适配目前重点保证：
@@ -1162,11 +1287,11 @@ HanaAgent 的 renderer 会在启动和部分界面切换期间被替换。维护
 
 | 文件 | 职责 |
 |------|------|
-| `electron/manager/app-registry.ts` | 11 款应用的三平台发现候选、启动、端口、类型、路径限定进程管理和默认主题兼容注册 |
+| `electron/manager/app-registry.ts` | 13 款应用的三平台发现候选、启动、端口、类型、路径限定进程管理和默认主题兼容注册 |
 | `electron/manager/discovery.ts` | 扫描 Windows 安装目录/版本目录/Codex Appx、macOS bundle 和 Linux desktop/executable |
-| `electron/manager/launcher.ts` | 结束旧进程、跨平台启动、等待固定或动态 CDP 端口，并处理 HanaAgent/Kimi renderer 稳定、Kimi Windows 父进程限制以及 OpenCode/豆包路径限定进程管理 |
+| `electron/manager/launcher.ts` | 结束旧进程、跨平台启动、等待固定或动态 CDP 端口，并处理 HanaAgent/Kimi renderer 稳定、Kimi Windows 父进程限制、OpenCode/豆包路径限定进程管理以及 AgnesCode Playwright CDP、fuse wire 和原生标题栏补丁 |
 | `electron/manager/cdp.ts` | target 发现、WebSocket 会话和 Runtime.evaluate |
-| `electron/manager/injector.ts` | 主题 CSS 生成、target 筛选、菜单、自定义图片、HanaAgent/Kimi/豆包守护、OpenCode/豆包专属 CSS 和还原 |
+| `electron/manager/injector.ts` | 主题 CSS 生成、target 筛选、菜单、自定义图片、HanaAgent/Kimi/豆包守护、OpenCode/豆包/AgnesCode/MiniMax Code 专属 CSS 和原生深浅模式还原 |
 | `electron/manager/custom-theme-store.ts` | 自定义图片集中存储、校验和本机共享同步服务 |
 | `app.getPath('userData')/theme-usage.json` | 各应用预置主题的切换次数和最近使用时间，用于生成四个快捷主题 |
 | `electron/manager/theme-store.ts` | 主题扫描、校验和按应用兼容性过滤 |
@@ -1180,15 +1305,16 @@ HanaAgent 的 renderer 会在启动和部分界面切换期间被替换。维护
 
 | 早期计划 | 当前实现 |
 |----------|----------|
-| 默认 4 套主题 | 当前源码包含 239 份主题 manifest，运行时按内容去重 |
-| 支持至少 5 款应用 | 当前注册 11 款应用 |
+| 默认 12 套主题 | 当前源码包含 257 份主题 manifest，运行时按内容去重 |
+| 支持至少 5 款主流应用 | 当前注册 13 款应用 |
 | 所有应用使用固定端口 | QoderWork、千问办公和 OpenCode 使用 `DevToolsActivePort` 获取运行时端口；其他应用使用固定端口 |
-| 每款应用单独 profile 文件 | 使用集中式 `app-registry.ts` + 4 类注册类型，并为 HanaAgent、Kimi、OpenCode、豆包增加专属 CSS/生命周期分支 |
+| 每款应用单独 profile 文件 | 使用集中式 `app-registry.ts` + 4 类注册类型，并为 HanaAgent、Kimi、OpenCode、豆包、AgnesCode、MiniMax Code 增加专属 CSS/生命周期分支 |
 | 主题背景可统一铺 body | WorkBuddy/Codex/其他应用均根据主体 DOM 放置图片，避免侧栏和外壳错误铺图 |
 | 通用菜单挂到 body | 非 WorkBuddy 菜单使用 Shadow DOM host 和重挂载守护 |
 | 需调研 ZCode、千问办公、CatPaw | 已完成 Windows 实机 Electron、CDP、URL 和 DOM 探测 |
 | renderer target 启动后保持不变 | HanaAgent 需要稳定 target；Kimi 同时维护 Work/Chat 双 target；豆包导航会重载主 renderer；三者均由持久脚本或主进程 watcher 维护 |
 | 所有目标应用都是标准 Electron | 豆包是定制 Chromium 应用，但仍可通过 CDP 使用统一主题注入链路 |
+| 不修改任何目标应用安装文件 | 仍是默认原则；Windows AgnesCode 的原生 Window Controls Overlay 是唯一例外，需要备份 EXE/ASAR 片段、关闭单个完整性 fuse 并等长替换标题栏颜色代码 |
 | 每个主题列出全部兼容应用 | 应用注册表提供 `acceptsGenericThemes` 默认值，manifest 只记录显式例外和布局 |
 
 后续开发不应继续按前文旧文件清单机械创建未使用的 profile、base.css 或 menu.js；应优先深化现有注册表和注入器模块，保持实现与运行路径一致。
