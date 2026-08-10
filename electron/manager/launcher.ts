@@ -44,25 +44,28 @@ export async function launchApp(appId: string, themeId?: string): Promise<{ succ
   const profile = getAppDefinition(appId);
   if (!profile) return { success: false, error: `Unknown app: ${appId}` };
 
-  const port = profile.defaultPort;
-  const args = [`--remote-debugging-port=${port}`];
-
-  // Disable extensions for Codex to avoid plugin sync crashes that block CDP.
-  if (appId === 'codex') {
-    args.push('--disable-extensions');
-  }
-
-  if (themeId && appId !== 'kimi') {
-    args.push(`--dream-theme=${themeId}`);
-  }
-
   try {
     const appPath = getAppPath(appId);
     
     // Kill existing instances to ensure fresh launch with debug port
     console.log(`[launcher] Killing existing ${appId} instances...`);
     await killExistingInstances(appId, appPath);
-    await waitForPortToClose(port, 15000);
+    await waitForPortToClose(profile.defaultPort, 15000);
+
+    const port = await findAvailablePort(profile.defaultPort);
+    if (port !== profile.defaultPort) {
+      console.warn(`[launcher] Default CDP port ${profile.defaultPort} is unavailable; using ${port}`);
+    }
+    const args = [`--remote-debugging-port=${port}`];
+
+    // Disable extensions for Codex to avoid plugin sync crashes that block CDP.
+    if (appId === 'codex') {
+      args.push('--disable-extensions');
+    }
+
+    if (themeId && appId !== 'kimi') {
+      args.push(`--dream-theme=${themeId}`);
+    }
 
     if (appId === 'agnes-code' && os.platform() === 'win32') {
       await enableAgnesCodeTransparentTitleBar(appPath);
@@ -325,23 +328,22 @@ async function waitForStableRenderer(port: number, rendererHints: string[], time
   throw new Error(`Renderer did not stabilize on port ${port}`);
 }
 
-function findAvailablePort(startPort: number): number {
+async function findAvailablePort(startPort: number): Promise<number> {
   for (let port = startPort; port <= startPort + 100; port++) {
-    const server = net.createServer();
-    let portTaken = false;
-    server.once('error', () => {
-      portTaken = true;
-      server.close();
-    });
-    server.once('listening', () => {
-      server.close();
-    });
-    server.listen(port, '127.0.0.1');
-    if (!portTaken) {
-      return port;
-    }
+    if (await canBindPort(port)) return port;
   }
-  return startPort;
+  throw new Error(`No available CDP port found between ${startPort} and ${startPort + 100}`);
+}
+
+function canBindPort(port: number): Promise<boolean> {
+  return new Promise(resolve => {
+    const server = net.createServer();
+    server.unref();
+    server.once('error', () => resolve(false));
+    server.listen(port, '127.0.0.1', () => {
+      server.close(error => resolve(!error));
+    });
+  });
 }
 
 async function waitForPort(port: number, timeoutMs: number): Promise<void> {

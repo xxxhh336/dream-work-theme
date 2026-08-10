@@ -54,6 +54,8 @@ Dream Work Theme 是面向 Electron Work 类桌面应用的主题管理器。它
 
 ![Dream Work Theme 界面预览](preview14.png)
 
+![Dream Work Theme 界面预览](preview15.png)
+
 </details>
 
 ## 支持应用
@@ -72,9 +74,10 @@ Dream Work Theme 是面向 Electron Work 类桌面应用的主题管理器。它
 - 豆包 Desktop
 - AgnesCode
 - MiniMax Code
+- AstronClaw（讯飞星辰）
 - Codex / ChatGPT Desktop
 
-部分应用使用固定调试端口；QoderWork、千问办公和 OpenCode Desktop 通过 `DevToolsActivePort` 获取运行时端口。HanaAgent 使用固定端口 `9346`，Kimi Work 使用 `9347`，豆包 Desktop 使用 `9349`，AgnesCode 使用 `9350`，MiniMax Code 使用 `9351`。Dream Work Theme 会等待易重建的 renderer 稳定，并在运行期间自动恢复丢失的主题。
+部分应用使用首选调试端口；QoderWork、千问办公和 OpenCode Desktop 通过 `DevToolsActivePort` 获取运行时端口。HanaAgent 首选 `9346`，Kimi Work 首选 `9347`，豆包 Desktop 首选 `9349`，AgnesCode 使用 `9350`，MiniMax Code 首选 `9351`，AstronClaw 首选 `9352`。启动前会通过真实 TCP bind 检查端口；若首选端口被占用或处于 Windows 幽灵监听状态，普通应用会自动顺延到可用端口，并把真实端口用于后续注入、状态查询和还原。Dream Work Theme 也会等待易重建的 renderer 稳定，并在运行期间自动恢复丢失的主题。
 
 AgnesCode 正式版会主动移除普通的 `--remote-debugging-port` 参数。Dream Work Theme 通过 AgnesCode 内置的 Playwright 调试入口开启 CDP，并显式保留正式安装包中的 `resources/bin/agnesd.exe` 后端路径。该调试入口会让 AgnesCode 将当前会话标记为开发模式，因此其日志中可能出现不影响主题和聊天功能的更新配置检查错误。
 
@@ -216,12 +219,21 @@ Vite 的 CJS API deprecation 当前只是警告，不会导致构建失败。
 
 ### MiniMax Code 说明
 
-- Windows 实机验证版本为 MiniMax Code `3.0.60`，安装路径为 `D:\Program Files\MiniMax Code\MiniMax Code.exe`，使用固定 CDP 端口 `9351`。
+- Windows 实机验证版本为 MiniMax Code `3.0.60`，安装路径为 `D:\Program Files\MiniMax Code\MiniMax Code.exe`，首选 CDP 端口为 `9351`。
 - 主 renderer 为 `app://./archon`。主题只注入该页面，不影响 `react-screenshots` 等辅助页面。
 - MiniMax Code 使用专属 `buildMiniMaxCodeCss()`。主题背景挂载到 `html`、`body`、`#root` 和 `#__next`，应用壳、左侧栏、技能/定时任务等功能页主体及对话页底部大容器保持透明。
 - 新建任务页和历史对话页的输入框统一使用主题 surface `62%` 半透明背景、`20px` 圆角、主题 accent `30%` 边框和 `16px` 模糊；外层遮挡保持透明。
 - 还原主题时实时读取 `localStorage.theme`。当应用设置为跟随系统时，同时读取 `use_system_theme` 和 `prefers-color-scheme`，恢复 MiniMax Code 当前原生浅色或深色模式，而不是恢复首次注入时的旧快照。
 - MiniMax Code 适配不修改安装文件，只使用启动参数、CDP 和运行时 CSS/JavaScript 注入。
+
+### AstronClaw（讯飞星辰）说明
+
+- Windows 实机验证版本为 AstronClaw `2.0.6`，安装路径为 `D:\Program Files\AstronClaw\AstronClaw.exe`，用户数据目录为 `%APPDATA%\astrondesktop`。
+- 主 renderer 为 `file:///.../resources/app.asar/out/renderer/index.html`，页面标题为 `AstronDesktop`。主题注入只匹配该主页面，不影响辅助页面。
+- AstronClaw 首选 CDP 端口为 `9352`。若该端口无法真实绑定，例如 Windows 仍报告不存在 PID 的幽灵监听，启动器会自动选择后续可用端口并将真实端口返回管理器；实机回归中成功回退到 `9353`。
+- 专属 `buildAstronClawCss()` 会清除 `.workspace-frame` 原生深蓝渐变，并让应用主壳、任务主体、消息列表、消息正文、我的技能和灵感广场右侧画布保持透明、无大面积 `backdrop-filter`。侧栏仅保留轻透明底色，输入区只在实际 composer card 保留单层局部对比度。
+- AstronClaw 的原生主题偏好不在 `localStorage.theme`，而由 `window.astronDesktop.settings.get().general.theme` 提供。还原时会实时读取 `light`、`dark` 或 `system`，并根据系统颜色偏好恢复正确的 `html.light` / `html.dark`，避免启动早期临时深色状态污染还原结果。
+- 已验证主题应用返回 `applied: 1`，我的技能/灵感广场主体计算样式为透明且无滤镜，原生浅色和深色模式均可正确还原。
 
 ## 主题存储
 

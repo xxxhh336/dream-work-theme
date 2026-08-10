@@ -24,6 +24,7 @@ const APP_PORTS: Record<string, number> = {
   doubao: 9349,
   'agnes-code': 9350,
   'minimax-code': 9351,
+  astronclaw: 9352,
 };
 
 interface ThemeInfo {

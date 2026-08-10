@@ -10,5 +10,6 @@ export function getAppInitials(appId: string, name: string): string {
   if (appId === 'doubao') return 'DB';
   if (appId === 'agnes-code') return 'AC';
   if (appId === 'minimax-code') return 'MC';
+  if (appId === 'astronclaw') return 'XC';
   return name.slice(0, 2).toUpperCase();
 }

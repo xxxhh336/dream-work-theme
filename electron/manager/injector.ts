@@ -967,7 +967,7 @@ export async function removeSkin(
         doubaoPersistentScripts.delete(target.id);
       }
     }
-    await session.evaluate(`(() => {
+    await session.evaluate(`(async () => {
       ${appId === 'hana-agent' ? `try { localStorage.setItem('dream-work-theme:hana-agent:restored', '1'); } catch {}
       document.documentElement.dataset.dreamThemeRestored = 'true';` : ''}
       ${appId === 'doubao' ? `document.documentElement.dataset.dreamThemeRestored = 'true';` : ''}
@@ -987,7 +987,7 @@ export async function removeSkin(
         document.removeEventListener('pointerdown', window.__dreamWorkOutsideClick, true);
         delete window.__dreamWorkOutsideClick;
       }`}
-      ${appId === 'minimax-code' || appId === 'agnes-code' ? `window.__dreamWorkRestoreNativeMode?.();` : ''}
+      ${appId === 'minimax-code' || appId === 'agnes-code' || appId === 'astronclaw' ? `await window.__dreamWorkRestoreNativeMode?.();` : ''}
       delete document.documentElement.dataset.dreamTheme;
       delete document.documentElement.dataset.dreamShell;
       return true;
@@ -1228,6 +1228,7 @@ function buildGenericWorkCss(appId: string, manifest: any, heroDataUrl: string, 
     'qwen-office': '.agents-content-area, .agents-parchment-paper-surface',
     'agnes-code': ':not(*)',
     'minimax-code': ':not(*)',
+    astronclaw: '.local-chat-shell, .local-chat-main, [class*="local-chat-content"]',
   };
   const sidebarSelectors: Record<string, string> = {
     'qoder-work': '[class*="sidebar"]',
@@ -1236,6 +1237,7 @@ function buildGenericWorkCss(appId: string, manifest: any, heroDataUrl: string, 
     'qwen-office': '.agents-sidebar, .group\\/sidebar',
     'agnes-code': ':not(*)',
     'minimax-code': ':not(*)',
+    astronclaw: '.local-chat-rail, [class*="local-chat-sidebar"]',
   };
   const main = mainSelectors[appId] ?? 'main, [role="main"], [class*="main-content"]';
   const sidebar = sidebarSelectors[appId] ?? 'aside, nav, [class*="sidebar"]';
@@ -1251,6 +1253,8 @@ function buildGenericWorkCss(appId: string, manifest: any, heroDataUrl: string, 
             ? buildAgnesCodeCss(heroDataUrl, colors)
             : appId === 'minimax-code'
               ? buildMiniMaxCodeCss(heroDataUrl, colors)
+              : appId === 'astronclaw'
+                ? buildAstronClawCss(heroDataUrl, colors)
       : '';
   return `/* DREAM_THEME:${manifest.id} */
 :root {
@@ -1279,13 +1283,113 @@ html, body, #root { background: ${colors.surface} !important; color: ${colors.te
 :is(${main}) :where([class*="message"], [class*="chat"], [class*="composer"], [class*="editor"], [contenteditable="true"], textarea) {
   color: ${colors.text} !important;
 }
-${appId === 'doubao' ? '' : `:is(${main}) :where([class*="message"], [class*="bubble"], [class*="composer"], [class*="input-container"]) {
+${appId === 'doubao' || appId === 'astronclaw' ? '' : `:is(${main}) :where([class*="message"], [class*="bubble"], [class*="composer"], [class*="input-container"]) {
   background-color: color-mix(in srgb, ${colors.surface} 88%, transparent) !important;
   backdrop-filter: blur(16px) saturate(108%);
 }`}
 :is(${main}) :where(p, span, li, h1, h2, h3, h4, strong, em) { color: ${colors.text} !important; }
 button[class*="bg-primary"], button[class*="bg-accent"] { background-color: ${colors.accent} !important; color: #fff !important; }
 ${appSpecificCss}`;
+}
+
+function buildAstronClawCss(heroDataUrl: string, colors: any): string {
+  return `
+:root {
+  --background: ${colors.surface} !important;
+  --foreground: ${colors.text} !important;
+  --card: color-mix(in srgb, ${colors.surface} 82%, transparent) !important;
+  --card-foreground: ${colors.text} !important;
+  --popover: color-mix(in srgb, ${colors.surface} 92%, transparent) !important;
+  --popover-foreground: ${colors.text} !important;
+  --primary: ${colors.accent} !important;
+  --primary-foreground: #ffffff !important;
+  --secondary: color-mix(in srgb, ${colors.secondary} 22%, ${colors.surface}) !important;
+  --secondary-foreground: ${colors.text} !important;
+  --muted: color-mix(in srgb, ${colors.surface} 76%, transparent) !important;
+  --muted-foreground: color-mix(in srgb, ${colors.text} 68%, transparent) !important;
+  --accent: color-mix(in srgb, ${colors.accent} 24%, ${colors.surface}) !important;
+  --accent-foreground: ${colors.text} !important;
+  --border: color-mix(in srgb, ${colors.accent} 24%, transparent) !important;
+  --input: color-mix(in srgb, ${colors.surface} 72%, transparent) !important;
+  --ring: ${colors.accent} !important;
+}
+html,
+body,
+#root {
+  min-height: 100% !important;
+  background-color: ${colors.surface} !important;
+  background-image: url(${JSON.stringify(heroDataUrl)}) !important;
+  background-position: center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+  color: ${colors.text} !important;
+}
+#root > div,
+.workspace-frame,
+.workspace-frame > div,
+.local-chat-shell,
+.local-chat-main,
+.local-chat-content-col,
+[class*="local-chat-content"],
+[class*="skills"],
+[class*="inspiration"],
+[class*="marketplace"] {
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.local-chat-rail,
+.local-chat-sidebar-header-section,
+.local-chat-account-panel {
+  background-color: color-mix(in srgb, ${colors.surface} 12%, transparent) !important;
+  background-image: none !important;
+  color: ${colors.text} !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.local-chat-message-list,
+.local-chat-message-list-content,
+.local-chat-message,
+.local-chat-message-body,
+.local-chat-empty-state,
+.local-chat-welcome,
+.local-chat-new-task,
+.local-chat-home {
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.local-chat-content-col > section.bg-card,
+.local-chat-content-col > section[class~="bg-card"] {
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.local-chat-shell :where(textarea, input, [contenteditable="true"], [class*="composer"], [class*="message-input"]) {
+  color: ${colors.text} !important;
+  caret-color: ${colors.accent} !important;
+}
+.local-chat-composer-stack {
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.local-chat-composer-card,
+.local-chat-shell :where([class*="message-input"]):not(textarea):not(input):not([contenteditable="true"]) {
+  background-color: color-mix(in srgb, ${colors.surface} 48%, transparent) !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.local-chat-shell :where([class*="message"], [class*="dialog"], [class*="popover"], [class*="panel"]) {
+  border-color: color-mix(in srgb, ${colors.accent} 22%, transparent) !important;
+}
+`;
 }
 
 function buildAgnesCodeCss(heroDataUrl: string, colors: any): string {
@@ -3143,19 +3247,26 @@ export function buildMenuScript(options: {
       bodyThemeName: body.dataset.vscodeThemeName,
     };
   }
-  const restoreNativeMode = () => {
+  const restoreNativeMode = async () => {
     const nativeMode = window[nativeModeKey];
     if (!nativeMode) return;
     const html = document.documentElement;
     const body = document.body;
     let nativeDark = nativeMode.htmlClasses.includes('dark') || nativeMode.bodyClasses.includes('dark');
-    if (appId === 'minimax-code' || appId === 'agnes-code') {
+    if (appId === 'minimax-code' || appId === 'agnes-code' || appId === 'astronclaw') {
       try {
-        const storedTheme = localStorage.getItem('theme');
-        const followsSystem = localStorage.getItem('use_system_theme') === 'true' || storedTheme === 'system';
-        if (followsSystem) nativeDark = matchMedia('(prefers-color-scheme: dark)').matches;
-        else if (storedTheme === 'dark') nativeDark = true;
-        else if (storedTheme === 'light') nativeDark = false;
+        if (appId === 'astronclaw') {
+          const storedTheme = (await window.astronDesktop?.settings?.get?.())?.general?.theme;
+          if (storedTheme === 'system') nativeDark = matchMedia('(prefers-color-scheme: dark)').matches;
+          else if (storedTheme === 'dark') nativeDark = true;
+          else if (storedTheme === 'light') nativeDark = false;
+        } else {
+          const storedTheme = localStorage.getItem('theme');
+          const followsSystem = localStorage.getItem('use_system_theme') === 'true' || storedTheme === 'system';
+          if (followsSystem) nativeDark = matchMedia('(prefers-color-scheme: dark)').matches;
+          else if (storedTheme === 'dark') nativeDark = true;
+          else if (storedTheme === 'light') nativeDark = false;
+        }
       } catch {}
       ["light", "vscode-light", "cb-light", "dark", "vscode-dark", "cb-dark"].forEach((className) => {
         html.classList.remove(className);
@@ -3243,7 +3354,7 @@ export function buildMenuScript(options: {
     });
   };
 
-  const restoreNative = () => {
+  const restoreNative = async () => {
     markKimiAction(true);
     if (appId === 'doubao') {
       try { localStorage.setItem('dream-work-theme:doubao:restored', '1'); } catch {}
@@ -3251,7 +3362,7 @@ export function buildMenuScript(options: {
     }
     window.__dreamWorkThemeStyle.textContent = '';
     delete document.documentElement.dataset.dreamTheme;
-    if (appId === 'minimax-code' || appId === 'agnes-code') restoreNativeMode();
+    if (appId === 'minimax-code' || appId === 'agnes-code' || appId === 'astronclaw') await restoreNativeMode();
     else if (appId !== 'hana-agent' && appId !== 'kimi') applyMode('#ffffff');
     if (appId === 'codex') {
       document.documentElement.classList.remove('codex-dream-skin');
@@ -3499,7 +3610,7 @@ export function buildMenuScript(options: {
   });
   const uploadRow = row('＋ 自定义图片', 'rgba(36,201,215,.9)', () => picker.click());
   uploadRow.style.borderTop = '1px solid rgba(0,0,0,.08)';
-  const native = row('还原主题', 'rgba(0,0,0,.24)', () => restoreNative());
+  const native = row('还原主题', 'rgba(0,0,0,.24)', () => { void restoreNative(); });
   initialCustomThemes.forEach(ensureCustomRow);
   const refreshCustomThemes = () => {
     const generation = ++customRefreshGeneration;

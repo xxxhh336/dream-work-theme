@@ -54,6 +54,8 @@ Dream Work Theme is a desktop theme manager for supported Electron work applicat
 
 ![Dream Work Theme Interface preview](preview14.png)
 
+![Dream Work Theme Interface preview](preview15.png)
+
 </details>
 
 ## Support Applications
@@ -72,9 +74,10 @@ The current application registry supports:
 - Doubao Desktop
 - AgnesCode
 - MiniMax Code
+- AstronClaw (iFlytek Astron)
 - Codex / ChatGPT Desktop
 
-Some applications use fixed debugging ports, while QoderWork, Qwen Office, and OpenCode Desktop read their live port from `DevToolsActivePort`. HanaAgent uses port `9346`, Kimi Work uses `9347`, Doubao Desktop uses `9349`, AgnesCode uses `9350`, and MiniMax Code uses `9351`. Dream Work Theme waits for renderers that are likely to be recreated and restores missing injection while the application is running.
+Some applications use preferred debugging ports, while QoderWork, Qwen Office, and OpenCode Desktop read their live port from `DevToolsActivePort`. HanaAgent prefers `9346`, Kimi Work prefers `9347`, Doubao Desktop prefers `9349`, AgnesCode uses `9350`, MiniMax Code prefers `9351`, and AstronClaw prefers `9352`. Before launch, Dream Work Theme performs a real TCP bind check. If a preferred port is occupied or stuck in a Windows ghost-listener state, normal applications automatically advance to an available port and return that live port for injection, status queries, and restore operations. Dream Work Theme also waits for renderers that are likely to be recreated and restores missing injection while the application is running.
 
 The AgnesCode release build actively removes a normal `--remote-debugging-port` argument. Dream Work Theme enables CDP through AgnesCode's built-in Playwright debugging entry point and explicitly preserves the packaged `resources/bin/agnesd.exe` backend path. This entry point marks the AgnesCode session as a development session, so its logs may contain update-configuration errors that do not affect theming or chat functionality.
 
@@ -216,12 +219,21 @@ The floating menu shows up to four quick preset themes and is no longer tied to 
 
 ### MiniMax Code Notes
 
-- The verified Windows version is MiniMax Code `3.0.60`, installed at `D:\Program Files\MiniMax Code\MiniMax Code.exe`, with fixed CDP port `9351`.
+- The verified Windows version is MiniMax Code `3.0.60`, installed at `D:\Program Files\MiniMax Code\MiniMax Code.exe`, with preferred CDP port `9351`.
 - Its main renderer is `app://./archon`. Theme injection is restricted to that page and excludes helper pages such as `react-screenshots`.
 - MiniMax Code uses the dedicated `buildMiniMaxCodeCss()` path. The theme image is attached to `html`, `body`, `#root`, and `#__next`, while the application shell, sidebar, feature-page canvas, and large conversation-footer wrapper remain transparent.
 - The New Task and conversation composers share a `62%` translucent theme surface, `20px` radius, `30%` accent border, and `16px` blur. Their outer scrims remain transparent.
 - Restore reads `localStorage.theme` at action time. When the application follows the operating system, it also reads `use_system_theme` and `prefers-color-scheme`, restoring the current native light or dark mode instead of an outdated injection-time snapshot.
 - The MiniMax Code adapter does not modify installed files; it only uses launch arguments, CDP, and runtime CSS/JavaScript injection.
+
+### AstronClaw Notes
+
+- The verified Windows version is AstronClaw `2.0.6`, installed at `D:\Program Files\AstronClaw\AstronClaw.exe`, with user data under `%APPDATA%\astrondesktop`.
+- Its main renderer is `file:///.../resources/app.asar/out/renderer/index.html`, titled `AstronDesktop`. Injection is restricted to that main page.
+- AstronClaw prefers CDP port `9352`. If the port cannot be bound, including a Windows ghost listener owned by a PID that no longer exists, the launcher selects the next available port and returns it to the manager. The real-device regression test successfully fell back to `9353`.
+- The dedicated `buildAstronClawCss()` path removes the native dark-blue `.workspace-frame` gradient and keeps the application shell, task canvas, message list, message bodies, My Skills page, and Inspiration Gallery canvas transparent without large `backdrop-filter` surfaces. The sidebar retains only a light translucent tint, and only the actual composer card keeps local contrast.
+- AstronClaw does not store its native preference in `localStorage.theme`. Restore reads `window.astronDesktop.settings.get().general.theme` at action time and resolves `light`, `dark`, or `system` to the correct native `html.light` / `html.dark` state, avoiding the temporary dark startup state captured by an early injection snapshot.
+- Theme application has been verified with `applied: 1`; the My Skills and Inspiration Gallery canvas computes to a transparent, filter-free surface, and both native light and dark restoration paths have been verified.
 
 ## Theme Storage
 

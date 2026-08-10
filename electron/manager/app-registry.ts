@@ -129,6 +129,15 @@ export const APP_DEFINITIONS: AppDefinition[] = [
     darwin: { appBundles: ['MiniMax Code.app'], executableNames: ['MiniMax Code'] },
     linux: { executableNames: ['minimax-code', 'MiniMax Code'], desktopFiles: ['minimax-code.desktop'] },
   },
+  {
+    id: 'astronclaw', name: 'AstronClaw', exeNames: ['AstronClaw.exe'], processName: 'AstronClaw.exe', defaultPort: 9352,
+    installPaths: ['D:\\Program Files\\AstronClaw', path.join(localAppData, 'Programs', 'AstronClaw'), path.join(programFiles, 'AstronClaw'), path.join(programFilesX86, 'AstronClaw')],
+    rendererHints: ['app.asar/out/renderer/index.html', 'out/renderer/index.html'], kind: 'generic-work',
+    windowsPathScopedKill: true,
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ['AstronClaw.app'], executableNames: ['AstronClaw'] },
+    linux: { executableNames: ['astronclaw', 'AstronClaw'], desktopFiles: ['astronclaw.desktop'] },
+  },
 ];
 
 export function getAppDefinition(appId: string): AppDefinition | undefined {
