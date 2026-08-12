@@ -16,6 +16,12 @@ const kimiGenerations = new Map<number, number>();
 const doubaoPersistentScripts = new Map<string, string>();
 const doubaoWatchers = new Map<number, NodeJS.Timeout>();
 const doubaoGenerations = new Map<number, number>();
+const stepFunPersistentScripts = new Map<string, string>();
+const stepFunWatchers = new Map<number, NodeJS.Timeout>();
+const stepFunGenerations = new Map<number, number>();
+const sparkDeskPersistentScripts = new Map<string, string>();
+const sparkDeskWatchers = new Map<number, NodeJS.Timeout>();
+const sparkDeskGenerations = new Map<number, number>();
 const KIMI_RESTORE_KEY = 'dream-work-theme:kimi:restored';
 const KIMI_ACTION_KEY = 'dream-work-theme:kimi:action-at';
 const kimiDeletedCustomThemeIds = new Set<string>();
@@ -67,6 +73,24 @@ export async function applyTheme(
     } catch (e: any) {
       lastError = e.message;
       console.log(`[injector] Hint "${hint}" failed: ${e.message}`);
+    }
+  }
+
+  if (appId === 'sparkdesk') {
+    try {
+      const allTargets = await fetchSparkDeskTargets(port);
+      if (allTargets.length > 0) targets = allTargets;
+    } catch (e: any) {
+      console.log(`[injector] Failed to collect SparkDesk targets: ${e.message}`);
+    }
+  }
+
+  if (appId === 'stepfun') {
+    try {
+      const allTargets = await fetchStepFunTargets(port);
+      if (allTargets.length > 0) targets = allTargets;
+    } catch (e: any) {
+      console.log(`[injector] Failed to collect all StepFun targets: ${e.message}`);
     }
   }
 
@@ -155,6 +179,33 @@ export async function applyTheme(
       }
     }
     const sharedCustomThemeService = await ensureSharedCustomThemeService();
+    
+    if (appId === 'stepfun') {
+      const actionAt = Date.now();
+      await fetch(`${sharedCustomThemeService.appStateEndpoint}/stepfun`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${sharedCustomThemeService.token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ themeId, actionAt }),
+      }).catch(() => {});
+      for (const target of targets.filter(item => String(item.url).startsWith('app://chat-web/'))) {
+        const session = new CdpSession(target.webSocketDebuggerUrl);
+        try {
+          await session.open();
+          await session.evaluate(`(() => {
+            localStorage.setItem('dream-work-theme:stepfun:state', ${JSON.stringify(JSON.stringify({ themeId, actionAt }))});
+          })()`);
+        } catch {} finally {
+          session.close();
+        }
+      }
+    }
+    if (appId === 'sparkdesk') {
+      await fetch(`${sharedCustomThemeService.appStateEndpoint}/sparkdesk`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${sharedCustomThemeService.token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ themeId, actionAt: Date.now() }),
+      }).catch(() => {});
+    }
     const menuScript = appId === 'workbuddy'
       ? buildWorkBuddyMenuScript({
           styleId: STYLE_ID,
@@ -265,7 +316,7 @@ export async function applyTheme(
           }
         }
         
-        if (appId === 'hana-agent' || appId === 'kimi' || appId === 'doubao') {
+        if (appId === 'hana-agent' || appId === 'kimi' || appId === 'doubao' || appId === 'stepfun' || appId === 'sparkdesk') {
           const persistentScript = `(() => {
             const inject = () => ${menuScript};
             if (document.readyState === 'loading') {
@@ -278,7 +329,11 @@ export async function applyTheme(
             ? hanaAgentPersistentScripts
             : appId === 'kimi'
               ? kimiPersistentScripts
-              : doubaoPersistentScripts;
+              : appId === 'doubao'
+                ? doubaoPersistentScripts
+                : appId === 'stepfun'
+                  ? stepFunPersistentScripts
+                  : sparkDeskPersistentScripts;
           const previousIdentifier = persistentScripts.get(target.id);
           if (previousIdentifier) {
             await session.removeScriptToEvaluateOnNewDocument(previousIdentifier).catch(() => {});
@@ -484,12 +539,199 @@ export async function applyTheme(
     if (appId === 'doubao' && applied > 0) {
       startDoubaoWatcher(port, menuScript);
     }
+    if (appId === 'sparkdesk' && applied > 0) {
+      startSparkDeskWatcher(port, menuScript);
+    }
+    if (appId === 'stepfun' && applied > 0) {
+      startStepFunWatcher(port, menuScript);
+    }
     if (applied > 0) recordThemeUsage(appId, themeId);
     return { success: applied > 0, applied };
   } catch (error: any) {
     console.error('[injector] Injection failed:', error);
     return { success: false, applied: 0, error: error.message };
   }
+}
+
+async function fetchStepFunTargets(port: number): Promise<any[]> {
+  const response = await fetch(`http://127.0.0.1:${port}/json/list`, { signal: AbortSignal.timeout(2000) });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const targets = await response.json() as any[];
+  return (Array.isArray(targets) ? targets : []).filter(target => {
+    if (target?.type !== 'page' || !target.webSocketDebuggerUrl) return false;
+    const url = String(target.url ?? '');
+    return url.startsWith('app://chat-web/')
+      || url.startsWith('app://ui/pages/browser/')
+      || url.startsWith('https://chat.stepfun.com/subscription');
+  });
+}
+
+async function fetchSparkDeskTargets(port: number): Promise<any[]> {
+  const response = await fetch(`http://127.0.0.1:${port}/json/list`, { signal: AbortSignal.timeout(2000) });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const targets = await response.json() as any[];
+  return (Array.isArray(targets) ? targets : []).filter(target => {
+    if (target?.type !== 'page' || !target.webSocketDebuggerUrl) return false;
+    const url = String(target.url ?? '');
+    return /\/out\/renderer\/index\.html(?:#desk|#settings)?$/.test(url);
+  });
+}
+
+function startSparkDeskWatcher(port: number, menuScript: string): void {
+  const existing = sparkDeskWatchers.get(port);
+  if (existing) clearInterval(existing);
+  const generation = (sparkDeskGenerations.get(port) ?? 0) + 1;
+  sparkDeskGenerations.set(port, generation);
+  let busy = false;
+  const timer = setInterval(async () => {
+    if (busy || sparkDeskGenerations.get(port) !== generation) return;
+    busy = true;
+    try {
+      const targets = await fetchSparkDeskTargets(port);
+      const service = await ensureSharedCustomThemeService();
+      const latestState = await fetch(`${service.appStateEndpoint}/sparkdesk`, {
+        headers: { Authorization: `Bearer ${service.token}` },
+        signal: AbortSignal.timeout(1000),
+      }).then(response => response.ok ? response.json() : null).catch(() => null) as { themeId: string; actionAt: number } | null;
+      if (sparkDeskGenerations.get(port) !== generation) return;
+      for (const target of targets) {
+        if (sparkDeskGenerations.get(port) !== generation) return;
+        const session = new CdpSession(target.webSocketDebuggerUrl);
+        try {
+          await session.open();
+          const ready = await session.evaluate(`(() => Boolean(window.__dreamTheme?.activateTheme && document.getElementById('${STYLE_ID}')))()`).catch(() => false);
+          if (!ready) {
+            if (sparkDeskGenerations.get(port) !== generation) return;
+            const confirmedState = await fetch(`${service.appStateEndpoint}/sparkdesk`, {
+              headers: { Authorization: `Bearer ${service.token}` },
+              signal: AbortSignal.timeout(1000),
+            }).then(response => response.ok ? response.json() : null).catch(() => null) as { themeId: string; actionAt: number } | null;
+            if (!confirmedState || confirmedState.actionAt !== latestState?.actionAt || confirmedState.themeId !== latestState?.themeId) continue;
+            const persistentScript = `(() => {
+              const inject = () => ${menuScript};
+              if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', inject, { once: true });
+              else inject();
+            })()`;
+            const identifier = await session.addScriptToEvaluateOnNewDocument(persistentScript);
+            if (identifier) sparkDeskPersistentScripts.set(target.id, identifier);
+            await session.evaluate(menuScript);
+          }
+          if (latestState) {
+            if (sparkDeskGenerations.get(port) !== generation) return;
+            const currentThemeId = await session.evaluate(`(() => document.documentElement.dataset.dreamTheme || '')()`);
+            if (sparkDeskGenerations.get(port) !== generation) return;
+            const confirmedState = await fetch(`${service.appStateEndpoint}/sparkdesk`, {
+              headers: { Authorization: `Bearer ${service.token}` },
+              signal: AbortSignal.timeout(1000),
+            }).then(response => response.ok ? response.json() : null).catch(() => null) as { themeId: string; actionAt: number } | null;
+            if (!confirmedState || confirmedState.actionAt !== latestState.actionAt || confirmedState.themeId !== latestState.themeId) continue;
+            if (latestState.themeId && currentThemeId !== latestState.themeId) {
+              await session.evaluate(`(() => window.__dreamTheme?.activateTheme(${JSON.stringify(latestState.themeId)}, ${latestState.actionAt}))()`);
+            } else if (!latestState.themeId && currentThemeId) {
+              await session.evaluate(`(() => window.__dreamTheme?.restoreNative(${latestState.actionAt}))()`);
+            }
+          }
+        } catch {}
+        finally {
+          session.close();
+        }
+      }
+    } catch {
+      if (!(await isPortReachable(port))) {
+        clearInterval(timer);
+        sparkDeskWatchers.delete(port);
+      }
+    } finally {
+      busy = false;
+    }
+  }, 500);
+  timer.unref();
+  sparkDeskWatchers.set(port, timer);
+}
+
+function startStepFunWatcher(port: number, menuScript: string): void {
+  const existing = stepFunWatchers.get(port);
+  if (existing) clearInterval(existing);
+  const generation = (stepFunGenerations.get(port) ?? 0) + 1;
+  stepFunGenerations.set(port, generation);
+  let busy = false;
+  const timer = setInterval(async () => {
+    if (busy || stepFunGenerations.get(port) !== generation) return;
+    busy = true;
+    try {
+      const targets = await fetchStepFunTargets(port);
+      const service = await ensureSharedCustomThemeService();
+      let latestState = await fetch(`${service.appStateEndpoint}/stepfun`, {
+        headers: { Authorization: `Bearer ${service.token}` },
+        signal: AbortSignal.timeout(1000),
+      }).then(response => response.ok ? response.json() : null).catch(() => null) as { themeId: string; actionAt: number } | null;
+      let restoredChatDetected = false;
+      let restoringChatDetected = false;
+      for (const target of targets) {
+        const session = new CdpSession(target.webSocketDebuggerUrl);
+        try {
+          await session.open();
+          const state = await session.evaluate(`(() => ({
+            ready: Boolean(window.__dreamTheme?.activateTheme && document.getElementById('${STYLE_ID}')),
+            themeId: document.documentElement.dataset.dreamTheme || '',
+            restoring: Boolean(window.__dreamTheme?.restoring)
+          }))()`).catch(() => ({ ready: false, themeId: '', restoring: false }));
+          if (String(target.url).startsWith('app://chat-web/') && state.restoring) restoringChatDetected = true;
+          if (String(target.url).startsWith('app://chat-web/') && state.ready && !state.themeId) restoredChatDetected = true;
+          if (!state.ready) {
+            const persistentScript = `(() => {
+              const inject = () => ${menuScript};
+              if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', inject, { once: true });
+              else inject();
+            })()`;
+            const identifier = await session.addScriptToEvaluateOnNewDocument(persistentScript);
+            if (identifier) stepFunPersistentScripts.set(target.id, identifier);
+            await session.evaluate(menuScript);
+          }
+        } catch {}
+        finally {
+          session.close();
+        }
+      }
+      if (restoringChatDetected || restoredChatDetected) {
+        latestState = { themeId: '', actionAt: Date.now() };
+        await fetch(`${service.appStateEndpoint}/stepfun`, {
+          method: 'PUT',
+          headers: { Authorization: `Bearer ${service.token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(latestState),
+          signal: AbortSignal.timeout(1000),
+        }).catch(() => {});
+      }
+      if (latestState) {
+        for (const target of targets) {
+          const session = new CdpSession(target.webSocketDebuggerUrl);
+          try {
+            await session.open();
+            const themeId = await session.evaluate(`(() => document.documentElement.dataset.dreamTheme || '')()`);
+            if (latestState.themeId) {
+              if (themeId !== latestState.themeId) {
+                await session.evaluate(`(() => window.__dreamTheme?.activateTheme(${JSON.stringify(latestState.themeId)}, ${latestState.actionAt}))()`);
+              }
+            } else if (themeId) {
+              await session.evaluate(`(() => window.__dreamTheme?.restoreNative(${latestState.actionAt}))()`);
+            }
+          } catch {}
+          finally {
+            session.close();
+          }
+        }
+      }
+    } catch {
+      if (!(await isPortReachable(port))) {
+        clearInterval(timer);
+        stepFunWatchers.delete(port);
+      }
+    } finally {
+      busy = false;
+    }
+  }, 750);
+  timer.unref();
+  stepFunWatchers.set(port, timer);
 }
 
 async function fetchKimiTargets(port: number): Promise<any[]> {
@@ -849,6 +1091,13 @@ async function readStatusOnce(
     } catch {}
   }
 
+  if (appId === 'sparkdesk') {
+    try {
+      const allTargets = await fetchSparkDeskTargets(port);
+      if (allTargets.length > 0) targets = allTargets;
+    } catch {}
+  }
+
   // Relaxed fallback: any page target
   if (targets.length === 0) {
     try {
@@ -922,6 +1171,24 @@ export async function removeSkin(
     if (watcher) clearInterval(watcher);
     doubaoWatchers.delete(port);
   }
+  if (appId === 'stepfun') {
+    stepFunGenerations.set(port, (stepFunGenerations.get(port) ?? 0) + 1);
+    const watcher = stepFunWatchers.get(port);
+    if (watcher) clearInterval(watcher);
+    stepFunWatchers.delete(port);
+  }
+  if (appId === 'sparkdesk') {
+    sparkDeskGenerations.set(port, (sparkDeskGenerations.get(port) ?? 0) + 1);
+    const watcher = sparkDeskWatchers.get(port);
+    if (watcher) clearInterval(watcher);
+    sparkDeskWatchers.delete(port);
+    const service = await ensureSharedCustomThemeService();
+    await fetch(`${service.appStateEndpoint}/sparkdesk`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${service.token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ themeId: '', actionAt: restoreActionAt }),
+    }).catch(() => {});
+  }
   // Keep the Kimi watcher alive after restore so menus survive renderer changes.
   const rendererUrlHint = options.rendererUrlHint ?? getAppDefinition(appId)?.rendererHints[0] ?? 'renderer/index.html';
   let targets: any[] = [];
@@ -929,7 +1196,11 @@ export async function removeSkin(
   try {
     targets = appId === 'kimi'
       ? await fetchKimiTargets(port)
-      : await fetchRendererTargets(port, rendererUrlHint);
+      : appId === 'stepfun'
+        ? await fetchStepFunTargets(port)
+        : appId === 'sparkdesk'
+          ? await fetchSparkDeskTargets(port)
+        : await fetchRendererTargets(port, rendererUrlHint);
   } catch {}
 
   // Relaxed fallback
@@ -950,7 +1221,7 @@ export async function removeSkin(
     return { success: false };
   }
 
-  for (const target of appId === 'hana-agent' || appId === 'kimi' || appId === 'agnes-code' ? targets : targets.slice(0, 1)) {
+  for (const target of appId === 'hana-agent' || appId === 'kimi' || appId === 'agnes-code' || appId === 'stepfun' || appId === 'sparkdesk' ? targets : targets.slice(0, 1)) {
     const session = new CdpSession(target.webSocketDebuggerUrl);
     await session.open();
     if (appId === 'hana-agent') {
@@ -967,7 +1238,22 @@ export async function removeSkin(
         doubaoPersistentScripts.delete(target.id);
       }
     }
+    if (appId === 'stepfun') {
+      const identifier = stepFunPersistentScripts.get(target.id);
+      if (identifier) {
+        await session.removeScriptToEvaluateOnNewDocument(identifier).catch(() => {});
+        stepFunPersistentScripts.delete(target.id);
+      }
+    }
+    if (appId === 'sparkdesk') {
+      const identifier = sparkDeskPersistentScripts.get(target.id);
+      if (identifier) {
+        await session.removeScriptToEvaluateOnNewDocument(identifier).catch(() => {});
+        sparkDeskPersistentScripts.delete(target.id);
+      }
+    }
     await session.evaluate(`(async () => {
+      ${appId === 'sparkdesk' ? `await window.__dreamTheme?.restoreNative(${restoreActionAt});` : ''}
       ${appId === 'hana-agent' ? `try { localStorage.setItem('dream-work-theme:hana-agent:restored', '1'); } catch {}
       document.documentElement.dataset.dreamThemeRestored = 'true';` : ''}
       ${appId === 'doubao' ? `document.documentElement.dataset.dreamThemeRestored = 'true';` : ''}
@@ -987,12 +1273,36 @@ export async function removeSkin(
         document.removeEventListener('pointerdown', window.__dreamWorkOutsideClick, true);
         delete window.__dreamWorkOutsideClick;
       }`}
-      ${appId === 'minimax-code' || appId === 'agnes-code' || appId === 'astronclaw' ? `await window.__dreamWorkRestoreNativeMode?.();` : ''}
+      ${appId === 'minimax-code' || appId === 'agnes-code' || appId === 'astronclaw' || appId === 'stepfun' || appId === 'sparkdesk' ? `await window.__dreamWorkRestoreNativeMode?.();` : ''}
       delete document.documentElement.dataset.dreamTheme;
       delete document.documentElement.dataset.dreamShell;
       return true;
     })`);
     session.close();
+  }
+
+  if (appId === 'sparkdesk') {
+    await new Promise(resolve => setTimeout(resolve, 750));
+    const currentTargets = await fetchSparkDeskTargets(port).catch(() => []);
+    for (const target of currentTargets) {
+      const session = new CdpSession(target.webSocketDebuggerUrl);
+      try {
+        await session.open();
+        await session.evaluate(`(async () => {
+          await window.__dreamWorkRestoreNativeMode?.();
+          document.getElementById('${STYLE_ID}')?.remove();
+          document.getElementById('${MENU_ID}')?.remove();
+          document.getElementById('${MENU_ID}-host')?.remove();
+          clearInterval(window.__dreamWorkMenuGuard);
+          delete window.__dreamWorkMenuGuard;
+          delete document.documentElement.dataset.dreamTheme;
+          delete document.documentElement.dataset.dreamShell;
+          return true;
+        })()`);
+      } finally {
+        session.close();
+      }
+    }
   }
 
   return { success: true };
@@ -1229,6 +1539,8 @@ function buildGenericWorkCss(appId: string, manifest: any, heroDataUrl: string, 
     'agnes-code': ':not(*)',
     'minimax-code': ':not(*)',
     astronclaw: '.local-chat-shell, .local-chat-main, [class*="local-chat-content"]',
+    stepfun: '#root',
+    sparkdesk: '.app-container',
   };
   const sidebarSelectors: Record<string, string> = {
     'qoder-work': '[class*="sidebar"]',
@@ -1238,6 +1550,7 @@ function buildGenericWorkCss(appId: string, manifest: any, heroDataUrl: string, 
     'agnes-code': ':not(*)',
     'minimax-code': ':not(*)',
     astronclaw: '.local-chat-rail, [class*="local-chat-sidebar"]',
+    sparkdesk: '.browser-header, [class*="left_side"], [class*="sidebar"]',
   };
   const main = mainSelectors[appId] ?? 'main, [role="main"], [class*="main-content"]';
   const sidebar = sidebarSelectors[appId] ?? 'aside, nav, [class*="sidebar"]';
@@ -1255,7 +1568,14 @@ function buildGenericWorkCss(appId: string, manifest: any, heroDataUrl: string, 
               ? buildMiniMaxCodeCss(heroDataUrl, colors)
               : appId === 'astronclaw'
                 ? buildAstronClawCss(heroDataUrl, colors)
+                : appId === 'stepfun'
+                  ? buildStepFunCss(heroDataUrl, colors)
+                  : appId === 'sparkdesk'
+                    ? buildSparkDeskCss(heroDataUrl, colors)
       : '';
+  if (appId === 'sparkdesk') {
+    return `/* DREAM_THEME:${manifest.id} */\n${appSpecificCss}`;
+  }
   return `/* DREAM_THEME:${manifest.id} */
 :root {
   --dream-work-accent: ${colors.accent};
@@ -1283,13 +1603,454 @@ html, body, #root { background: ${colors.surface} !important; color: ${colors.te
 :is(${main}) :where([class*="message"], [class*="chat"], [class*="composer"], [class*="editor"], [contenteditable="true"], textarea) {
   color: ${colors.text} !important;
 }
-${appId === 'doubao' || appId === 'astronclaw' ? '' : `:is(${main}) :where([class*="message"], [class*="bubble"], [class*="composer"], [class*="input-container"]) {
+${appId === 'doubao' || appId === 'astronclaw' || appId === 'stepfun' ? '' : `:is(${main}) :where([class*="message"], [class*="bubble"], [class*="composer"], [class*="input-container"]) {
   background-color: color-mix(in srgb, ${colors.surface} 88%, transparent) !important;
   backdrop-filter: blur(16px) saturate(108%);
 }`}
 :is(${main}) :where(p, span, li, h1, h2, h3, h4, strong, em) { color: ${colors.text} !important; }
 button[class*="bg-primary"], button[class*="bg-accent"] { background-color: ${colors.accent} !important; color: #fff !important; }
 ${appSpecificCss}`;
+}
+
+function buildSparkDeskCss(heroDataUrl: string, colors: any): string {
+  const surfaceValue = parseInt(String(colors.surface).replace('#', ''), 16);
+  const surfaceIsLight = Number.isFinite(surfaceValue)
+    ? (0.299 * ((surfaceValue >> 16) & 255) + 0.587 * ((surfaceValue >> 8) & 255) + 0.114 * (surfaceValue & 255)) > 140
+    : true;
+  return `
+html,
+body,
+#root,
+.app-container {
+  min-height: 100% !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  color: ${colors.text} !important;
+}
+html {
+  background-color: ${colors.surface} !important;
+  background-image: none !important;
+}
+html::before {
+  content: "";
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: ${colors.surface};
+  background-image: url(${JSON.stringify(heroDataUrl)});
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+}
+html[data-dream-sparkdesk-surface="content"]::before {
+  top: -80px;
+  bottom: auto;
+  height: calc(100vh + 80px);
+}
+body,
+#root,
+.app-container {
+  position: relative;
+  z-index: 1;
+}
+.browser-container,
+.browser-header,
+.tabs-container,
+.tabs-list,
+.tabs-wrap,
+.drag-area,
+.control-area,
+.address-bar,
+.wrapper-container {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  color: ${colors.text} !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.browser-container {
+  box-shadow: none !important;
+}
+.tab,
+.tab > div,
+.new-tab-btn,
+.new-tab-btn-wrap,
+.navigation-bar,
+.address-bar :where(button, [role="button"], input) {
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.tab.active,
+.tab.active > div {
+  background-color: color-mix(in srgb, ${colors.surface} 18%, transparent) !important;
+  background-image: none !important;
+}
+.browser-container > :not(.browser-header):not(.address-bar),
+[class*="right_side"],
+[class*="chat_window_wrapper"],
+[class*="chat_window"],
+[class*="chat_content_wrapper"],
+#chat-window,
+#chat-content-wrapper,
+#out-wrap {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+#root > .app-container > div > div[class*="container_"]:first-child {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+}
+[class^="_feature_card_"],
+[class*=" _feature_card_"],
+[class*="_function_item_"] {
+  background: color-mix(in srgb, ${colors.surface} 58%, transparent) !important;
+  background-image: none !important;
+  border-color: color-mix(in srgb, ${colors.accent} 20%, transparent) !important;
+  box-shadow: 0 8px 24px color-mix(in srgb, ${colors.surface} 20%, transparent) !important;
+}
+[class^="_feature_card_"] *,
+[class*=" _feature_card_"] *,
+[class*="_function_item_"] *,
+[class*="welcome"] *,
+[class*="new_chat"] *,
+[class*="recommend"] * {
+  color: ${colors.text} !important;
+  -webkit-text-fill-color: ${colors.text} !important;
+}
+[class*="left_side"],
+[class*="personal_page"],
+[class*="tabArea"],
+[class*="header_"],
+[class*="footer_wrap"] {
+  background-color: color-mix(in srgb, ${colors.surface} 18%, transparent) !important;
+  color: ${colors.text} !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+[class*="ask_win"],
+[class*="ask_wrapper"],
+[class*="ask_textarea_wrapper"],
+[class*="welcome_wrapper"],
+[class*="example_item"],
+.ant-input,
+.ant-picker,
+.ant-select-selector,
+textarea,
+[contenteditable="true"] {
+  background-color: color-mix(in srgb, ${colors.surface} 86%, transparent) !important;
+  border-color: color-mix(in srgb, ${colors.accent} 28%, transparent) !important;
+  color: ${colors.text} !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+[class*="ask_window"] {
+  --sparkdesk-composer-surface: color-mix(in srgb, ${colors.surface} 86%, transparent);
+  background-color: var(--sparkdesk-composer-surface) !important;
+}
+[class*="activeTab"],
+.ant-btn-primary {
+  background-color: ${colors.accent} !important;
+  color: #ffffff !important;
+}
+.app-container :where(p, span, li, h1, h2, h3, h4, label, strong, em, input, textarea) {
+  color: ${colors.text} !important;
+  -webkit-text-fill-color: ${colors.text} !important;
+}
+.app-container :where(button, [role="button"]):hover {
+  background-color: color-mix(in srgb, ${colors.accent} 16%, transparent) !important;
+}
+.markdown-body,
+.markdown-body :where(p, span, li, div, strong, em, code),
+[class*="content_gpt"],
+[class*="content_gpt"] :where(p, span, li, div, strong, em, code),
+.result-inner,
+.result-inner :where(p, span, li, div, strong, em, code) {
+  color: ${colors.text} !important;
+  -webkit-text-fill-color: ${colors.text} !important;
+}
+[class*="content_user"] {
+  background-color: color-mix(in srgb, ${colors.accent} 24%, ${colors.surface}) !important;
+  color: ${colors.text} !important;
+}
+[class*="content_user"] :where(p, span, div) {
+  color: ${colors.text} !important;
+  -webkit-text-fill-color: ${colors.text} !important;
+}
+[class*="right_operate_wrap"] > :where(
+  [class*="open_upload_btn"],
+  [class*="screen_shot_icon"],
+  [class*="voice_input"],
+  [class*="send"]
+) {
+  background-color: var(--sparkdesk-composer-surface) !important;
+  background-image: none !important;
+  color: ${colors.text} !important;
+  border-color: color-mix(in srgb, ${colors.accent} 24%, transparent) !important;
+  box-shadow: none !important;
+}
+[class*="ask_operate_wrap"],
+[class*="ask_operate_wrap_v2"],
+[class*="right_operate_wrap"] {
+  background-color: var(--sparkdesk-composer-surface) !important;
+  background-image: none !important;
+  color: ${colors.text} !important;
+}
+[class*="chat_func_wrap"] :where(
+  [class*="deep_think_switch"],
+  [class*="model"],
+  [class*="switch"],
+  button,
+  [role="button"]
+) {
+  background-color: var(--sparkdesk-composer-surface) !important;
+  background-image: none !important;
+  color: ${colors.text} !important;
+  -webkit-text-fill-color: ${colors.text} !important;
+  border-color: color-mix(in srgb, ${colors.accent} 24%, transparent) !important;
+}
+[class*="chat_func_wrap"] > * {
+  background-color: var(--sparkdesk-composer-surface) !important;
+  background-image: none !important;
+  color: ${colors.text} !important;
+  -webkit-text-fill-color: ${colors.text} !important;
+  border-color: color-mix(in srgb, ${colors.accent} 24%, transparent) !important;
+}
+[class*="chat_func_wrap"] > * svg,
+[class*="chat_func_wrap"] > * svg * {
+  color: ${colors.text} !important;
+  stroke: ${colors.text} !important;
+}
+[class*="chat_func_wrap"] :where(
+  [class*="deep_think_switch"],
+  [class*="model"],
+  [class*="switch"]
+) svg,
+[class*="chat_func_wrap"] :where(
+  [class*="deep_think_switch"],
+  [class*="model"],
+  [class*="switch"]
+) svg * {
+  color: ${colors.text} !important;
+  stroke: ${colors.text} !important;
+}
+[class*="right_operate_wrap"] > :where(
+  [class*="open_upload_btn"],
+  [class*="screen_shot_icon"],
+  [class*="voice_input"],
+  [class*="send"]
+) :where(span, div, svg) {
+  color: ${colors.text} !important;
+  -webkit-text-fill-color: ${colors.text} !important;
+}
+[class*="right_operate_wrap"] > :where(
+  [class*="open_upload_btn"],
+  [class*="screen_shot_icon"],
+  [class*="voice_input"],
+  [class*="send"]
+) svg,
+[class*="right_operate_wrap"] > :where(
+  [class*="open_upload_btn"],
+  [class*="screen_shot_icon"],
+  [class*="voice_input"],
+  [class*="send"]
+) svg * {
+  color: ${colors.text} !important;
+  stroke: ${colors.text} !important;
+}
+[class*="right_operate_wrap"] > [class*="send"] img {
+  filter: ${surfaceIsLight ? 'brightness(0)' : 'none'} !important;
+}
+[class*="mainContainer"],
+[class*="mainContainer"] [class*="main_"],
+[class*="menu_view"],
+[class*="settings_content"],
+[class*="settings_panel"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: ${colors.text} !important;
+}
+[class*="mainContainer"] :where(div, span, p, label, h1, h2, h3, button) {
+  color: ${colors.text} !important;
+  -webkit-text-fill-color: ${colors.text} !important;
+}
+[class*="mainContainer"] :where(
+  [class*="user_profile"],
+  [class*="user_profile_info"],
+  [class*="edit_profile_button"],
+  [class*="settings_menu"],
+  [class*="menu_item"],
+  [class*="menu_item_content"],
+  [class*="menu_item_right"]
+) {
+  background-color: color-mix(in srgb, ${colors.surface} 76%, transparent) !important;
+  background-image: none !important;
+  color: ${colors.text} !important;
+  border-color: color-mix(in srgb, ${colors.accent} 20%, transparent) !important;
+  box-shadow: none !important;
+}
+[class*="mainContainer"] [class*="user_profile_"],
+[class*="mainContainer"] [class*="user_profile_info_"],
+[class*="mainContainer"] [class*="edit_profile_button_"],
+[class*="mainContainer"] [class*="settings_menu_"],
+[class*="mainContainer"] [class*="menu_item_"],
+[class*="mainContainer"] [class*="menu_item_content_"],
+[class*="mainContainer"] [class*="menu_item_right_"] {
+  background-color: color-mix(in srgb, ${colors.surface} 76%, transparent) !important;
+  background-image: none !important;
+  color: ${colors.text} !important;
+  -webkit-text-fill-color: ${colors.text} !important;
+  border-color: color-mix(in srgb, ${colors.accent} 20%, transparent) !important;
+  box-shadow: none !important;
+}
+[class*="mainContainer"] [class*="edit_profile_button_"] {
+  background-color: color-mix(in srgb, ${colors.surface} 88%, transparent) !important;
+}
+[class*="mainContainer"] :where([class*="menu_item"], [class*="edit_profile_button"]):hover {
+  background-color: color-mix(in srgb, ${colors.accent} 18%, ${colors.surface}) !important;
+}
+[class*="mainContainer"] :where([class*="menu_icon"] img, [class*="menu_item_right"] img) {
+  filter: ${surfaceIsLight ? 'none' : 'brightness(0) invert(1)'} !important;
+}
+`;
+}
+
+function buildStepFunCss(heroDataUrl: string, colors: any): string {
+  return `
+:root {
+  --bg-gold: transparent !important;
+  --background: transparent !important;
+  --foreground: ${colors.text} !important;
+  --card: color-mix(in srgb, ${colors.surface} 78%, transparent) !important;
+  --card-foreground: ${colors.text} !important;
+  --popover: color-mix(in srgb, ${colors.surface} 92%, transparent) !important;
+  --popover-foreground: ${colors.text} !important;
+  --primary: ${colors.accent} !important;
+  --primary-foreground: #ffffff !important;
+  --muted: color-mix(in srgb, ${colors.surface} 72%, transparent) !important;
+  --muted-foreground: color-mix(in srgb, ${colors.text} 68%, transparent) !important;
+  --border: color-mix(in srgb, ${colors.accent} 24%, transparent) !important;
+}
+html,
+body,
+#root {
+  min-height: 100% !important;
+  background: transparent !important;
+  color: ${colors.text} !important;
+}
+html {
+  background-color: ${colors.surface} !important;
+  background-image: url(${JSON.stringify(heroDataUrl)}) !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+}
+html[data-dream-stepfun-surface="content"] {
+  background-image: none !important;
+}
+html[data-dream-stepfun-surface="content"] body,
+html[data-dream-stepfun-surface="content"] #root,
+html[data-dream-stepfun-surface="content"] #root.bg-bg-gold,
+html[data-dream-stepfun-surface="content"] #root.bg-gold,
+html[data-dream-stepfun-surface="content"] #app {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+html::before {
+  content: "";
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: ${colors.surface};
+  background-image: url(${JSON.stringify(heroDataUrl)});
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+html[data-dream-stepfun-surface="content"]::before {
+  top: -90px;
+  height: calc(100vh + 90px);
+}
+body,
+#root,
+#app {
+  position: relative;
+  z-index: 1;
+}
+#root > div:not([class*="fixed"]),
+#root [class*="flex-1"],
+#root [class*="flex-grow"],
+#root [class*="h-full"]:not([class*="fixed"]),
+#root [class*="min-h-full"] {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+#root.h-full.w-full > div.fixed.w-72.bg-gold,
+#root.h-full.w-full > div.fixed.w-72.bg-bg-gold,
+#root div.fixed.w-72.bg-gold,
+#root div.fixed.w-72.bg-bg-gold {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  color: ${colors.text} !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#root header,
+#root > div.fixed[class*="z-[60]"] {
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#root :where([class*="message"], [class*="conversation"], [class*="chat-list"], [class*="scroll-area"]) {
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.tab-bar,
+.tab-bar .tab > div,
+.navigation-bar,
+.content-area {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+[class*="subscription-modal_root"],
+[class*="subscription-modal_footer"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#root :where(textarea, input, [contenteditable="true"]) {
+  color: ${colors.text} !important;
+  caret-color: ${colors.accent} !important;
+}
+`;
 }
 
 function buildAstronClawCss(heroDataUrl: string, colors: any): string {
@@ -2039,7 +2800,7 @@ function buildHanaAgentMenuScript(options: {
   themes: Array<{ id: string; name: string; css: string; surface: string; accent?: string }>;
   cssTemplate: string;
   sharedCustomThemes: any[];
-  sharedCustomThemeService: { endpoint: string; usageEndpoint: string; token: string };
+  sharedCustomThemeService: { endpoint: string; usageEndpoint: string; appStateEndpoint: string; token: string };
 }): string {
   return `(() => {
     const themes = ${JSON.stringify(options.themes)};
@@ -2832,7 +3593,7 @@ function buildWorkBuddyMenuScript(options: {
   themes: Array<{ id: string; name: string; css: string; surface: string; accent: string }>;
   cssTemplate: string;
   sharedCustomThemes: any[];
-  sharedCustomThemeService: { endpoint: string; usageEndpoint: string; token: string };
+  sharedCustomThemeService: { endpoint: string; usageEndpoint: string; appStateEndpoint: string; token: string };
 }): string {
   const payload = JSON.stringify({
     styleId: options.styleId,
@@ -3179,7 +3940,7 @@ export function buildMenuScript(options: {
   appId: string;
   cssTemplate?: string;
   sharedCustomThemes: any[];
-  sharedCustomThemeService: { endpoint: string; usageEndpoint: string; token: string };
+  sharedCustomThemeService: { endpoint: string; usageEndpoint: string; appStateEndpoint: string; token: string };
 }): string {
   const themesJson = JSON.stringify(options.themes);
   const cssTemplate = JSON.stringify(options.cssTemplate ?? '');
@@ -3190,8 +3951,17 @@ export function buildMenuScript(options: {
   const sentinels = ${JSON.stringify(WORKBUDDY_CSS_PLACEHOLDERS)};
   const currentThemeId = '${options.currentThemeId}';
   const appId = '${appId}';
+  if (appId === 'sparkdesk') {
+    document.documentElement.dataset.dreamSparkdeskSurface = location.hash === '#desk' || location.hash === '#settings' ? 'content' : 'shell';
+  }
+  if (appId === 'stepfun') {
+    document.documentElement.dataset.dreamStepfunSurface = location.href.startsWith('app://ui/pages/browser/') ? 'shell' : 'content';
+  }
   const nativeModeKey = '__dreamWorkNativeMode';
   const customStorageKey = 'dreamCodexCustomThemes';
+  const stepFunStateKey = 'dream-work-theme:stepfun:state';
+  const stepFunChannelName = 'dream-work-theme:stepfun';
+  const sparkDeskChannelName = 'dream-work-theme:sparkdesk';
   const sharedCustomThemes = ${JSON.stringify(options.sharedCustomThemes)};
   const sharedCustomThemeService = ${JSON.stringify(options.sharedCustomThemeService)};
   const recordPresetUsage = (themeId) => fetch(sharedCustomThemeService.usageEndpoint, {
@@ -3245,6 +4015,7 @@ export function buildMenuScript(options: {
       colorScheme: html.style.colorScheme,
       bodyThemeKind: body.dataset.vscodeThemeKind,
       bodyThemeName: body.dataset.vscodeThemeName,
+      stepFunTheme: appId === 'stepfun' ? localStorage.getItem('theme') : null,
     };
   }
   const restoreNativeMode = async () => {
@@ -3253,13 +4024,19 @@ export function buildMenuScript(options: {
     const html = document.documentElement;
     const body = document.body;
     let nativeDark = nativeMode.htmlClasses.includes('dark') || nativeMode.bodyClasses.includes('dark');
-    if (appId === 'minimax-code' || appId === 'agnes-code' || appId === 'astronclaw') {
+    if (appId === 'minimax-code' || appId === 'agnes-code' || appId === 'astronclaw' || appId === 'stepfun') {
       try {
         if (appId === 'astronclaw') {
           const storedTheme = (await window.astronDesktop?.settings?.get?.())?.general?.theme;
           if (storedTheme === 'system') nativeDark = matchMedia('(prefers-color-scheme: dark)').matches;
           else if (storedTheme === 'dark') nativeDark = true;
           else if (storedTheme === 'light') nativeDark = false;
+        } else if (appId === 'stepfun') {
+          const storedTheme = nativeMode.stepFunTheme || localStorage.getItem('theme');
+          if (storedTheme === 'system') nativeDark = matchMedia('(prefers-color-scheme: dark)').matches;
+          else if (storedTheme === 'dark') nativeDark = true;
+          else if (storedTheme === 'light') nativeDark = false;
+          else nativeDark = nativeMode.htmlClasses.includes('dark') || nativeMode.bodyClasses.includes('dark');
         } else {
           const storedTheme = localStorage.getItem('theme');
           const followsSystem = localStorage.getItem('use_system_theme') === 'true' || storedTheme === 'system';
@@ -3312,7 +4089,36 @@ export function buildMenuScript(options: {
     if (!restored) delete document.documentElement.dataset.dreamThemeRestored;
     return actionAt;
   };
+  let stepFunSyncing = false;
+  let sparkDeskSyncing = false;
+  const writeStepFunState = (themeId, actionAt) => {
+    if (appId !== 'stepfun' || stepFunSyncing || !location.href.startsWith('app://chat-web/')) return Promise.resolve();
+    try {
+      const current = JSON.parse(localStorage.getItem(stepFunStateKey) || 'null');
+      if (current && Number(current.actionAt) > Number(actionAt)) return Promise.resolve();
+      localStorage.setItem(stepFunStateKey, JSON.stringify({ themeId, actionAt }));
+      window.__dreamWorkStepFunChannel?.postMessage({ themeId, actionAt });
+      return fetch(sharedCustomThemeService.appStateEndpoint + '/stepfun', {
+        method: 'PUT',
+        headers: { Authorization: 'Bearer ' + sharedCustomThemeService.token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ themeId, actionAt }),
+      }).then(() => undefined).catch(() => undefined);
+    } catch { return Promise.resolve(); }
+  };
+  const writeSparkDeskState = (themeId, actionAt) => {
+    if (appId !== 'sparkdesk' || sparkDeskSyncing || location.hash !== '#desk') return Promise.resolve();
+    try {
+      const state = { themeId, actionAt };
+      window.__dreamWorkSparkDeskChannel?.postMessage(state);
+      return fetch(sharedCustomThemeService.appStateEndpoint + '/sparkdesk', {
+        method: 'PUT',
+        headers: { Authorization: 'Bearer ' + sharedCustomThemeService.token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(state),
+      }).then(() => undefined).catch(() => undefined);
+    } catch { return Promise.resolve(); }
+  };
   const applyTheme = (themeId, actionAt = Date.now()) => {
+    if (Number(actionAt) < Number(window.__dreamTheme?.lastActionAt || 0)) return;
     const theme = themes.find(t => t.id === themeId);
     if (!theme) return;
     markKimiAction(false, actionAt);
@@ -3322,7 +4128,13 @@ export function buildMenuScript(options: {
     }
     window.__dreamWorkThemeStyle.textContent = materializeCss(theme.css, theme.id);
     document.documentElement.dataset.dreamTheme = themeId;
-    if (appId !== 'hana-agent' && appId !== 'kimi') applyMode(theme.surface);
+    if (window.__dreamTheme) {
+      window.__dreamTheme.lastActionAt = actionAt;
+      window.__dreamTheme.restoring = false;
+    }
+    void writeStepFunState(themeId, actionAt);
+    void writeSparkDeskState(themeId, actionAt);
+    if (appId !== 'hana-agent' && appId !== 'kimi' && appId !== 'stepfun') applyMode(theme.surface);
     
     // Codex themes require the codex-dream-skin class on <html> for CSS selectors to match
     if (appId === 'codex') {
@@ -3354,15 +4166,21 @@ export function buildMenuScript(options: {
     });
   };
 
-  const restoreNative = async () => {
+  const restoreNative = async (actionAt = Date.now()) => {
+    if (Number(actionAt) < Number(window.__dreamTheme?.lastActionAt || 0)) return;
     markKimiAction(true);
     if (appId === 'doubao') {
       try { localStorage.setItem('dream-work-theme:doubao:restored', '1'); } catch {}
       document.documentElement.dataset.dreamThemeRestored = 'true';
     }
+    if (window.__dreamTheme) window.__dreamTheme.restoring = true;
     window.__dreamWorkThemeStyle.textContent = '';
     delete document.documentElement.dataset.dreamTheme;
-    if (appId === 'minimax-code' || appId === 'agnes-code' || appId === 'astronclaw') await restoreNativeMode();
+    if (window.__dreamTheme) window.__dreamTheme.lastActionAt = actionAt;
+    await writeStepFunState('', actionAt);
+    await writeSparkDeskState('', actionAt);
+    if (appId === 'stepfun' && !stepFunSyncing) await new Promise(resolve => setTimeout(resolve, 1000));
+    if (appId === 'minimax-code' || appId === 'agnes-code' || appId === 'astronclaw' || appId === 'stepfun' || appId === 'sparkdesk') await restoreNativeMode();
     else if (appId !== 'hana-agent' && appId !== 'kimi') applyMode('#ffffff');
     if (appId === 'codex') {
       document.documentElement.classList.remove('codex-dream-skin');
@@ -3504,6 +4322,11 @@ export function buildMenuScript(options: {
     markKimiAction(false, actionAt);
     window.__dreamWorkThemeStyle.textContent = materializeCss(buildCustomCss(slot.dataUrl, slot.colors, slot.id), slot.id);
     document.documentElement.dataset.dreamTheme = slot.id;
+    if (window.__dreamTheme) {
+      window.__dreamTheme.lastActionAt = actionAt;
+      window.__dreamTheme.restoring = false;
+    }
+    void writeSparkDeskState(slot.id, actionAt);
     if (appId !== 'hana-agent') applyMode(slot.colors.surface);
     if (appId === 'codex') document.documentElement.classList.add('codex-dream-skin');
     ensureCustomRow(slot);
@@ -3649,14 +4472,61 @@ export function buildMenuScript(options: {
   window.__dreamWorkOutsideClick = closeOnOutsideClick;
   document.addEventListener('pointerdown', closeOnOutsideClick, true);
 
+  if (appId === 'stepfun' && location.href.startsWith('app://chat-web/')) {
+    if (window.__dreamWorkStepFunStorage) window.removeEventListener('storage', window.__dreamWorkStepFunStorage);
+    window.__dreamWorkStepFunStorage = (event) => {
+      if (event.key !== stepFunStateKey || !event.newValue) return;
+      try {
+        const state = JSON.parse(event.newValue);
+        stepFunSyncing = true;
+        if (state.themeId) applyTheme(state.themeId, state.actionAt);
+        else void restoreNative(state.actionAt);
+      } finally {
+        stepFunSyncing = false;
+      }
+    };
+    window.addEventListener('storage', window.__dreamWorkStepFunStorage);
+    window.__dreamWorkStepFunChannel?.close?.();
+    window.__dreamWorkStepFunChannel = new BroadcastChannel(stepFunChannelName);
+    window.__dreamWorkStepFunChannel.onmessage = (event) => {
+      const state = event.data;
+      if (!state || Number(state.actionAt) <= Number(window.__dreamTheme?.lastActionAt || 0)) return;
+      stepFunSyncing = true;
+      try {
+        if (state.themeId) applyTheme(state.themeId, state.actionAt);
+        else void restoreNative(state.actionAt);
+      } finally {
+        stepFunSyncing = false;
+      }
+    };
+  }
+  if (appId === 'sparkdesk') {
+    window.__dreamWorkSparkDeskChannel?.close?.();
+    window.__dreamWorkSparkDeskChannel = new BroadcastChannel(sparkDeskChannelName);
+    window.__dreamWorkSparkDeskChannel.onmessage = (event) => {
+      const state = event.data;
+      if (!state || Number(state.actionAt) <= Number(window.__dreamTheme?.lastActionAt || 0)) return;
+      sparkDeskSyncing = true;
+      try {
+        if (state.themeId) applyTheme(state.themeId, state.actionAt);
+        else void restoreNative(state.actionAt);
+      } finally {
+        sparkDeskSyncing = false;
+      }
+    };
+  }
+
   root.append(panel, button, picker);
   mount.appendChild(root);
-  document.documentElement.appendChild(host);
+  const showMenu = appId === 'stepfun'
+    ? location.href.startsWith('app://chat-web/')
+    : appId !== 'sparkdesk' || location.hash === '#desk';
+  if (showMenu) document.documentElement.appendChild(host);
 
   clearInterval(window.__dreamWorkMenuGuard);
   const ensureInjectedNodes = () => {
     if (!window.__dreamWorkThemeStyle.isConnected) document.head.appendChild(window.__dreamWorkThemeStyle);
-    if (!host.isConnected) document.documentElement.appendChild(host);
+    if (showMenu && !host.isConnected) document.documentElement.appendChild(host);
   };
   window.__dreamWorkMenuGuard = setInterval(() => {
     ensureInjectedNodes();
@@ -3665,10 +4535,18 @@ export function buildMenuScript(options: {
   if (appId === 'kimi') {
     try { restoredAtStart = localStorage.getItem('${KIMI_RESTORE_KEY}') === '1'; } catch {}
   }
-  if (restoredAtStart) restoreNative();
+  let stepFunState = null;
+  if (appId === 'stepfun' && location.href.startsWith('app://chat-web/')) {
+    try { stepFunState = JSON.parse(localStorage.getItem(stepFunStateKey) || 'null'); } catch {}
+  }
+  if (stepFunState && !stepFunState.themeId) restoreNative(stepFunState.actionAt);
+  else if (stepFunState?.themeId) applyTheme(stepFunState.themeId, stepFunState.actionAt);
+  else if (restoredAtStart) restoreNative();
   else applyTheme(currentThemeId);
   window.__dreamTheme = {
     ...(window.__dreamTheme || {}),
+    lastActionAt: window.__dreamTheme?.lastActionAt || Date.now(),
+    restoring: window.__dreamTheme?.restoring || false,
     activateTheme: (themeId, actionAt) => applyTheme(themeId, actionAt),
     restoreNative,
     deleteCustom,
@@ -3685,6 +4563,7 @@ export function buildMenuScript(options: {
       latest.forEach(ensureCustomRow);
     },
     customThemeEndpoint: sharedCustomThemeService.endpoint,
+    appStateEndpoint: sharedCustomThemeService.appStateEndpoint,
   };
   ensureInjectedNodes();
 })()`;

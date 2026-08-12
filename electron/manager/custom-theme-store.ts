@@ -19,6 +19,7 @@ export interface SharedCustomTheme {
 interface SharedCustomThemeService {
   endpoint: string;
   usageEndpoint: string;
+  appStateEndpoint: string;
   token: string;
 }
 
@@ -32,6 +33,7 @@ type ThemeUsageStore = Record<string, Record<string, ThemeUsageEntry>>;
 const MAX_CUSTOM_THEMES = 5;
 const MAX_BODY_BYTES = 32 * 1024 * 1024;
 let servicePromise: Promise<SharedCustomThemeService> | null = null;
+const appStates = new Map<string, { themeId: string; actionAt: number }>();
 
 export function listSharedCustomThemes(): SharedCustomTheme[] {
   try {
@@ -111,6 +113,26 @@ export function ensureSharedCustomThemeService(): Promise<SharedCustomThemeServi
         });
         return;
       }
+      const appStateMatch = request.url?.match(/^\/app-state\/([a-z0-9-]+)$/i);
+      if (appStateMatch) {
+        const appId = appStateMatch[1].toLowerCase();
+        if (request.method === 'GET') {
+          sendJson(response, 200, appStates.get(appId) ?? null);
+          return;
+        }
+        if (request.method === 'PUT') {
+          readJsonBody(request, response, (value) => {
+            if (typeof value?.themeId !== 'string' || !Number.isFinite(Number(value?.actionAt))) throw new Error('Invalid app state payload');
+            const next = { themeId: value.themeId, actionAt: Number(value.actionAt) };
+            const current = appStates.get(appId);
+            if (!current || next.actionAt >= current.actionAt) appStates.set(appId, next);
+            sendJson(response, 200, appStates.get(appId));
+          });
+          return;
+        }
+        response.writeHead(405).end('Method not allowed');
+        return;
+      }
       if (request.url === '/custom-themes/delete' && request.method === 'POST') {
         readJsonBody(request, response, (value) => {
           if (typeof value?.themeId !== 'string' || !/^custom-[a-z0-9-]+$/i.test(value.themeId)) throw new Error('Invalid custom theme id');
@@ -153,7 +175,7 @@ export function ensureSharedCustomThemeService(): Promise<SharedCustomThemeServi
         return;
       }
       const origin = `http://127.0.0.1:${address.port}`;
-      resolve({ endpoint: `${origin}/custom-themes`, usageEndpoint: `${origin}/theme-usage`, token });
+      resolve({ endpoint: `${origin}/custom-themes`, usageEndpoint: `${origin}/theme-usage`, appStateEndpoint: `${origin}/app-state`, token });
     });
   });
   return servicePromise;

@@ -56,6 +56,10 @@ Dream Work Theme 是面向 Electron Work 类桌面应用的主题管理器。它
 
 ![Dream Work Theme 界面预览](preview15.png)
 
+![Dream Work Theme 界面预览](preview16.png)
+
+![Dream Work Theme 界面预览](preview17.png)
+
 </details>
 
 ## 支持应用
@@ -75,9 +79,11 @@ Dream Work Theme 是面向 Electron Work 类桌面应用的主题管理器。它
 - AgnesCode
 - MiniMax Code
 - AstronClaw（讯飞星辰）
+- SparkDesk（讯飞星火）
+- StepFun（阶跃 AI）
 - Codex / ChatGPT Desktop
 
-部分应用使用首选调试端口；QoderWork、千问办公和 OpenCode Desktop 通过 `DevToolsActivePort` 获取运行时端口。HanaAgent 首选 `9346`，Kimi Work 首选 `9347`，豆包 Desktop 首选 `9349`，AgnesCode 使用 `9350`，MiniMax Code 首选 `9351`，AstronClaw 首选 `9352`。启动前会通过真实 TCP bind 检查端口；若首选端口被占用或处于 Windows 幽灵监听状态，普通应用会自动顺延到可用端口，并把真实端口用于后续注入、状态查询和还原。Dream Work Theme 也会等待易重建的 renderer 稳定，并在运行期间自动恢复丢失的主题。
+部分应用使用首选调试端口；QoderWork、千问办公、OpenCode Desktop 和阶跃 AI 通过 `DevToolsActivePort` 获取运行时端口。HanaAgent 首选 `9346`，Kimi Work 首选 `9347`，豆包 Desktop 首选 `9349`，AgnesCode 使用 `9350`，MiniMax Code 首选 `9351`，AstronClaw 首选 `9352`，阶跃 AI 配置首选 `9353`，讯飞星火使用 `9354`。阶跃客户端会写入并使用自己的动态端口；星火接受固定 `--remote-debugging-port=9354`。启动前会通过真实 TCP bind 检查端口；若首选端口被占用或处于 Windows 幽灵监听状态，普通应用会自动顺延到可用端口，并把真实端口用于后续注入、状态查询和还原。Dream Work Theme 也会等待易重建的 renderer 稳定，并在运行期间自动恢复丢失的主题。
 
 AgnesCode 正式版会主动移除普通的 `--remote-debugging-port` 参数。Dream Work Theme 通过 AgnesCode 内置的 Playwright 调试入口开启 CDP，并显式保留正式安装包中的 `resources/bin/agnesd.exe` 后端路径。该调试入口会让 AgnesCode 将当前会话标记为开发模式，因此其日志中可能出现不影响主题和聊天功能的更新配置检查错误。
 
@@ -235,6 +241,28 @@ Vite 的 CJS API deprecation 当前只是警告，不会导致构建失败。
 - AstronClaw 的原生主题偏好不在 `localStorage.theme`，而由 `window.astronDesktop.settings.get().general.theme` 提供。还原时会实时读取 `light`、`dark` 或 `system`，并根据系统颜色偏好恢复正确的 `html.light` / `html.dark`，避免启动早期临时深色状态污染还原结果。
 - 已验证主题应用返回 `applied: 1`，我的技能/灵感广场主体计算样式为透明且无滤镜，原生浅色和深色模式均可正确还原。
 
+### SparkDesk（讯飞星火）说明
+
+- Windows 实机验证版本为讯飞星火 `2.3.3.1`，安装路径为 `D:\Program Files\SparkDesk\SparkDesk.exe`，使用固定 CDP 端口 `9354`。
+- 星火是 Electron `34.5.8` 应用。主窗口由多个 WebContents 组成：`index.html` 承载浏览器 Tab 和导航栏，`#desk` 承载新建对话与聊天内容，真正的“星火设置” Tab 使用 `#settings`。点击账号出现的 `#settings-panel?contentType=settings` 只是账号弹窗，不注入主题。
+- `buildSparkDeskCss()` 采用与 StepFun 相同的连续背景思路。主壳和内容页各自使用固定 `html::before` 背景；聊天和设置内容页向上偏移 `80px`，与 Tab 栏和导航栏共享同一虚拟整窗背景坐标。
+- 星火 watcher 同时维护主壳、所有 `#desk` 对话 Tab 和 `#settings` 设置页。新建 Tab、重新加载或后创建的设置页会自动继承当前主题；浮动主题菜单只显示在聊天页。
+- 专属 CSS 会移除星火全屏容器原生 `blur(25px)`、白色渐变和大面积遮挡层，只在欢迎卡片、输入框和设置卡片保留局部主题 surface。
+- 新建对话、已有对话和新建任务输入区会根据主题 surface 亮度自动反色：深色主题使用深色输入面板配亮色模型切换、文档、截图、语音和发送图标；亮色主题使用亮色面板配深色图标。
+- “星火设置”页的用户资料卡、编辑资料按钮、菜单项、文字和图标均随主题深浅切换。账号弹窗保持原生显示，避免把弹窗误当作设置 Tab。
+- 多 Tab 应用、切换和还原状态由主进程本机 `/app-state/sparkdesk` 状态与 SparkDesk watcher 收敛。还原会同步清理标题栏、导航栏、聊天 Tab 和设置页的主题样式，不修改星火安装文件。
+
+### StepFun（阶跃 AI）说明
+
+- Windows 实机验证版本为阶跃 AI `0.3.22`，安装路径为 `D:\Program Files\StepFun\StepFun\StepFun.exe`，用户数据目录为 `%APPDATA%\stepfun-desktop`。
+- 阶跃 AI 会把真实 CDP 端口写入 `%APPDATA%\stepfun-desktop\DevToolsActivePort`，并可能忽略启动参数中的首选 `9353`。启动器读取文件后会验证 `/json/version` 和目标页面，不能使用陈旧端口。
+- 客户端首次启动通常只进入托盘并创建调试服务，第二次激活才创建主窗口。Dream Work Theme 会在动态端口就绪后再次激活应用，并等待 `app://chat-web/` 主聊天页面。
+- 阶跃主窗口由多个 WebContents 组成：`app://ui/pages/browser/` 承载 Tab 和导航栏，`app://chat-web/` 承载聊天内容，升级会员页面使用 `https://chat.stepfun.com/subscription`。主题 watcher 会同时维护这些目标，新建 Tab 和会员 Tab 会自动继承当前主题；主题菜单只显示在聊天页面。
+- `buildStepFunCss()` 会透明化侧栏、激活 Tab、导航栏、聊天内容大容器和会员页全屏外壳，只为输入框、套餐卡片及必要控件保留局部对比度。
+- 顶部宿主页与下方内容页使用统一的虚拟整窗背景坐标。Tab 和导航栏总高度为 `90px`；聊天/会员内容背景层向上偏移 `90px`，避免不同 WebContents 各自执行 `cover` 后出现图片重复或断层。
+- 多 Tab 的主题与还原状态由 Dream Work Theme 主进程本机状态服务和 StepFun watcher 统一收敛。还原后聊天页、其他 Tab、顶部标签栏和导航栏会一起恢复阶跃原生深色模式，不残留透明背景或主题文字样式。
+- 阶跃 AI 适配只使用启动参数、CDP 和运行时 CSS/JavaScript 注入，不修改安装目录。
+
 ## 主题存储
 
 主题按以下优先级加载：
@@ -384,6 +412,7 @@ dream-work-theme/
 │   └── manager/
 │       ├── app-registry.ts
 │       ├── cdp.ts
+│       ├── custom-theme-store.ts
 │       ├── discovery.ts
 │       ├── injector.ts
 │       ├── launcher.ts
@@ -421,7 +450,9 @@ dream-work-theme/
 - 目标应用升级可能改变 DOM，需要更新注入选择器。
 - HanaAgent 会在启动和部分界面切换期间重建 renderer，因此首次应用主题可能比其他应用多等待数秒。
 - Kimi Work 的 Work/Chat renderer 和页面 DOM 可能随客户端或网站更新变化，需要同步维护 URL hint 与透明层选择器。
-- TRAE Work、QoderWork、CatPaw、ZCode 和千问办公的 macOS/Linux 注册表候选尚缺对应平台安装样本验证；实际产品若未发布该平台版本则无法发现。
+- 阶跃 AI 使用多个独立 WebContents，并依赖 `app://chat-web/`、`app://ui/pages/browser/` 和会员订阅 URL。客户端更新若改变顶部 `90px` 布局、Tab/导航类名或订阅页模块类名，需要重新校准连续背景和透明层。
+- 讯飞星火使用 `index.html`、`#desk` 和 `#settings` 多个 WebContents，并依赖当前 Tab/导航总高度 `80px`。客户端更新若改变 URL、标题栏高度、输入区 CSS Modules 类名前缀或设置页结构，需要重新校准 target 白名单、连续背景和深浅色控件规则。
+- TRAE Work、QoderWork、CatPaw、ZCode、千问办公、阶跃 AI 和讯飞星火的 macOS/Linux 注册表候选尚缺对应平台安装样本验证；实际产品若未发布该平台版本则无法发现。
 - 未签名的 Windows/macOS 发布包可能触发系统安全提示。
 - Windows 当前关闭了 EXE 元数据编辑，因此可能显示 Electron 默认图标和文件信息。
 - 大量内置主题会显著增加安装包大小、构建时间和磁盘需求。

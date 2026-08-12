@@ -88,7 +88,13 @@ export async function launchApp(appId: string, themeId?: string): Promise<{ succ
     console.log(`[launcher] Waiting for CDP port ${port} to be ready...`);
     let actualPort = port;
     if (devToolsActivePort) {
-      actualPort = await waitForDevToolsActivePort(devToolsActivePort, profile.rendererHints, 30000);
+      if (appId === 'stepfun') {
+        actualPort = await waitForDevToolsActivePortFile(devToolsActivePort, 30000);
+        launchDetached(appPath, [], launchEnvironment);
+        await verifyRendererEndpoint(actualPort, profile.rendererHints, 30000);
+      } else {
+        actualPort = await waitForDevToolsActivePort(devToolsActivePort, profile.rendererHints, 30000);
+      }
     } else {
       await waitForPort(port, 30000);
     }
@@ -286,6 +292,24 @@ async function waitForDevToolsActivePort(filePath: string, rendererHints: string
     await new Promise(resolve => setTimeout(resolve, 500));
   }
   throw new Error(`DevToolsActivePort did not expose a live renderer${lastPort ? ` on port ${lastPort}` : ''}: ${filePath}`);
+}
+
+async function waitForDevToolsActivePortFile(filePath: string, timeoutMs: number): Promise<number> {
+  const start = Date.now();
+  let lastPort = 0;
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const firstLine = fs.readFileSync(filePath, 'utf8').split(/\r?\n/, 1)[0];
+      const port = Number(firstLine);
+      if (Number.isInteger(port) && port > 0) {
+        lastPort = port;
+        const response = await fetch(`http://127.0.0.1:${port}/json/version`, { signal: AbortSignal.timeout(1000) });
+        if (response.ok) return port;
+      }
+    } catch {}
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+  throw new Error(`DevToolsActivePort did not expose a live endpoint${lastPort ? ` on port ${lastPort}` : ''}: ${filePath}`);
 }
 
 async function verifyRendererEndpoint(port: number, rendererHints: string[], timeoutMs: number): Promise<void> {

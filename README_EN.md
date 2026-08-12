@@ -56,6 +56,10 @@ Dream Work Theme is a desktop theme manager for supported Electron work applicat
 
 ![Dream Work Theme Interface preview](preview15.png)
 
+![Dream Work Theme Interface preview](preview16.png)
+
+![Dream Work Theme Interface preview](preview17.png)
+
 </details>
 
 ## Support Applications
@@ -67,17 +71,19 @@ The current application registry supports:
 - QoderWork
 - CatPaw
 - ZCode
-- Qwen Office (`QwenWorkCN`)
+- Qwen Office
 - HanaAgent
 - Kimi Work
 - OpenCode Desktop
 - Doubao Desktop
 - AgnesCode
 - MiniMax Code
-- AstronClaw (iFlytek Astron)
+- AstronClaw
+- StepFun AI
+- SparkDesk
 - Codex / ChatGPT Desktop
 
-Some applications use preferred debugging ports, while QoderWork, Qwen Office, and OpenCode Desktop read their live port from `DevToolsActivePort`. HanaAgent prefers `9346`, Kimi Work prefers `9347`, Doubao Desktop prefers `9349`, AgnesCode uses `9350`, MiniMax Code prefers `9351`, and AstronClaw prefers `9352`. Before launch, Dream Work Theme performs a real TCP bind check. If a preferred port is occupied or stuck in a Windows ghost-listener state, normal applications automatically advance to an available port and return that live port for injection, status queries, and restore operations. Dream Work Theme also waits for renderers that are likely to be recreated and restores missing injection while the application is running.
+Some applications use preferred debugging ports, while QoderWork, Qwen Office, OpenCode Desktop, and StepFun AI read their live port from `DevToolsActivePort`. HanaAgent prefers `9346`, Kimi Work prefers `9347`, Doubao Desktop prefers `9349`, AgnesCode uses `9350`, MiniMax Code prefers `9351`, AstronClaw prefers `9352`, StepFun is registered with preferred port `9353`, and SparkDesk uses `9354`. StepFun writes and uses its own dynamic port, while SparkDesk accepts the fixed `--remote-debugging-port=9354` argument. Before launch, Dream Work Theme performs a real TCP bind check. If a preferred port is occupied or stuck in a Windows ghost-listener state, normal applications automatically advance to an available port and return that live port for injection, status queries, and restore operations. Dream Work Theme also waits for renderers that are likely to be recreated and restores missing injection while the application is running.
 
 The AgnesCode release build actively removes a normal `--remote-debugging-port` argument. Dream Work Theme enables CDP through AgnesCode's built-in Playwright debugging entry point and explicitly preserves the packaged `resources/bin/agnesd.exe` backend path. This entry point marks the AgnesCode session as a development session, so its logs may contain update-configuration errors that do not affect theming or chat functionality.
 
@@ -235,6 +241,28 @@ The floating menu shows up to four quick preset themes and is no longer tied to 
 - AstronClaw does not store its native preference in `localStorage.theme`. Restore reads `window.astronDesktop.settings.get().general.theme` at action time and resolves `light`, `dark`, or `system` to the correct native `html.light` / `html.dark` state, avoiding the temporary dark startup state captured by an early injection snapshot.
 - Theme application has been verified with `applied: 1`; the My Skills and Inspiration Gallery canvas computes to a transparent, filter-free surface, and both native light and dark restoration paths have been verified.
 
+### SparkDesk Notes
+
+- The verified Windows version is SparkDesk `2.3.3.1`, installed at `D:\Program Files\SparkDesk\SparkDesk.exe`, using fixed CDP port `9354`.
+- SparkDesk is an Electron `34.5.8` application with multiple WebContents. `index.html` owns the browser tabs and navigation, `#desk` owns new-chat and conversation content, and the real Spark Settings tab uses `#settings`. The `#settings-panel?contentType=settings` page opened from the account control is only an account popover and is intentionally not themed.
+- `buildSparkDeskCss()` uses the same continuous-background principle as StepFun. The shell and content pages each render a fixed `html::before` background; chat and settings content move it upward by `80px` to share one virtual full-window coordinate system with the tab and navigation bars.
+- The SparkDesk watcher maintains the shell, every `#desk` conversation tab, and the `#settings` page. New tabs, reloads, and settings pages created later inherit the active theme automatically. The floating menu is shown only on chat pages.
+- SparkDesk-specific CSS removes the native full-window `blur(25px)`, white gradients, and large opaque scrims while retaining local theme surfaces on welcome cards, the composer, and settings cards.
+- The new-chat, conversation, and task composers invert controls from the theme surface luminance: dark themes use a dark composer with light model, document, screenshot, voice, and send controls; light themes use a light composer with dark controls.
+- The Spark Settings user card, Edit Profile button, menu rows, text, and icons follow the theme's light/dark palette. The account popover remains native so it is not confused with the settings tab.
+- Multi-tab apply, switching, and restore converge through the local `/app-state/sparkdesk` state and the SparkDesk watcher. Restore clears the shell, navigation, chat tabs, and settings page without modifying installed SparkDesk files.
+
+### StepFun AI Notes
+
+- The verified Windows version is StepFun AI `0.3.22`, installed at `D:\Program Files\StepFun\StepFun\StepFun.exe`, with user data under `%APPDATA%\stepfun-desktop`.
+- StepFun writes its live CDP port to `%APPDATA%\stepfun-desktop\DevToolsActivePort` and can ignore the preferred `9353` launch argument. The launcher validates `/json/version` and the required renderer targets instead of trusting a stale file.
+- The first launch commonly creates only the tray process and debugging service. Dream Work Theme activates StepFun a second time after the dynamic endpoint is live, then waits for the `app://chat-web/` chat renderer.
+- The main window spans multiple WebContents: `app://ui/pages/browser/` owns tabs and navigation, `app://chat-web/` owns chat content, and the membership page uses `https://chat.stepfun.com/subscription`. The StepFun watcher maintains all of them, so normal tabs and membership tabs inherit the active theme. The floating menu is shown only on chat pages.
+- `buildStepFunCss()` makes the sidebar, active tab, navigation bar, large chat surfaces, and membership-page shell transparent while retaining local contrast on the prompt, subscription cards, and controls that need it.
+- The shell and content renderers share one virtual full-window background coordinate system. Tabs plus navigation occupy `90px`; chat and membership background layers extend upward by `90px`, preventing separate WebContents from independently centering and duplicating the same `cover` image.
+- Multi-tab apply and restore state converges through the Dream Work Theme main-process local state service and the StepFun watcher. Restore clears the theme from every chat tab and restores the tab strip, navigation bar, text, and native StepFun dark appearance without residual transparent surfaces.
+- The StepFun adapter uses only launch arguments, CDP, and runtime CSS/JavaScript injection. It does not modify installed files.
+
 ## Theme Storage
 
 Themes are loaded from two locations, in priority order:
@@ -384,6 +412,7 @@ dream-work-theme/
 │   └── manager/
 │       ├── app-registry.ts
 │       ├── cdp.ts
+│       ├── custom-theme-store.ts
 │       ├── discovery.ts
 │       ├── injector.ts
 │       ├── launcher.ts
@@ -421,7 +450,9 @@ dream-work-theme/
 - Application updates can change DOM selectors and require injector adjustments.
 - HanaAgent recreates its renderer during startup and some view transitions, so the initial theme application can take several seconds longer than for other applications.
 - Kimi Work's Work/Chat renderers and website DOM can change with client or site updates, requiring URL-hint and transparency-selector maintenance.
-- The macOS/Linux registry candidates for TRAE Work, QoderWork, CatPaw, ZCode, and Qwen Office have not been verified against installed samples. Discovery is unavailable if the product does not publish a build for that platform.
+- StepFun AI uses multiple WebContents and depends on the `app://chat-web/`, `app://ui/pages/browser/`, and membership subscription URLs. Client updates that change the `90px` shell geometry, tab/navigation classes, or subscription CSS-module classes require the continuous-background and transparency selectors to be recalibrated.
+- SparkDesk uses separate `index.html`, `#desk`, and `#settings` WebContents and currently depends on an `80px` tab/navigation offset. Client updates that change these URLs, shell height, composer CSS-module prefixes, or settings structure require target filtering, continuous backgrounds, and light/dark control mappings to be recalibrated.
+- The macOS/Linux registry candidates for TRAE Work, QoderWork, CatPaw, ZCode, Qwen Office, StepFun AI, and SparkDesk have not been verified against installed samples. Discovery is unavailable if the product does not publish a build for that platform.
 - Unsigned Windows and macOS packages can trigger operating-system security warnings.
 - Windows currently uses Electron's default executable icon and metadata because executable editing is disabled in the local build configuration.
 - Large bundled theme collections produce large installers and require significant build and installation disk space.

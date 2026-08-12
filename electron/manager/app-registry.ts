@@ -138,6 +138,25 @@ export const APP_DEFINITIONS: AppDefinition[] = [
     darwin: { appBundles: ['AstronClaw.app'], executableNames: ['AstronClaw'] },
     linux: { executableNames: ['astronclaw', 'AstronClaw'], desktopFiles: ['astronclaw.desktop'] },
   },
+  {
+    id: 'sparkdesk', name: 'SparkDesk', exeNames: ['SparkDesk.exe'], processName: 'SparkDesk.exe', defaultPort: 9354,
+    installPaths: ['D:\\Program Files\\SparkDesk', path.join(localAppData, 'Programs', 'SparkDesk'), path.join(programFiles, 'SparkDesk'), path.join(programFilesX86, 'SparkDesk')],
+    rendererHints: ['out/renderer/index.html#desk', 'out/renderer/index.html'], kind: 'generic-work',
+    windowsPathScopedKill: true,
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ['SparkDesk.app'], executableNames: ['SparkDesk'] },
+    linux: { executableNames: ['sparkdesk', 'SparkDesk'], desktopFiles: ['sparkdesk.desktop'] },
+  },
+  {
+    id: 'stepfun', name: 'StepFun', exeNames: ['StepFun.exe'], processName: 'StepFun.exe', defaultPort: 9353,
+    installPaths: ['D:\\Program Files\\StepFun\\StepFun', path.join(localAppData, 'Programs', 'StepFun'), path.join(programFiles, 'StepFun'), path.join(programFilesX86, 'StepFun')],
+    rendererHints: ['app://chat-web/'], kind: 'generic-work',
+    devToolsActivePort: path.join(roamingAppData, 'stepfun-desktop', 'DevToolsActivePort'),
+    windowsPathScopedKill: true,
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ['StepFun.app'], executableNames: ['StepFun'] },
+    linux: { executableNames: ['stepfun', 'StepFun'], desktopFiles: ['stepfun.desktop'] },
+  },
 ];
 
 export function getAppDefinition(appId: string): AppDefinition | undefined {

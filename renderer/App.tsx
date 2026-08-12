@@ -25,6 +25,8 @@ const APP_PORTS: Record<string, number> = {
   'agnes-code': 9350,
   'minimax-code': 9351,
   astronclaw: 9352,
+  stepfun: 9353,
+  sparkdesk: 9354,
 };
 
 interface ThemeInfo {

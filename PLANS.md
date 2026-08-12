@@ -4,13 +4,13 @@
 
 ## 1. 目标
 
-构建一个 **跨平台桌面应用**，支持给市面上主流 Electron 或定制 Chromium Work 工具（WorkBuddy、TRAE Work、QoderWork、CatPaw、ZCode、千问办公、Codex / ChatGPT Desktop、HanaAgent、Kimi Work、OpenCode Desktop、豆包 Desktop、AgnesCode、MiniMax Code、AstronClaw 等）一键切换主题。核心机制是通过 CDP 修改运行中的渲染进程；Windows 版 AgnesCode 的原生 Window Controls Overlay 是当前唯一需要备份并补丁目标安装文件的例外。
+构建一个 **跨平台桌面应用**，支持给市面上主流 Electron 或定制 Chromium Work 工具（WorkBuddy、TRAE Work、QoderWork、CatPaw、ZCode、千问办公、Codex / ChatGPT Desktop、HanaAgent、Kimi Work、OpenCode Desktop、豆包 Desktop、AgnesCode、MiniMax Code、AstronClaw、StepFun、讯飞星火等）一键切换主题。核心机制是通过 CDP 修改运行中的渲染进程；Windows 版 AgnesCode 的原生 Window Controls Overlay 是当前唯一需要备份并补丁目标安装文件的例外。
 
 交付物：
 - 完整 Electron 项目
 - 默认 12 套主题
 - 自定义主题制作 SKILL
-- 当前注册 14 款主流 Work 工具
+- 当前注册 16 款主流 Work 工具
 - 每款工具支持创建"主题+应用"桌面快捷启动图标
 - 注入后右下角显示统一主题菜单按钮（切换/上传/还原）
 - 支持 macOS / Windows / Linux 三端
@@ -344,11 +344,11 @@ dream-work-theme/
 
 ## 9. 当前实现状态与实机适配分析
 
-> 本节记录 2026-08-02 至 2026-08-10 在 Windows 实机上的适配结果。前文是项目早期计划，其中应用数量、主题数量、目录结构、主题兼容模型和 CDP 端口策略已有变化；后续维护应以本节和当前代码为准。
+> 本节记录 2026-08-02 至 2026-08-12 在 Windows 实机上的适配结果。前文是项目早期计划，其中应用数量、主题数量、目录结构、主题兼容模型和 CDP 端口策略已有变化；后续维护应以本节和当前代码为准。
 
 ### 9.1 当前支持范围
 
-项目目前注册以下 14 款 Work 类桌面应用：
+项目目前注册以下 16 款 Work 类桌面应用：
 
 | 应用 ID | 显示名称 | 应用类型 | 默认 CDP 端口 | 当前状态 |
 |---------|----------|----------|---------------|----------|
@@ -365,11 +365,13 @@ dream-work-theme/
 | `agnes-code` | AgnesCode | Electron 桌面应用，Playwright CDP、专属 CSS 与原生标题栏补丁 | `9350` | 已验证应用、切换、主页/功能页/设置页透明层以及原生窗口按钮透明背景 |
 | `minimax-code` | MiniMax Code | Electron 桌面应用，专属页面透明层与原生深浅模式还原 | `9351` | 已验证背景图、侧栏、对话/新建任务输入框、技能/功能页主体以及深浅模式还原 |
 | `astronclaw` | AstronClaw（讯飞星辰） | Electron 桌面应用，专属透明层、动态端口回退与设置 API 原生模式还原 | 首选 `9352`，不可绑定时自动顺延 | 已验证背景图、侧栏、新建任务/对话、我的技能/灵感广场以及深浅模式还原 |
+| `stepfun` | StepFun（阶跃 AI） | Electron 桌面应用，多 WebContents、动态端口、专属连续背景与多 Tab 守护 | 注册首选 `9353`，实际读取 `%APPDATA%\stepfun-desktop\DevToolsActivePort` | 已验证聊天页、Tab/导航栏、新建 Tab、会员页、连续背景和原生深色还原 |
+| `sparkdesk` | SparkDesk（讯飞星火） | Electron 桌面应用，多 WebContents、固定端口、专属连续背景与深浅色控件映射 | `9354` | 已验证主壳、聊天/新建任务、多 Tab、星火设置页、深浅主题控件和多页面还原 |
 | `codex` | Codex | Codex 专用结构 | `9340` | 已适配 |
 
-源码 `themes/` 当前包含 264 份 `theme.json`。运行时会按主题名称、作者和 hero 内容去重，因此实际菜单/画廊数量可能略少于 manifest 数量。
+源码 `themes/` 当前包含 295 份 `theme.json`。运行时会按主题名称、作者和 hero 内容去重，因此实际菜单/画廊数量可能略少于 manifest 数量。
 
-主题兼容不再依赖为每个应用批量写入 `theme.json.apps`。`listThemes(appId)` 先读取 manifest 的显式 `compat`，未声明时再使用应用注册表的 `acceptsGenericThemes` 默认值。当前 14 款应用均接受通用主题；主题仍可用 `compat:false` 拒绝某款应用，或通过 `layout` 提供应用特例。
+主题兼容不再依赖为每个应用批量写入 `theme.json.apps`。`listThemes(appId)` 先读取 manifest 的显式 `compat`，未声明时再使用应用注册表的 `acceptsGenericThemes` 默认值。当前 16 款应用均接受通用主题；主题仍可用 `compat:false` 拒绝某款应用，或通过 `layout` 提供应用特例。
 
 ### 9.2 当前应用注册架构
 
@@ -637,6 +639,48 @@ D:\Program Files\AstronClaw\AstronClaw.exe
 
 AstronClaw 使用 `windowsPathScopedKill`，Windows 重启时只结束安装路径匹配的 `AstronClaw.exe`。macOS 注册候选为 `AstronClaw.app`，Linux 注册候选为 `astronclaw` / `AstronClaw` 和 `astronclaw.desktop`；非 Windows 候选尚待对应平台安装样本验证。
 
+#### StepFun（阶跃 AI）
+
+Windows 实机安装位置：
+
+```text
+D:\Program Files\StepFun\StepFun\StepFun.exe
+```
+
+程序元数据与运行特征：
+
+- 版本：`0.3.22`
+- Electron：`37.3.0`
+- 应用入口：`resources/app.asar`
+- 用户数据目录：`%APPDATA%\stepfun-desktop`
+- 运行时端口文件：`%APPDATA%\stepfun-desktop\DevToolsActivePort`
+- 顶部宿主页：`app://ui/pages/browser/index.html`
+- 聊天页：`app://chat-web/chats/...`
+- 会员页：`https://chat.stepfun.com/subscription?from=browser-top-right-button`
+
+StepFun 使用 `windowsPathScopedKill`，Windows 重启时只结束安装路径匹配的 `StepFun.exe`。客户端可能忽略传入的 `--remote-debugging-port=9353` 并自行写入动态端口；读取端口文件后必须验证 CDP 服务和目标 URL。首次启动通常只进入托盘，动态端口就绪后需要再次激活主程序才会创建聊天窗口。macOS 注册候选为 `StepFun.app`，Linux 注册候选为 `stepfun` / `StepFun` 和 `stepfun.desktop`；非 Windows 候选尚待安装样本验证。
+
+#### SparkDesk（讯飞星火）
+
+Windows 实机安装位置：
+
+```text
+D:\Program Files\SparkDesk\SparkDesk.exe
+```
+
+程序元数据与运行特征：
+
+- 版本：`2.3.3.1`
+- Electron：`34.5.8`
+- 应用入口：`resources/app.asar`
+- 固定 CDP 端口：`9354`
+- 浏览器宿主页：`file:///.../out/renderer/index.html`
+- 聊天/新建任务页：`file:///.../out/renderer/index.html#desk`
+- 真正的“星火设置”页：`file:///.../out/renderer/index.html#settings`
+- 账号菜单弹窗：`file:///.../out/renderer/index.html#settings-panel?contentType=settings`，不作为主题目标
+
+SparkDesk 接受 `--remote-debugging-port=9354`，Windows 使用 `windowsPathScopedKill`，重启时只结束安装路径匹配的 `SparkDesk.exe`。主窗口由浏览器宿主、多个聊天 Tab 和设置页 WebContents 组成；悬浮球、快捷助手、历史、上传和账号弹窗等辅助目标不注入主题。macOS 注册候选为 `SparkDesk.app`，Linux 注册候选为 `sparkdesk` / `SparkDesk` 和 `sparkdesk.desktop`；非 Windows 候选尚待安装样本验证。
+
 ### 9.4 CDP 启动与端口差异
 
 所有应用仍采用 CDP 注入。除 Windows 版 AgnesCode 的受控原生标题栏补丁外，不修改目标应用安装包。普通应用的标准启动参数为：
@@ -659,9 +703,11 @@ AstronClaw 使用 `windowsPathScopedKill`，Windows 重启时只结束安装路�
 - AgnesCode
 - MiniMax Code
 - AstronClaw
+- StepFun
+- SparkDesk
 - Codex
 
-OpenCode 默认分配 `9348`，但实际运行端口通过 `%APPDATA%\ai.opencode.desktop\DevToolsActivePort` 读取和验证。豆包首选 `9349`，AgnesCode 使用 Playwright 调试入口绑定 `9350`，MiniMax Code 首选 `9351`，AstronClaw 首选 `9352`。
+OpenCode 默认分配 `9348`，但实际运行端口通过 `%APPDATA%\ai.opencode.desktop\DevToolsActivePort` 读取和验证。豆包首选 `9349`，AgnesCode 使用 Playwright 调试入口绑定 `9350`，MiniMax Code 首选 `9351`，AstronClaw 首选 `9352`，StepFun 注册首选 `9353` 但实际运行端口通过 `%APPDATA%\stepfun-desktop\DevToolsActivePort` 读取，讯飞星火使用固定端口 `9354`。
 
 Windows 可能出现 `netstat` 仍报告某端口由已不存在 PID 监听，但 TCP/HTTP 无法连接的幽灵监听状态。仅用 `connect()` 判断端口关闭会误认为该端口可复用。当前 `launcher.ts` 使用异步 `net.createServer().listen()` 真实尝试绑定端口；绑定失败时顺延扫描最多 100 个端口，并将实际端口返回前端。AstronClaw 实机回归中 `9352` 处于幽灵监听，启动器自动选择 `9353`，随后 `/json/version`、主 renderer 和主题注入均成功。
 
@@ -698,6 +744,8 @@ Chromium 随后分配随机端口，并写入用户数据目录中的 `DevToolsA
 
 OpenCode 会在用户数据目录写入 `DevToolsActivePort`。当前注册表同时保留默认端口 `9348` 和该文件路径；读取文件后仍必须访问 `/json/version` 和 `/json/list` 验证，不能信任陈旧端口。
 
+StepFun 同样会写入 `DevToolsActivePort`，但启动生命周期更特殊：第一次启动可能只有托盘和 CDP 服务，尚未出现 `app://chat-web/`。启动器先等待端口文件暴露可用 `/json/version`，然后再次激活 `StepFun.exe`，再等待聊天 renderer。不能把“动态端口已开放”直接等同于“主窗口已就绪”。
+
 HanaAgent 首选端口为 `9346`，但其特殊点不是端口，而是 renderer 生命周期。`launcher.ts` 在端口可用后还会执行稳定 target 等待；`injector.ts` 注入后也会确认最终 renderer 连续稳定，再启动运行期守护。
 
 Kimi Work 首选端口为 `9347`。启动器在 CDP 可用后执行约 `750ms` 的短稳定确认，用于捕获 Windows 父进程异常退出，但不再叠加前端 4 秒或主进程 3 秒固定等待。renderer 就绪后立即调用 `applyTheme()`。
@@ -721,9 +769,11 @@ Kimi Work 首选端口为 `9347`。启动器在 CDP 可用后执行约 `750ms` �
 | AgnesCode | `app.asar/.vite/renderer/main_window/index.html` |
 | MiniMax Code | `app://./archon` |
 | AstronClaw | `app.asar/out/renderer/index.html`、`out/renderer/index.html` |
+| StepFun | 宿主：`app://ui/pages/browser/`；聊天：`app://chat-web/`；会员：`https://chat.stepfun.com/subscription` |
+| SparkDesk | 宿主：`out/renderer/index.html`；聊天/新建任务：`#desk`；星火设置：`#settings` |
 | Codex | `index.html`、`renderer/index.html` |
 
-QoderWork 和千问办公还存在 `voice-overlay.html` 页面，ZCode 存在 Stripe iframe 和 worker target，CatPaw 存在 `about:blank` page。HanaAgent 会替换 renderer target；Kimi Work 的 Work 与 Chat 本来就是两个独立 target；豆包还存在 `doubao-launcher` 和 `doubao-background` 辅助页面。URL hint 可以避免菜单和主题被错误注入辅助页面，HanaAgent、Kimi 和豆包还需要在正确 URL hint 的基础上持续处理 target 创建、导航和更替。
+QoderWork 和千问办公还存在 `voice-overlay.html` 页面，ZCode 存在 Stripe iframe 和 worker target，CatPaw 存在 `about:blank` page。HanaAgent 会替换 renderer target；Kimi Work 的 Work 与 Chat 本来就是两个独立 target；豆包还存在 `doubao-launcher` 和 `doubao-background` 辅助页面；StepFun 还存在 `flow-widget`、`popup-menu` 等辅助目标；`SparkDesk` 还存在 `#floating-ball`、`#ai-chat-manager`、`#quickclient`、`#history-panel`、`#upload-panel` 和账号弹窗 `#settings-panel`。URL hint 可以避免菜单和主题被错误注入辅助页面，HanaAgent、Kimi、豆包、StepFun 和 SparkDesk 还需要在正确 URL hint 的基础上持续处理 target 创建、导航和更替。
 
 ### 9.6 DOM 与主题表面分析
 
@@ -1107,15 +1157,86 @@ CDP 启动差异：
 - 管理器级还原脚本会 `await window.__dreamWorkRestoreNativeMode()` 后再关闭 CDP 会话，确保设置读取和 DOM 恢复完成。
 - 已验证浅色恢复为 `html.light` / `color-scheme: light`，深色恢复为 `html.dark` / `color-scheme: dark`，测试结束后恢复用户原有浅色设置。
 
+#### StepFun（阶跃 AI）
+
+实机验证环境：
+
+```text
+宿主页：app://ui/pages/browser/index.html
+聊天页：app://chat-web/chats/...
+会员页：https://chat.stepfun.com/subscription?from=browser-top-right-button
+```
+
+专属 CSS 与多 WebContents 背景：
+
+- 使用 `buildStepFunCss()`，并让阶跃跳过通用 `[class*="message"]` / `[class*="composer"]` 的 `88%` 深色模糊规则，避免聊天内容和输入区外层被重复遮挡。
+- 侧栏实际为普通 `div.fixed.w-72.bg-gold`，不是 `aside` 或带 `sidebar` 类的元素；必须通过结构组合透明化 `background` 简写、背景色、背景图和滤镜。
+- 顶部 Tab 和导航栏位于宿主页，聊天内容位于独立 WebContents。宿主页 `.tab-bar`、激活 `.tab > div`、`.navigation-bar` 和 `.content-area` 均透明；聊天页 `body`、`#root.bg-bg-gold` 以及主内容大容器必须使用高优先级规则透明，否则会盖住背景层。
+- 顶部 Tab 高 `46px`、导航栏高 `44px`，合计 `90px`。宿主页使用完整窗口尺寸的 `cover` 背景；聊天页和会员页创建高度为 `100vh + 90px`、顶部为 `-90px` 的虚拟背景层，使内容页显示整窗背景从第 90 行继续的部分，避免两个 WebContents 各自居中导致图片重叠。
+- 宿主页的 `html` 同时保留实际背景图作为 BrowserView 两侧 fallback，解决 Electron 子 WebContents 没有覆盖到的左右区域露出纯色根背景；聊天/会员内容页禁用 `html` 本体图片，只使用带 `-90px` 偏移的背景层。
+- 会员页全屏 `.subscription-modal_root*` 和底部 `.subscription-modal_footer*` 透明，会员套餐卡片、邀请码输入和购买控件保留原生局部背景。
+- 菜单只显示在 `app://chat-web/`，不会重复挂载到宿主页或会员页。
+
+多 Tab 守护与状态同步：
+
+- `fetchStepFunTargets()` 同时匹配宿主页、所有聊天页和会员页，排除 `flow-widget`、`popup-menu` 等辅助目标。
+- StepFun watcher 每 `750ms` 检查相关 target，为新建 Tab、会员 Tab 和重建页面注册持久脚本并补注入。
+- 主进程本机共享服务新增 `/app-state/stepfun` 状态端点，以主题 ID 和 `actionAt` 保存全局最新操作，避免各聊天 WebContents 的 `localStorage` 分区隔离造成切换/还原不同步。
+- 主题应用和还原均使用单调 `actionAt` 防倒退；较旧 watcher 回放不能覆盖较新的用户操作。单个 WebContents 在 CDP 遍历期间销毁时只跳过该目标，不中断整轮同步。
+
+原生主题还原：
+
+- 阶跃原生模式读取 `localStorage.theme`，支持 `light`、`dark` 和 `system`；`system` 使用 `prefers-color-scheme` 计算实时模式。
+- 应用主题时不调用通用 `applyMode()`，避免把阶跃强制切成 `light vscode-light cb-light` 或污染其原生类。
+- 还原会清空所有匹配 target 的主题 CSS/ID，恢复聊天页和宿主页原生 `html.dark` 或 `html.light`、`color-scheme`、背景和文字。已验证原生深色聊天背景为 `rgb(30, 32, 36)`，文字为 `rgb(249, 248, 246)`，激活 Tab 和导航栏恢复客户端原生深色。
+
+#### SparkDesk（讯飞星火）
+
+实机验证环境：
+
+```text
+宿主页：file:///D:/Program Files/SparkDesk/resources/app.asar/out/renderer/index.html
+聊天/新建任务：同页面 #desk
+星火设置：同页面 #settings
+```
+
+专属 CSS 与连续背景：
+
+- 使用 `buildSparkDeskCss()`，跳过通用 Work 的大面积 surface 和模糊规则，避免星火原生容器与通用 CSS 重复铺底。
+- 宿主页的 Tab、导航栏和内容壳与 `#desk` / `#settings` 是独立 WebContents。各页面通过固定 `html::before` 使用同一主题 hero；内容页背景高度为 `100vh + 80px`、顶部 `-80px`，与 Tab 和导航栏共享虚拟整窗坐标。
+- `.browser-container`、`.browser-header`、Tab 容器、地址栏、聊天主体和设置主体保持透明。激活 Tab 只保留轻量主题 surface，用于识别当前页面。
+- 星火聊天根容器原生带有全屏渐变和 `backdrop-filter: blur(25px)`。专属规则同时清除 `background`、`background-image`、`backdrop-filter` 和 `filter`，避免背景图被透明模糊层遮挡。
+- 欢迎页只为单张功能卡片保留局部半透明 surface，大卡片容器保持透明；Markdown、AI 回复、用户消息和新对话文字使用主题 text。
+
+输入区与深浅主题对比：
+
+- 输入区实际由 `_ask_operate_wrap_*`、`_chat_func_wrap_*`、`_right_operate_wrap_*` 和四个右侧按钮组成。模型/深度思考切换、文档、截图、语音和发送按钮统一使用输入框 surface。
+- 深色主题下，输入框、左右操作区和按钮使用深色 surface，文字及 SVG path 使用亮色；亮色主题下自动反转为亮底深色前景。
+- 文档、截图和语音 SVG 即使原始资源写死 `stroke="#171717"`，运行时 CSS 也会覆盖为当前主题 text。发送图片根据 surface 亮度选择滤镜。
+
+星火设置与目标白名单：
+
+- 真正的“星火设置” Tab 是 `#settings`，包含 `_mainContainer_*`、用户资料卡、编辑资料按钮和设置菜单。`#settings-panel?contentType=settings` 只是点击账号后出现的弹窗，必须保持原生，不加入 target 白名单。
+- `#settings` 的用户资料卡、编辑资料按钮、菜单项、菜单右侧状态、文字和图标使用主题 surface/text。深色主题为深色卡片配亮色文字，亮色主题为亮色卡片配深色文字。
+- `fetchSparkDeskTargets()` 只匹配宿主页、`#desk` 和 `#settings`，排除悬浮球、快捷助手、历史、上传和账号弹窗。
+
+多 Tab 守护与还原：
+
+- SparkDesk watcher 每 `500ms` 检查相关 target，为新建聊天 Tab、重载页面和后创建设置页注册持久脚本并同步当前主题。
+- 主题和还原状态通过本机 `/app-state/sparkdesk` 与单调 `actionAt` 收敛。写入前二次确认共享状态，并用 generation 取消旧 watcher 轮次，防止还原后旧主题竞态回写。
+- 还原会停止 watcher、移除持久脚本，并对宿主页、聊天 Tab 和设置页执行幂等二次清理，确保标题栏、导航栏、内容页、主题类和菜单无残留。
+
 ### 9.7 CSS 生成器分层
 
-当前 `electron/manager/injector.ts` 中存在 11 个 CSS 生成器，对应 4 类注册类型以及 HanaAgent、Kimi、OpenCode、豆包、AgnesCode、MiniMax Code、AstronClaw 的专属分支：
+当前 `electron/manager/injector.ts` 中存在 15 个具体 CSS 生成器；`buildAppCss()` 负责分派，通用注册类型和应用专属分支共同覆盖当前应用：
 
 | 生成器 | 应用 |
 |--------|------|
 | `buildWorkBuddyCss()` | WorkBuddy |
 | `buildVsCodeWorkCss()` | TRAE Work |
-| `buildGenericWorkCss()` | QoderWork、CatPaw、ZCode、千问办公、AgnesCode/MiniMax Code/AstronClaw 外壳入口 |
+| `buildGenericWorkCss()` | QoderWork、CatPaw、ZCode、千问办公、AgnesCode/MiniMax Code/AstronClaw/StepFun/SparkDesk 外壳入口 |
+| `buildQoderWorkShellCss()` | QoderWork 额外壳层映射 |
+| `buildCatPawCss()` | CatPaw 额外页面映射 |
 | `buildHanaAgentCss()` | HanaAgent |
 | `buildKimiCss()` | Kimi Work |
 | `buildOpenCodeCss()` | OpenCode Desktop |
@@ -1123,6 +1244,8 @@ CDP 启动差异：
 | `buildAgnesCodeCss()` | AgnesCode |
 | `buildMiniMaxCodeCss()` | MiniMax Code |
 | `buildAstronClawCss()` | AstronClaw（讯飞星辰） |
+| `buildStepFunCss()` | StepFun（阶跃 AI） |
+| `buildSparkDeskCss()` | SparkDesk（讯飞星火） |
 | `buildCodexCss()` | Codex |
 
 通用主题语义仍由以下字段提供：
@@ -1160,7 +1283,7 @@ WorkBuddy 和通用右下角菜单当前支持：
 - 无历史记录时按当前应用实际兼容主题顺序补足，最多四个；主题不足、已删除或不兼容时不生成空白菜单项。
 - 数据保存到 `app.getPath('userData')/theme-usage.json`，由本机共享服务的 `/theme-usage` 接口接收目标应用菜单的切换记录。
 
-HanaAgent 使用专属轻量菜单，支持预置主题切换、自定义图片、「还原主题」和点击空白处关闭。其自定义图片代码与通用菜单相互独立，但通过 Dream Work Theme 主进程的本机共享图片服务读写同一图片库，以实现跨应用上传、切换和删除同一批图片，同时降低完整菜单结构引发崩溃的风险。服务只监听 `127.0.0.1` 并使用进程内随机令牌鉴权。菜单入口统一使用 `◉` 按钮标识和相同的 `36px` 基础按钮样式。HanaAgent 菜单和样式采用更高频的页面内连接守护，并配合主进程 renderer watcher 处理 target 更替。Kimi 使用通用 Shadow DOM 菜单脚本，但由 Kimi watcher 同时维护 Work/Chat target。OpenCode 使用通用 Shadow DOM 菜单；豆包同样使用通用菜单，并由豆包 watcher 处理页面导航后的重注入和还原状态。
+HanaAgent 使用专属轻量菜单，支持预置主题切换、自定义图片、「还原主题」和点击空白处关闭。其自定义图片代码与通用菜单相互独立，但通过 Dream Work Theme 主进程的本机共享图片服务读写同一图片库，以实现跨应用上传、切换和删除同一批图片，同时降低完整菜单结构引发崩溃的风险。服务只监听 `127.0.0.1` 并使用进程内随机令牌鉴权。菜单入口统一使用 `◉` 按钮标识和相同的 `36px` 基础按钮样式。HanaAgent 菜单和样式采用更高频的页面内连接守护，并配合主进程 renderer watcher 处理 target 更替。Kimi 使用通用 Shadow DOM 菜单脚本，但由 Kimi watcher 同时维护 Work/Chat target。OpenCode 使用通用 Shadow DOM 菜单；豆包同样使用通用菜单，并由豆包 watcher 处理页面导航后的重注入和还原状态。StepFun 使用通用菜单，但只在聊天 target 挂载；宿主 Tab/导航栏和会员页只注入样式。SparkDesk 同样只在 `#desk` 挂载菜单；主壳和 `#settings` 只同步样式和状态。
 
 Codex、HanaAgent、Kimi 和其他非 WorkBuddy 应用使用 Shadow DOM host：
 
@@ -1177,7 +1300,7 @@ Codex、HanaAgent、Kimi 和其他非 WorkBuddy 应用使用 Shadow DOM host：
 - 主内容 `overflow: hidden` 裁剪菜单
 - 应用层叠上下文遮挡菜单
 
-菜单 host 使用最高层级，并通过 `__dreamWorkMenuGuard` 定时检查连接状态。重复注入和还原时会清理旧菜单、定时器和外部点击监听器。HanaAgent 使用主进程 watcher 监控最终 renderer；Kimi watcher 监控 Work/Chat 双 target；豆包 watcher 监控主聊天 renderer 的导航与样式丢失。还原状态存在时守护逻辑不得覆盖用户主动停用。
+菜单 host 使用最高层级，并通过 `__dreamWorkMenuGuard` 定时检查连接状态。重复注入和还原时会清理旧菜单、定时器和外部点击监听器。HanaAgent 使用主进程 watcher 监控最终 renderer；Kimi watcher 监控 Work/Chat 双 target；豆包 watcher 监控主聊天 renderer 的导航与样式丢失；StepFun watcher 监控宿主页、全部聊天 Tab 和会员页；SparkDesk watcher 监控主壳、全部聊天 Tab 和真正的星火设置页。还原状态存在时守护逻辑不得覆盖用户主动停用。
 
 ### 9.9 实机验证结果
 
@@ -1198,6 +1321,8 @@ Codex、HanaAgent、Kimi 和其他非 WorkBuddy 应用使用 Shadow DOM host：
 | AgnesCode | 通过，Playwright 调试入口和首选端口 `9350` | 通过 | 通过，主页/搜索/定时任务/插件/设置页 | 通过 |
 | MiniMax Code | 通过，首选端口并匹配 `app://./archon` | 通过 | 通过，新建任务/对话/技能/功能页 | 通过 |
 | AstronClaw | 通过，首选端口 `9352`  匹配 `index.html` | 通过 | 通过，新建任务/对话/我的技能/灵感广场 | 通过 |
+| StepFun | 通过，读取动态端口并匹配宿主/聊天/会员 target | 通过 | 通过，多 Tab 与会员页自动补注入 | 通过，仅聊天页显示 |
+| SparkDesk | 通过，固定端口 `9354` 并匹配宿主/`#desk`/`#settings` | 通过 | 通过，多聊天 Tab 与设置页自动补注入 | 通过，仅 `#desk` 显示 |
 | Codex / ChatGPT Desktop | 通过 | 通过 | 通过 | 通过 |
 
 构建验证：
@@ -1205,7 +1330,7 @@ Codex、HanaAgent、Kimi 和其他非 WorkBuddy 应用使用 Shadow DOM host：
 - `pnpm typecheck` 通过。
 - `pnpm build:app` 通过。
 - 根目录 `dist-electron/main.js` 与 Vite 最新 Electron 输出保持同步。
-- 14 款应用通过 `acceptsGenericThemes` 默认兼容和 manifest 显式覆盖模型读取主题，无 HanaAgent/Kimi/OpenCode/豆包/AgnesCode/MiniMax Code/AstronClaw 硬编码放行。
+- 16 款应用通过 `acceptsGenericThemes` 默认兼容和 manifest 显式覆盖模型读取主题，无 HanaAgent/Kimi/OpenCode/豆包/AgnesCode/MiniMax Code/AstronClaw/StepFun/SparkDesk 硬编码放行。
 - Kimi Work 首次注入实测同时覆盖 Work 与 Chat，返回 `applied: 2`；两个 target 重载后均能恢复主题。
 - OpenCode Desktop 实测主题应用返回 `applied: 1`，浮动菜单切换和还原正常；主题重启不会终止同名 OpenCode CLI。
 - 豆包 Desktop 实测主题应用返回 `applied: 1`，菜单切换和还原正常；技能、新工作任务、AI 创作和历史对话导航后主题会自动恢复。
@@ -1216,10 +1341,16 @@ Codex、HanaAgent、Kimi 和其他非 WorkBuddy 应用使用 Shadow DOM host：
 - MiniMax Code `3.0.60` 已完成端到端验证：`9351` CDP、背景图、左侧栏、新建任务/历史对话输入框、技能/功能页右侧主体均正常；浅色还原为 `rgb(255, 255, 255)`，深色还原为 `rgb(28, 28, 28)`。
 - AstronClaw `2.0.6` 已完成端到端验证：首选 `9352` 因 Windows 幽灵监听不可绑定时自动使用 `9353`，主题应用返回 `applied: 1`；侧栏、任务主体、消息列表/正文、我的技能和灵感广场右侧画布均无大面积深色模糊遮挡。
 - AstronClaw 的我的技能/灵感广场全高 `section.bg-card` 实测计算样式为 `rgba(0, 0, 0, 0)`、`background-image: none`、`backdrop-filter: none`；原生偏好为浅色时还原 `html.light`，偏好为深色时还原 `html.dark`。
+- StepFun `0.3.22` 已完成端到端验证：发现 `D:\Program Files\StepFun\StepFun\StepFun.exe`，读取动态端口，首次托盘启动后再次激活主窗口，主题首次注入覆盖宿主页和聊天页，新建 Tab 与会员页由 watcher 自动补注入。
+- StepFun 已验证侧栏、激活 Tab、导航栏、聊天内容层和会员页外壳透明；聊天/会员内容页背景层相对宿主页向上偏移 `90px`，高亮覆盖探测确认背景从最左到最右、从顶部到最底部均可见。
+- StepFun 还原已验证：所有聊天 target 和宿主页清空主题 CSS/ID，恢复原生 `dark`，Tab、导航栏、聊天背景和文字不残留主题样式。
+- SparkDesk `2.3.3.1` 已完成端到端验证：发现 `D:\Program Files\SparkDesk\SparkDesk.exe`，固定端口 `9354`，主题覆盖宿主页、已有/新建聊天 Tab 和真正的 `#settings` 星火设置页；账号弹窗 `#settings-panel` 保持原生。
+- SparkDesk 连续背景已验证：宿主页使用完整背景，`#desk` 与 `#settings` 背景向上偏移 `80px`；Tab、导航栏、聊天主体和设置主体透明，无全屏 `blur(25px)` 遮挡。
+- SparkDesk 深浅主题控件已验证：深色主题下输入框、模型切换、文档/截图/语音/发送按钮和设置卡片使用深色 surface 配亮色前景；亮色主题下自动反转。还原同步清理所有目标，无标题栏或新 Tab 残留。
 - 高频快捷主题已通过实测：不再依赖固定主题 ID，可按应用统计菜单和管理器中的主动切换，并在主题缺失时只显示实际可用项。
 - 跨应用自定义图片共享已通过实测：集中图片库可被后续启动的其他受支持应用读取。
 
-这里的“通过”表示注入通道、target 选择和 DOM 挂载能力已经验证。OpenCode、豆包、AgnesCode、MiniMax Code 与 AstronClaw 已额外完成本报告所列页面和原生恢复的视觉验收；其他应用以及应用升级后的新 DOM 仍需继续检查空白首页、已有对话、设置页、文件预览和弹窗。
+这里的“通过”表示注入通道、target 选择和 DOM 挂载能力已经验证。OpenCode、豆包、AgnesCode、MiniMax Code、AstronClaw、StepFun 与 SparkDesk 已额外完成本报告所列页面和原生恢复的视觉验收；其他应用以及应用升级后的新 DOM 仍需继续检查空白首页、已有对话、设置页、文件预览和弹窗。
 
 ### 9.10 已知风险与维护重点
 
@@ -1229,7 +1360,7 @@ QoderWork 当前使用较宽的 `[class*="layout"]`、`[class*="content-area"]` 
 
 #### 应用升级导致类名变化
 
-TRAE Work、CatPaw、ZCode、千问办公、HanaAgent、Kimi、OpenCode、豆包和 AstronClaw 均大量使用构建生成类名或 Tailwind/业务类。优先依赖以下相对稳定信号：
+TRAE Work、CatPaw、ZCode、千问办公、HanaAgent、Kimi、OpenCode、豆包、AstronClaw、StepFun 和 SparkDesk 均大量使用构建生成类名或 Tailwind/业务类。优先依赖以下相对稳定信号：
 
 - 应用前缀类名，例如 `solo-lite-*`、`catpaw-*`、`agents-*`
 - 语义 ID，例如 `#sidebar`
@@ -1312,6 +1443,29 @@ HanaAgent 的 renderer 会在启动和部分界面切换期间被替换。维护
 - 设置 hydrate 发生在首屏之后。还原必须在动作发生时异步读取持久化设置，不能信任首次注入快照；管理器级还原必须 await 完成后再关闭 CDP 会话。
 - AstronClaw 更新后优先回归：首选端口冲突回退、主 renderer URL、背景图、侧栏、新建任务、历史对话、我的技能、灵感广场、输入卡片单层透明度以及浅色/深色/跟随系统还原。
 
+#### StepFun 多 WebContents、动态端口与连续背景
+
+- `DevToolsActivePort` 可能保留旧端口，读取后必须验证 `/json/version`，并确认至少存在宿主页或聊天页。首次只出现 CDP 服务时需要再次激活应用，不能简单延长单次 renderer 等待。
+- 主题 target 白名单只包括 `app://ui/pages/browser/`、`app://chat-web/` 和 `https://chat.stepfun.com/subscription`。禁止注入 `flow-widget`、`popup-menu` 和其他辅助页面。
+- 顶部宿主页与聊天/会员内容页是独立 WebContents。连续背景依赖当前 Tab `46px` + 导航栏 `44px` 的 `90px` 偏移；阶跃更新若改变高度，必须重新测量 `innerHeight`、`.tab-bar`、`.navigation-bar` 和 `.content-area`，不能保留错误常量。
+- 聊天页 `body` 和 `#root.bg-bg-gold` 可能被运行时 Tailwind 样式重新设为深色。内容页透明规则必须带 `html[data-dream-stepfun-surface="content"]` 高优先级并同时清除 `background` 简写、`background-color` 和 `background-image`。
+- 宿主页两侧 fallback 背景需要保留在 `html` 本体，聊天/会员页只使用带 `-90px` 偏移的虚拟背景层。若两边纯色、上下重复或底部断层，应分别检查宿主页根背景、内容页伪元素尺寸和根容器透明度。
+- 新 Tab 和会员页创建新 target，必须由 watcher 补注入。单个 target 在遍历时销毁不能中断整轮同步。
+- 各聊天 WebContents 的 `localStorage` 可能隔离。全局主题与还原以本机 `/app-state/stepfun` 和 `actionAt` 为准；旧状态不能覆盖较新的用户操作。
+- 会员页 CSS module hash 可能更新。维护时优先匹配 `subscription-modal_root` / `subscription-modal_footer` 的稳定模块前缀，不写死完整 hash。
+- 阶跃更新后优先回归：首次托盘启动、动态端口、普通新 Tab、会员 Tab、激活 Tab/导航栏、侧栏、聊天根层、连续背景、浮动菜单唯一性以及多 Tab 原生深色还原。
+
+#### SparkDesk 多 WebContents、设置目标与深浅控件
+
+- 主题 target 白名单只包括宿主 `index.html`、聊天/新建任务 `#desk` 和真正设置页 `#settings`。账号弹窗 `#settings-panel?contentType=settings`、悬浮球、快捷助手、历史和上传目标必须排除。
+- 宿主页与内容页是独立 WebContents。连续背景依赖当前 Tab/导航合计 `80px`；星火更新若改变标题栏高度，必须重新测量主壳与内容 viewport，不能保留错误偏移。
+- 星火根聊天容器可能重新引入原生渐变、`backdrop-filter: blur(25px)` 或白色大面积 surface。维护时必须同时检查 `background` 简写、`background-image`、`filter` 和 `backdrop-filter`。
+- 输入框左右操作区和功能按钮使用 CSS Modules 前缀。优先匹配 `ask_operate_wrap`、`chat_func_wrap`、`right_operate_wrap`、`deep_think_switch`、`open_upload_btn`、`screen_shot_icon`、`voice_input` 和 `send`，避免依赖完整 hash。
+- 控件前景必须由主题 `surface` 亮度决定：深色 surface 配亮色 text/SVG stroke，亮色 surface 配深色前景。只改子按钮、不改 `right_operate_wrap` 父背景会留下白色底层。
+- 星火设置页的用户资料卡和编辑资料按钮原生使用纯白背景。深色主题必须同时映射卡片 surface 和文字，而不是只改文字；菜单图标图片在深色主题下需要亮色滤镜。
+- SparkDesk watcher 使用 `/app-state/sparkdesk`、generation 和写入前状态确认处理新 Tab 与还原竞态。还原时保留延迟后的幂等二次清理，防止在途 watcher 重新创建样式。
+- 星火更新后优先回归：宿主背景、Tab/导航、已有/新建聊天、真正的星火设置、账号弹窗排除、模型切换、四个右侧按钮、深浅主题矩阵、菜单唯一性和多目标还原。
+
 #### 视觉验收
 
 通用 Work 类适配目前重点保证：
@@ -1351,12 +1505,12 @@ HanaAgent 的 renderer 会在启动和部分界面切换期间被替换。维护
 
 | 文件 | 职责 |
 |------|------|
-| `electron/manager/app-registry.ts` | 14 款应用的三平台发现候选、启动、端口、类型、路径限定进程管理和默认主题兼容注册 |
+| `electron/manager/app-registry.ts` | 16 款应用的三平台发现候选、启动、端口、类型、路径限定进程管理和默认主题兼容注册 |
 | `electron/manager/discovery.ts` | 扫描 Windows 安装目录/版本目录/Codex Appx、macOS bundle 和 Linux desktop/executable |
-| `electron/manager/launcher.ts` | 结束旧进程、跨平台启动、真实 bind 探测与动态端口回退、等待首选端口或 `DevToolsActivePort` CDP，并处理 HanaAgent/Kimi renderer 稳定、Kimi Windows 父进程限制、OpenCode/豆包/AstronClaw 路径限定进程管理以及 AgnesCode Playwright CDP、fuse wire 和原生标题栏补丁 |
+| `electron/manager/launcher.ts` | 结束旧进程、跨平台启动、真实 bind 探测与动态端口回退、等待首选端口或 `DevToolsActivePort` CDP，并处理 HanaAgent/Kimi renderer 稳定、Kimi Windows 父进程限制、StepFun 托盘后二次激活、OpenCode/豆包/AstronClaw/StepFun 路径限定进程管理以及 AgnesCode Playwright CDP、fuse wire 和原生标题栏补丁 |
 | `electron/manager/cdp.ts` | target 发现、WebSocket 会话和 Runtime.evaluate |
-| `electron/manager/injector.ts` | 主题 CSS 生成、target 筛选、菜单、自定义图片、HanaAgent/Kimi/豆包守护、OpenCode/豆包/AgnesCode/MiniMax Code/AstronClaw 专属 CSS 和原生深浅模式还原 |
-| `electron/manager/custom-theme-store.ts` | 自定义图片集中存储、校验和本机共享同步服务 |
+| `electron/manager/injector.ts` | 主题 CSS 生成、target 筛选、菜单、自定义图片、HanaAgent/Kimi/豆包/StepFun/SparkDesk 守护、OpenCode/豆包/AgnesCode/MiniMax Code/AstronClaw/StepFun/SparkDesk 专属 CSS 和原生深浅模式还原 |
+| `electron/manager/custom-theme-store.ts` | 自定义图片集中存储、校验、本机共享同步服务和 StepFun/SparkDesk 跨 WebContents `/app-state` 状态端点 |
 | `app.getPath('userData')/theme-usage.json` | 各应用预置主题的切换次数和最近使用时间，用于生成四个快捷主题 |
 | `electron/manager/theme-store.ts` | 主题扫描、校验和按应用兼容性过滤 |
 | `renderer/App.tsx` | 应用选择、真实端口记录、应用和还原流程 |
@@ -1369,14 +1523,14 @@ HanaAgent 的 renderer 会在启动和部分界面切换期间被替换。维护
 
 | 早期计划 | 当前实现 |
 |----------|----------|
-| 默认 12 套主题 | 当前源码包含 264 份主题 manifest，运行时按内容去重 |
-| 支持至少 5 款主流应用 | 当前注册 14 款应用 |
-| 所有应用使用固定端口 | QoderWork、千问办公和 OpenCode 使用 `DevToolsActivePort`；普通首选端口启动前真实 bind，不可绑定时自动顺延并回传实际端口 |
-| 每款应用单独 profile 文件 | 使用集中式 `app-registry.ts` + 4 类注册类型，并为 HanaAgent、Kimi、OpenCode、豆包、AgnesCode、MiniMax Code、AstronClaw 增加专属 CSS/生命周期分支 |
+| 默认 12 套主题 | 当前源码包含 295 份主题 manifest，运行时按内容去重 |
+| 支持至少 5 款主流应用 | 当前注册 16 款应用 |
+| 所有应用使用固定端口 | QoderWork、千问办公、OpenCode 和 StepFun 使用 `DevToolsActivePort`；SparkDesk 使用固定 `9354`；普通首选端口启动前真实 bind，不可绑定时自动顺延并回传实际端口 |
+| 每款应用单独 profile 文件 | 使用集中式 `app-registry.ts` + 4 类注册类型，并为 HanaAgent、Kimi、OpenCode、豆包、AgnesCode、MiniMax Code、AstronClaw、StepFun、SparkDesk 增加专属 CSS/生命周期分支 |
 | 主题背景可统一铺 body | WorkBuddy/Codex/其他应用均根据主体 DOM 放置图片，避免侧栏和外壳错误铺图 |
 | 通用菜单挂到 body | 非 WorkBuddy 菜单使用 Shadow DOM host 和重挂载守护 |
 | 需调研 ZCode、千问办公、CatPaw | 已完成 Windows 实机 Electron、CDP、URL 和 DOM 探测 |
-| renderer target 启动后保持不变 | HanaAgent 需要稳定 target；Kimi 同时维护 Work/Chat 双 target；豆包导航会重载主 renderer；三者均由持久脚本或主进程 watcher 维护 |
+| renderer target 启动后保持不变 | HanaAgent 需要稳定 target；Kimi 同时维护 Work/Chat 双 target；豆包导航会重载主 renderer；StepFun 维护宿主、聊天 Tab 和会员页；SparkDesk 维护宿主、聊天 Tab 和设置页；均由持久脚本或主进程 watcher 维护 |
 | 所有目标应用都是标准 Electron | 豆包是定制 Chromium 应用，但仍可通过 CDP 使用统一主题注入链路 |
 | 不修改任何目标应用安装文件 | 仍是默认原则；Windows AgnesCode 的原生 Window Controls Overlay 是唯一例外，需要备份 EXE/ASAR 片段、关闭单个完整性 fuse 并等长替换标题栏颜色代码 |
 | 每个主题列出全部兼容应用 | 应用注册表提供 `acceptsGenericThemes` 默认值，manifest 只记录显式例外和布局 |
