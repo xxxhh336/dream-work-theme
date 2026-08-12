@@ -12,6 +12,10 @@ on:
         description: 'Stable release tag such as v0.1.2. Leave empty to update nightly. Select main under Use workflow from.'
         required: false
         type: string
+      backfill_nightly_tag:
+        description: 'Copy an existing stable release such as v0.1.8 into Nightly without rebuilding. Leave release_tag empty.'
+        required: false
+        type: string
 
 permissions:
   actions: read
@@ -24,6 +28,7 @@ concurrency:
 jobs:
   build-windows:
     name: Windows x64
+    if: github.event_name != 'workflow_dispatch' || inputs.backfill_nightly_tag == ''
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
@@ -59,6 +64,7 @@ jobs:
 
   build-linux:
     name: Linux x64
+    if: github.event_name != 'workflow_dispatch' || inputs.backfill_nightly_tag == ''
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -94,6 +100,7 @@ jobs:
 
   build-macos:
     name: macOS ${{ matrix.arch }}
+    if: github.event_name != 'workflow_dispatch' || inputs.backfill_nightly_tag == ''
     strategy:
       fail-fast: false
       matrix:
@@ -142,6 +149,7 @@ jobs:
 
   release:
     name: Publish GitHub Release
+    if: github.event_name != 'workflow_dispatch' || inputs.backfill_nightly_tag == ''
     needs:
       - build-windows
       - build-linux
@@ -246,3 +254,62 @@ jobs:
           RELEASE_TAG: ${{ steps.metadata.outputs.tag }}
         shell: bash
         run: gh release upload "$RELEASE_TAG" release-assets/* --clobber
+
+  backfill-nightly:
+    name: Backfill Nightly from stable release
+    if: github.event_name == 'workflow_dispatch' && inputs.backfill_nightly_tag != ''
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SOURCE_TAG: ${{ inputs.backfill_nightly_tag }}
+      RELEASE_TAG: ${{ inputs.release_tag }}
+    steps:
+      - name: Validate backfill request
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "$RELEASE_TAG" ]]; then
+            echo "release_tag and backfill_nightly_tag cannot be used together." >&2
+            exit 1
+          fi
+          if [[ ! "$SOURCE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]; then
+            echo "backfill_nightly_tag must be a stable version tag such as v0.1.8." >&2
+            exit 1
+          fi
+          gh release view "$SOURCE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null
+      - name: Download stable release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p backfill-assets
+          gh release download "$SOURCE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --dir backfill-assets
+          mapfile -d '' assets < <(find backfill-assets -maxdepth 1 -type f -print0)
+          if (( ${#assets[@]} == 0 )); then
+            echo "Stable release $SOURCE_TAG has no downloadable assets." >&2
+            exit 1
+          fi
+          printf 'Backfilling %d assets from %s:\n' "${#assets[@]}" "$SOURCE_TAG"
+          printf '  %s\n' "${assets[@]}"
+      - name: Ensure Nightly release exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! gh release view nightly --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create nightly \
+              --repo "$GITHUB_REPOSITORY" \
+              --target main \
+              --title "Nightly Build" \
+              --notes "Rolling development builds and backfilled historical assets." \
+              --prerelease
+          fi
+      - name: Upload assets to Nightly
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -d '' assets < <(find backfill-assets -maxdepth 1 -type f -print0)
+          gh release upload nightly \
+            --repo "$GITHUB_REPOSITORY" \
+            "${assets[@]}" \
+            --clobber
