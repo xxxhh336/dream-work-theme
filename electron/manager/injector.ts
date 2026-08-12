@@ -1,7 +1,8 @@
 import { readFile } from 'fs/promises';
+import * as fs from 'fs';
 import * as path from 'path';
 import { CdpSession, fetchRendererTargets, waitForRendererTargets, isAnyPageTarget } from './cdp';
-import { getThemeHeroDataUrl, listThemes } from './theme-store';
+import { getThemeHeroDataUrl, listThemes, type ThemeEntry } from './theme-store';
 import { getAppDefinition } from './app-registry';
 import { deleteSharedCustomTheme, ensureSharedCustomThemeService, listSharedCustomThemes, mergeSharedCustomThemes, recordThemeUsage, selectQuickThemeIds } from './custom-theme-store';
 
@@ -121,7 +122,7 @@ export async function applyTheme(
     for (const theme of menuThemeEntries) {
       themeEntries.set(theme.id, {
         name: theme.name,
-        css: buildAppCss(appId, theme.manifest, getThemeHeroDataUrl(theme)),
+        css: buildAppCss(appId, theme.manifest, getThemeHeroDataUrl(theme)) + readThemeCss(theme),
         surface: theme.manifest.colors.surface,
       });
     }
@@ -997,6 +998,17 @@ export async function removeSkin(
 
   return { success: true };
 };
+
+function readThemeCss(theme: ThemeEntry): string {
+  try {
+    const cssPath = path.join(theme.path, 'theme.css');
+    if (!fs.existsSync(cssPath)) return '';
+    return '\n/* theme.css */\n' + fs.readFileSync(cssPath, 'utf-8');
+  } catch (error) {
+    console.warn(`[injector] Failed to read theme.css for ${theme.id}:`, error);
+    return '';
+  }
+}
 
 function buildAppCss(appId: string, manifest: any, heroDataUrl: string): string {
   const colors = {
@@ -3200,7 +3212,11 @@ export function buildMenuScript(options: {
     body: JSON.stringify({ appId, themeId }),
   }).catch(() => {});
   const themeBlobUrls = new Map();
+  // 部分应用(ZCode 等)以 file:// 协议加载页面,导航后 URL.createObjectURL
+  // 创建的 blob URL 会失效,导致 hero 背景图丢失;对其直接内嵌 data URL。
+  const useBlobUrl = appId !== 'zcode';
   const materializeCss = (css, cacheKey) => {
+    if (!useBlobUrl) return css;
     const dataUrl = css.match(new RegExp('data:image/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+'))?.[0];
     if (!dataUrl) return css;
     let blobUrl = themeBlobUrls.get(cacheKey);
