@@ -144,9 +144,10 @@ export async function applyTheme(
     const menuThemeEntries = quickThemeIds.map(id => themesById.get(id)).filter(Boolean) as typeof allThemes;
     const themeEntries = new Map<string, { name: string; css: string; surface: string }>();
     for (const theme of menuThemeEntries) {
+      const allowsAppCss = shouldInjectThemeCss(appId, theme);
       themeEntries.set(theme.id, {
         name: theme.name,
-        css: buildAppCss(appId, theme.manifest, getThemeHeroDataUrl(theme)) + (getAppDefinition(appId)?.kind === 'generic-work' ? readThemeCss(theme) : ''),
+        css: buildAppCss(appId, theme.manifest, getThemeHeroDataUrl(theme)) + (allowsAppCss ? readThemeCss(theme) : ''),
         surface: theme.manifest.colors.surface,
       });
     }
@@ -1318,6 +1319,11 @@ function readThemeCss(theme: ThemeEntry): string {
     console.warn(`[injector] Failed to read theme.css for ${theme.id}:`, error);
     return '';
   }
+}
+
+export function shouldInjectThemeCss(appId: string, theme: ThemeEntry): boolean {
+  return getAppDefinition(appId)?.kind === 'generic-work'
+    && theme.manifest.apps[appId]?.compat === true;
 }
 
 function buildAppCss(appId: string, manifest: any, heroDataUrl: string): string {
