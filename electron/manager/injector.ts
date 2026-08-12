@@ -122,7 +122,7 @@ export async function applyTheme(
     for (const theme of menuThemeEntries) {
       themeEntries.set(theme.id, {
         name: theme.name,
-        css: buildAppCss(appId, theme.manifest, getThemeHeroDataUrl(theme)) + readThemeCss(theme),
+        css: buildAppCss(appId, theme.manifest, getThemeHeroDataUrl(theme)) + (getAppDefinition(appId)?.kind === 'generic-work' ? readThemeCss(theme) : ''),
         surface: theme.manifest.colors.surface,
       });
     }
@@ -3212,9 +3212,9 @@ export function buildMenuScript(options: {
     body: JSON.stringify({ appId, themeId }),
   }).catch(() => {});
   const themeBlobUrls = new Map();
-  // 部分应用(ZCode 等)以 file:// 协议加载页面,导航后 URL.createObjectURL
-  // 创建的 blob URL 会失效,导致 hero 背景图丢失;对其直接内嵌 data URL。
-  const useBlobUrl = appId !== 'zcode';
+  // file:// 协议页面导航后 URL.createObjectURL 创建的 blob URL 会失效,
+  // 导致 hero 背景图丢失;直接在页面内按协议判断,内嵌 data URL。
+  const useBlobUrl = location.protocol !== 'file:';
   const materializeCss = (css, cacheKey) => {
     if (!useBlobUrl) return css;
     const dataUrl = css.match(new RegExp('data:image/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+'))?.[0];

@@ -76,15 +76,11 @@ if (launchArgs) {
           console.log(`[main] Starting theme injection for ${appId}:${themeId} on port ${result.port}`);
           const injectResult = await applyTheme(appId, themeId, result.port!);
           console.log(`[main] Injection result:`, injectResult);
-          // 注入已完成,皮肤已写入目标应用页面;CLI 启动场景下自动退出,不留 GUI 窗口
-          setTimeout(() => app.quit(), 1500);
         } else {
           console.error(`[main] Failed to launch ${appId}: ${result.error}`);
-          setTimeout(() => app.quit(), 1500);
         }
       } catch (e) {
         console.error('[main] Launch error:', e);
-        setTimeout(() => app.quit(), 1500);
       }
     }, 1000);
   }
