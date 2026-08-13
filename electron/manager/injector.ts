@@ -1590,6 +1590,8 @@ function buildGenericWorkCss(appId: string, manifest: any, heroDataUrl: string, 
                   ? buildStepFunCss(heroDataUrl, colors)
                   : appId === 'sparkdesk'
                     ? buildSparkDeskCss(heroDataUrl, colors)
+                    : appId === 'zcode'
+                      ? buildZCodeCss(heroDataUrl, colors)
       : '';
   if (appId === 'sparkdesk') {
     return `/* DREAM_THEME:${manifest.id} */\n${appSpecificCss}`;
@@ -1628,6 +1630,43 @@ ${appId === 'doubao' || appId === 'astronclaw' || appId === 'stepfun' ? '' : `:i
 :is(${main}) :where(p, span, li, h1, h2, h3, h4, strong, em) { color: ${colors.text} !important; }
 button[class*="bg-primary"], button[class*="bg-accent"] { background-color: ${colors.accent} !important; color: #fff !important; }
 ${appSpecificCss}`;
+}
+
+function buildZCodeCss(heroDataUrl: string, colors: any): string {
+  return `
+html,
+body,
+#root {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+html {
+  background-color: ${colors.surface} !important;
+}
+html::before {
+  content: "";
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: ${colors.surface};
+  background-image: url(${JSON.stringify(heroDataUrl)});
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+}
+body,
+#root {
+  position: relative;
+  z-index: 1;
+}
+:is(main, main > div, [class*="min-h-0"][class*="flex-1"]) {
+  background: linear-gradient(90deg, color-mix(in srgb, ${colors.surface} 82%, transparent) 0 12%, transparent 42%) !important;
+}
+`;
 }
 
 function buildSparkDeskCss(heroDataUrl: string, colors: any): string {
