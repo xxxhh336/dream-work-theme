@@ -1613,15 +1613,17 @@ function buildGenericWorkCss(appId: string, manifest: any, heroDataUrl: string, 
   --bg-base: color-mix(in srgb, ${colors.surface} 86%, transparent) !important;
 }
 html, body, #root { background: ${colors.surface} !important; color: ${colors.text} !important; }
-:is(${sidebar}) {
+${appId === 'zcode' ? '' : `:is(${sidebar}) {
   background: color-mix(in srgb, ${colors.surface} 90%, transparent) !important;
   color: ${colors.text} !important;
   backdrop-filter: blur(20px) saturate(108%);
-}
-:is(${main}) {
+}`}
+${appId === 'zcode' ? `:is(${main}) {
+  color: ${colors.text} !important;
+}` : `:is(${main}) {
   background: linear-gradient(90deg, color-mix(in srgb, ${colors.surface} 82%, transparent) 0 12%, transparent 42%), url(${JSON.stringify(heroDataUrl)}) center / cover no-repeat fixed !important;
   color: ${colors.text} !important;
-}
+}`}
 :is(${main}) :where([class*="message"], [class*="chat"], [class*="composer"], [class*="editor"], [contenteditable="true"], textarea) {
   color: ${colors.text} !important;
 }
@@ -1638,7 +1640,9 @@ function buildZCodeCss(heroDataUrl: string, colors: any): string {
   return `
 html,
 body,
-#root {
+#root,
+.bg-background-win-alt,
+section.bg-background {
   background: transparent !important;
   background-color: transparent !important;
   background-image: none !important;
@@ -1664,9 +1668,6 @@ body,
 #root {
   position: relative;
   z-index: 1;
-}
-:is(main, main > div, [class*="min-h-0"][class*="flex-1"]) {
-  background: linear-gradient(90deg, color-mix(in srgb, ${colors.surface} 82%, transparent) 0 12%, transparent 42%) !important;
 }
 `;
 }
