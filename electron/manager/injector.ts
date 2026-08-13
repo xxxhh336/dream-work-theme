@@ -1322,8 +1322,10 @@ function readThemeCss(theme: ThemeEntry): string {
 }
 
 export function shouldInjectThemeCss(appId: string, theme: ThemeEntry): boolean {
-  return getAppDefinition(appId)?.kind === 'generic-work'
-    && theme.manifest.apps[appId]?.compat === true;
+  const kind = getAppDefinition(appId)?.kind;
+  if (kind !== 'generic-work') return false;
+  const appCompat = theme.manifest.apps?.[appId]?.compat;
+  return appCompat !== false;
 }
 
 function buildAppCss(appId: string, manifest: any, heroDataUrl: string): string {
@@ -1621,7 +1623,7 @@ html, body, #root { background: ${colors.surface} !important; color: ${colors.te
 :is(${main}) :where([class*="message"], [class*="chat"], [class*="composer"], [class*="editor"], [contenteditable="true"], textarea) {
   color: ${colors.text} !important;
 }
-${appId === 'doubao' || appId === 'astronclaw' || appId === 'stepfun' ? '' : `:is(${main}) :where([class*="message"], [class*="bubble"], [class*="composer"], [class*="input-container"]) {
+${appId === 'doubao' || appId === 'astronclaw' || appId === 'stepfun' || appId === 'zcode' ? '' : `:is(${main}) :where([class*="message"], [class*="bubble"], [class*="composer"], [class*="input-container"]) {
   background-color: color-mix(in srgb, ${colors.surface} 88%, transparent) !important;
   backdrop-filter: blur(16px) saturate(108%);
 }`}
