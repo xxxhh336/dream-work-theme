@@ -1,6 +1,6 @@
 {
   "name": "dream-work-theme",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
   "author": "Dream Work Theme",
   "description": "适用于 Electron Work 应用的跨平台主题切换器（如 WorkBuddy、TRAE Work 等）。Cross-platform theme switcher for Electron work apps (WorkBuddy, TRAE Work, etc.).",
