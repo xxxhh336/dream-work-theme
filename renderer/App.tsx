@@ -27,6 +27,7 @@ const APP_PORTS: Record<string, number> = {
   astronclaw: 9352,
   stepfun: 9353,
   sparkdesk: 9354,
+  'deepseek-harness': 9355,
 };
 
 interface ThemeInfo {

@@ -13,5 +13,6 @@ export function getAppInitials(appId: string, name: string): string {
   if (appId === 'astronclaw') return 'XF';
   if (appId === 'sparkdesk') return 'SD';
   if (appId === 'stepfun') return 'SF';
+  if (appId === 'deepseek-harness') return 'DS';
   return name.slice(0, 2).toUpperCase();
 }
