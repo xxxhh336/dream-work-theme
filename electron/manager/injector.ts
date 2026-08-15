@@ -1561,6 +1561,7 @@ function buildGenericWorkCss(appId: string, manifest: any, heroDataUrl: string, 
     astronclaw: '.local-chat-shell, .local-chat-main, [class*="local-chat-content"]',
     stepfun: '#root',
     sparkdesk: '.app-container',
+    'deepseek-harness': '[class*="_centerCol"]',
   };
   const sidebarSelectors: Record<string, string> = {
     'qoder-work': '[class*="sidebar"]',
@@ -1592,8 +1593,10 @@ function buildGenericWorkCss(appId: string, manifest: any, heroDataUrl: string, 
                   ? buildStepFunCss(heroDataUrl, colors)
                   : appId === 'sparkdesk'
                     ? buildSparkDeskCss(heroDataUrl, colors)
-                    : appId === 'zcode'
-                      ? buildZCodeCss(heroDataUrl, colors)
+                    : appId === 'deepseek-harness'
+                      ? buildDeepSeekHarnessCss(heroDataUrl, colors)
+                      : appId === 'zcode'
+                        ? buildZCodeCss(heroDataUrl, colors)
       : '';
   if (appId === 'sparkdesk') {
     return `/* DREAM_THEME:${manifest.id} */\n${appSpecificCss}`;
@@ -1613,7 +1616,7 @@ function buildGenericWorkCss(appId: string, manifest: any, heroDataUrl: string, 
   --bg-base: color-mix(in srgb, ${colors.surface} 86%, transparent) !important;
 }
 html, body, #root { background: ${colors.surface} !important; color: ${colors.text} !important; }
-${appId === 'zcode' ? '' : `:is(${sidebar}) {
+${appId === 'zcode' || appId === 'deepseek-harness' ? '' : `:is(${sidebar}) {
   background: color-mix(in srgb, ${colors.surface} 90%, transparent) !important;
   color: ${colors.text} !important;
   backdrop-filter: blur(20px) saturate(108%);
@@ -1627,13 +1630,68 @@ ${appId === 'zcode' ? `:is(${main}) {
 :is(${main}) :where([class*="message"], [class*="chat"], [class*="composer"], [class*="editor"], [contenteditable="true"], textarea) {
   color: ${colors.text} !important;
 }
-${appId === 'doubao' || appId === 'astronclaw' || appId === 'stepfun' || appId === 'zcode' ? '' : `:is(${main}) :where([class*="message"], [class*="bubble"], [class*="composer"], [class*="input-container"]) {
+${appId === 'doubao' || appId === 'astronclaw' || appId === 'stepfun' || appId === 'zcode' || appId === 'deepseek-harness' ? '' : `:is(${main}) :where([class*="message"], [class*="bubble"], [class*="composer"], [class*="input-container"]) {
   background-color: color-mix(in srgb, ${colors.surface} 88%, transparent) !important;
   backdrop-filter: blur(16px) saturate(108%);
 }`}
 :is(${main}) :where(p, span, li, h1, h2, h3, h4, strong, em) { color: ${colors.text} !important; }
 button[class*="bg-primary"], button[class*="bg-accent"] { background-color: ${colors.accent} !important; color: #fff !important; }
 ${appSpecificCss}`;
+}
+
+function buildDeepSeekHarnessCss(heroDataUrl: string, colors: any): string {
+  return `
+html {
+  background-color: ${colors.surface} !important;
+  background-image: none !important;
+}
+html::before {
+  content: "";
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: ${colors.surface};
+  background-image: url(${JSON.stringify(heroDataUrl)});
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+}
+body,
+#root,
+#root > [data-slot="root"] > div,
+[class*="_centerCol"],
+[class*="_centerCol"] > [data-slot] > div,
+[data-slot="main"] > div {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+[class*="_sidebarCol"],
+[class*="_composerSeat"],
+[class*="_composerStack"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+body,
+#root {
+  position: relative;
+  z-index: 1;
+}
+[class*="_centerCol"] :where(
+  [class*="_composer"],
+  [class*="_input"],
+  [class*="_message"],
+  [class*="_card"]
+) {
+  border-color: color-mix(in srgb, ${colors.accent} 24%, transparent) !important;
+}
+`;
 }
 
 function buildZCodeCss(heroDataUrl: string, colors: any): string {
@@ -4069,6 +4127,7 @@ export function buildMenuScript(options: {
       body.classList.toggle(cls, dark ? isDarkCls : !isDarkCls);
       html.classList.toggle(cls, dark ? isDarkCls : !isDarkCls);
     });
+    if (appId === 'deepseek-harness') body.toggleAttribute('data-ds-dark-theme', dark);
   };
   if (!window[nativeModeKey]) {
     const html = document.documentElement;
@@ -4079,6 +4138,7 @@ export function buildMenuScript(options: {
       colorScheme: html.style.colorScheme,
       bodyThemeKind: body.dataset.vscodeThemeKind,
       bodyThemeName: body.dataset.vscodeThemeName,
+      deepSeekDarkTheme: appId === 'deepseek-harness' ? body.hasAttribute('data-ds-dark-theme') : undefined,
       stepFunTheme: appId === 'stepfun' ? localStorage.getItem('theme') : null,
     };
   }
@@ -4127,6 +4187,7 @@ export function buildMenuScript(options: {
       else body.dataset.vscodeThemeKind = nativeMode.bodyThemeKind;
       if (nativeMode.bodyThemeName === undefined) delete body.dataset.vscodeThemeName;
       else body.dataset.vscodeThemeName = nativeMode.bodyThemeName;
+      if (appId === 'deepseek-harness') body.toggleAttribute('data-ds-dark-theme', Boolean(nativeMode.deepSeekDarkTheme));
     }
     delete html.dataset.dreamShell;
   };

@@ -60,6 +60,8 @@ Dream Work Theme 是面向 Electron Work 类桌面应用的主题管理器。它
 
 ![Dream Work Theme 界面预览](preview17.png)
 
+![Dream Work Theme 界面预览](preview18.png)
+
 </details>
 
 ## 支持应用
@@ -81,9 +83,10 @@ Dream Work Theme 是面向 Electron Work 类桌面应用的主题管理器。它
 - AstronClaw（讯飞星辰）
 - SparkDesk（讯飞星火）
 - StepFun（阶跃 AI）
+- DeepSeek Harness（基于 [anywhere-labs/deepseek-harness-desktop](https://github.com/anywhere-labs/deepseek-harness-desktop) 构建）
 - Codex / ChatGPT Desktop
 
-部分应用使用首选调试端口；QoderWork、千问办公、OpenCode Desktop 和阶跃 AI 通过 `DevToolsActivePort` 获取运行时端口。HanaAgent 首选 `9346`，Kimi Work 首选 `9347`，豆包 Desktop 首选 `9349`，AgnesCode 使用 `9350`，MiniMax Code 首选 `9351`，AstronClaw 首选 `9352`，阶跃 AI 配置首选 `9353`，讯飞星火使用 `9354`。阶跃客户端会写入并使用自己的动态端口；星火接受固定 `--remote-debugging-port=9354`。启动前会通过真实 TCP bind 检查端口；若首选端口被占用或处于 Windows 幽灵监听状态，普通应用会自动顺延到可用端口，并把真实端口用于后续注入、状态查询和还原。Dream Work Theme 也会等待易重建的 renderer 稳定，并在运行期间自动恢复丢失的主题。
+部分应用使用首选调试端口；QoderWork、千问办公、OpenCode Desktop 和阶跃 AI 通过 `DevToolsActivePort` 获取运行时端口。HanaAgent 首选 `9346`，Kimi Work 首选 `9347`，豆包 Desktop 首选 `9349`，AgnesCode 使用 `9350`，MiniMax Code 首选 `9351`，AstronClaw 首选 `9352`，阶跃 AI 配置首选 `9353`，讯飞星火使用 `9354`，DeepSeek Harness 首选 `9355`。阶跃客户端会写入并使用自己的动态端口；星火接受固定 `--remote-debugging-port=9354`。启动前会通过真实 TCP bind 检查端口；若首选端口被占用或处于 Windows 幽灵监听状态，普通应用会自动顺延到可用端口，并把真实端口用于后续注入、状态查询和还原。Dream Work Theme 也会等待易重建的 renderer 稳定，并在运行期间自动恢复丢失的主题。
 
 AgnesCode 正式版会主动移除普通的 `--remote-debugging-port` 参数。Dream Work Theme 通过 AgnesCode 内置的 Playwright 调试入口开启 CDP，并显式保留正式安装包中的 `resources/bin/agnesd.exe` 后端路径。该调试入口会让 AgnesCode 将当前会话标记为开发模式，因此其日志中可能出现不影响主题和聊天功能的更新配置检查错误。
 
@@ -141,6 +144,8 @@ pnpm run dev
 ```
 
 正常桌面开发应优先使用 `electron:dev`。`dev` 使用 vite-plugin-electron 的默认生命周期。
+
+Electron 主进程和 preload 的 Vite 输出统一写入项目根目录 `dist-electron/`，与 `package.json.main` 保持一致。修改 `electron/manager/` 后，开发模式会重建并重启 Electron 主进程，不再使用 `renderer/dist-electron/` 中的旧副本。
 
 其他检查命令：
 
@@ -262,6 +267,17 @@ Vite 的 CJS API deprecation 当前只是警告，不会导致构建失败。
 - 顶部宿主页与下方内容页使用统一的虚拟整窗背景坐标。Tab 和导航栏总高度为 `90px`；聊天/会员内容背景层向上偏移 `90px`，避免不同 WebContents 各自执行 `cover` 后出现图片重复或断层。
 - 多 Tab 的主题与还原状态由 Dream Work Theme 主进程本机状态服务和 StepFun watcher 统一收敛。还原后聊天页、其他 Tab、顶部标签栏和导航栏会一起恢复阶跃原生深色模式，不残留透明背景或主题文字样式。
 - 阶跃 AI 适配只使用启动参数、CDP 和运行时 CSS/JavaScript 注入，不修改安装目录。
+
+### DeepSeek Harness 说明
+
+- 本项目适配的是由 [anywhere-labs/deepseek-harness-desktop](https://github.com/anywhere-labs/deepseek-harness-desktop) 仓库构建的 DeepSeek Harness 桌面端，不代表所有名称相近的 DeepSeek 客户端都兼容。
+- Windows 实机验证版本为 `0.1.0-rc.5`，安装路径为 `D:\Program Files\DeepSeek Harness\DeepSeek Harness.exe`，用户数据目录为 `%APPDATA%\@deepseek-ai\dsh-desktop`，首选 CDP 端口为 `9355`。
+- 主 renderer 由桌面壳本地 Web 服务提供，URL 形如 `http://127.0.0.1:<动态 Web 端口>/?dsh-desktop-platform=win32`。Dream Work Theme 使用 `dsh-desktop-platform=` 作为目标特征，只向主页面注入。
+- `buildDeepSeekHarnessCss()` 将主题 hero 挂载到固定 `html::before` 背景层，并透明化 `#root`、中央内容列和其主内容根节点，使背景图覆盖侧栏与主体。
+- DeepSeek 专属规则跳过通用侧栏及消息/输入区毛玻璃。侧栏、`composerSeat` 和 `composerStack` 保持透明无滤镜，实际输入卡片保留原生局部背景以保证文字和控件可读。
+- 移除侧栏祖先的 `backdrop-filter` 也避免它创建 fixed containing block；设置遮罩保持全窗口尺寸，`800px` 设置面板正常居中，不会被限制在 `280px` 侧栏内。
+- DeepSeek 的原生明暗 palette 由 `body[data-ds-dark-theme]` 控制，而不是普通 `.dark` class。切换主题时会根据 manifest `surface` 亮度同步该属性，使 `--dsw-*` 文字、按钮、输入框和弹窗 token 一起切换；还原主题时恢复用户原先的 DeepSeek 明暗状态。
+- 该适配只使用启动参数、CDP 和运行时 CSS/JavaScript 注入，不修改 DeepSeek Harness 的安装文件。
 
 ## 主题存储
 
@@ -452,7 +468,8 @@ dream-work-theme/
 - Kimi Work 的 Work/Chat renderer 和页面 DOM 可能随客户端或网站更新变化，需要同步维护 URL hint 与透明层选择器。
 - 阶跃 AI 使用多个独立 WebContents，并依赖 `app://chat-web/`、`app://ui/pages/browser/` 和会员订阅 URL。客户端更新若改变顶部 `90px` 布局、Tab/导航类名或订阅页模块类名，需要重新校准连续背景和透明层。
 - 讯飞星火使用 `index.html`、`#desk` 和 `#settings` 多个 WebContents，并依赖当前 Tab/导航总高度 `80px`。客户端更新若改变 URL、标题栏高度、输入区 CSS Modules 类名前缀或设置页结构，需要重新校准 target 白名单、连续背景和深浅色控件规则。
-- TRAE Work、QoderWork、CatPaw、ZCode、千问办公、阶跃 AI 和讯飞星火的 macOS/Linux 注册表候选尚缺对应平台安装样本验证；实际产品若未发布该平台版本则无法发现。
+- DeepSeek Harness 当前依赖 `dsh-desktop-platform=` URL 参数、CSS Modules 的 `_centerCol` / `_sidebarCol` / `_composerSeat` / `_composerStack` 结构，以及 `body[data-ds-dark-theme]` palette 属性。上游桌面端更新这些约定时需要重新校准目标识别、透明层、设置浮层和明暗同步。
+- TRAE Work、QoderWork、CatPaw、ZCode、千问办公、阶跃 AI、讯飞星火和 DeepSeek Harness 的 macOS/Linux 注册表候选尚缺对应平台安装样本验证；实际产品若未发布该平台版本则无法发现。
 - 未签名的 Windows/macOS 发布包可能触发系统安全提示。
 - Windows 当前关闭了 EXE 元数据编辑，因此可能显示 Electron 默认图标和文件信息。
 - 大量内置主题会显著增加安装包大小、构建时间和磁盘需求。
@@ -462,6 +479,7 @@ dream-work-theme/
 - https://github.com/freestylefly/codex-themes
 - https://github.com/Fei-Away/Codex-Dream-Skin
 - https://github.com/shaozhengmao/workbuddy-dream-theme
+- https://github.com/anywhere-labs/deepseek-harness-desktop
 
 ## AI辅助
 

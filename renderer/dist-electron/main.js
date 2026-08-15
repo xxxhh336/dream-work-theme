@@ -260,6 +260,20 @@ const APP_DEFINITIONS = [
     acceptsGenericThemes: true,
     darwin: { appBundles: ["StepFun.app"], executableNames: ["StepFun"] },
     linux: { executableNames: ["stepfun", "StepFun"], desktopFiles: ["stepfun.desktop"] }
+  },
+  {
+    id: "deepseek-harness",
+    name: "DeepSeek Harness",
+    exeNames: ["DeepSeek Harness.exe"],
+    processName: "DeepSeek Harness.exe",
+    defaultPort: 9355,
+    installPaths: ["D:\\Program Files\\DeepSeek Harness", path__namespace.join(localAppData, "Programs", "DeepSeek Harness"), path__namespace.join(programFiles, "DeepSeek Harness"), path__namespace.join(programFilesX86, "DeepSeek Harness")],
+    rendererHints: ["dsh-desktop-platform="],
+    kind: "generic-work",
+    windowsPathScopedKill: true,
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ["DeepSeek Harness.app"], executableNames: ["DeepSeek Harness"] },
+    linux: { executableNames: ["deepseek-harness", "DeepSeek Harness"], desktopFiles: ["deepseek-harness.desktop"] }
   }
 ];
 function getAppDefinition(appId) {
@@ -1862,9 +1876,10 @@ async function applyTheme(appId, themeId, port, options = {}) {
     const menuThemeEntries = quickThemeIds.map((id) => themesById.get(id)).filter(Boolean);
     const themeEntries = /* @__PURE__ */ new Map();
     for (const theme of menuThemeEntries) {
+      const allowsAppCss = shouldInjectThemeCss(appId, theme);
       themeEntries.set(theme.id, {
         name: theme.name,
-        css: buildAppCss(appId, theme.manifest, getThemeHeroDataUrl(theme)),
+        css: buildAppCss(appId, theme.manifest, getThemeHeroDataUrl(theme)) + (allowsAppCss ? readThemeCss(theme) : ""),
         surface: theme.manifest.colors.surface
       });
     }
@@ -2962,6 +2977,23 @@ async function removeSkin(appId, port, options = {}) {
   }
   return { success: true };
 }
+function readThemeCss(theme) {
+  try {
+    const cssPath = path__namespace.join(theme.path, "theme.css");
+    if (!fs__namespace.existsSync(cssPath)) return "";
+    return "\n/* theme.css */\n" + fs__namespace.readFileSync(cssPath, "utf-8");
+  } catch (error) {
+    console.warn(`[injector] Failed to read theme.css for ${theme.id}:`, error);
+    return "";
+  }
+}
+function shouldInjectThemeCss(appId, theme) {
+  var _a, _b, _c;
+  const kind = (_a = getAppDefinition(appId)) == null ? void 0 : _a.kind;
+  if (kind !== "generic-work") return false;
+  const appCompat = (_c = (_b = theme.manifest.apps) == null ? void 0 : _b[appId]) == null ? void 0 : _c.compat;
+  return appCompat !== false;
+}
 function buildAppCss(appId, manifest, heroDataUrl) {
   var _a, _b, _c, _d;
   const colors = {
@@ -3189,7 +3221,8 @@ function buildGenericWorkCss(appId, manifest, heroDataUrl, colors) {
     "minimax-code": ":not(*)",
     astronclaw: '.local-chat-shell, .local-chat-main, [class*="local-chat-content"]',
     stepfun: "#root",
-    sparkdesk: ".app-container"
+    sparkdesk: ".app-container",
+    "deepseek-harness": '[class*="_centerCol"]'
   };
   const sidebarSelectors = {
     "qoder-work": '[class*="sidebar"]',
@@ -3203,7 +3236,7 @@ function buildGenericWorkCss(appId, manifest, heroDataUrl, colors) {
   };
   const main = mainSelectors[appId] ?? 'main, [role="main"], [class*="main-content"]';
   const sidebar = sidebarSelectors[appId] ?? 'aside, nav, [class*="sidebar"]';
-  const appSpecificCss = appId === "qoder-work" ? buildQoderWorkShellCss(colors) : appId === "catpaw" ? buildCatPawCss(heroDataUrl, colors) : appId === "opencode" ? buildOpenCodeCss(colors) : appId === "doubao" ? buildDoubaoCss(colors) : appId === "agnes-code" ? buildAgnesCodeCss(heroDataUrl, colors) : appId === "minimax-code" ? buildMiniMaxCodeCss(heroDataUrl, colors) : appId === "astronclaw" ? buildAstronClawCss(heroDataUrl, colors) : appId === "stepfun" ? buildStepFunCss(heroDataUrl, colors) : appId === "sparkdesk" ? buildSparkDeskCss(heroDataUrl, colors) : "";
+  const appSpecificCss = appId === "qoder-work" ? buildQoderWorkShellCss(colors) : appId === "catpaw" ? buildCatPawCss(heroDataUrl, colors) : appId === "opencode" ? buildOpenCodeCss(colors) : appId === "doubao" ? buildDoubaoCss(colors) : appId === "agnes-code" ? buildAgnesCodeCss(heroDataUrl, colors) : appId === "minimax-code" ? buildMiniMaxCodeCss(heroDataUrl, colors) : appId === "astronclaw" ? buildAstronClawCss(heroDataUrl, colors) : appId === "stepfun" ? buildStepFunCss(heroDataUrl, colors) : appId === "sparkdesk" ? buildSparkDeskCss(heroDataUrl, colors) : appId === "deepseek-harness" ? buildDeepSeekHarnessCss(heroDataUrl, colors) : appId === "zcode" ? buildZCodeCss(heroDataUrl, colors) : "";
   if (appId === "sparkdesk") {
     return `/* DREAM_THEME:${manifest.id} */
 ${appSpecificCss}`;
@@ -3223,25 +3256,107 @@ ${appSpecificCss}`;
   --bg-base: color-mix(in srgb, ${colors.surface} 86%, transparent) !important;
 }
 html, body, #root { background: ${colors.surface} !important; color: ${colors.text} !important; }
-:is(${sidebar}) {
+${appId === "zcode" ? "" : `:is(${sidebar}) {
   background: color-mix(in srgb, ${colors.surface} 90%, transparent) !important;
   color: ${colors.text} !important;
   backdrop-filter: blur(20px) saturate(108%);
-}
-:is(${main}) {
+}`}
+${appId === "zcode" ? `:is(${main}) {
+  color: ${colors.text} !important;
+}` : `:is(${main}) {
   background: linear-gradient(90deg, color-mix(in srgb, ${colors.surface} 82%, transparent) 0 12%, transparent 42%), url(${JSON.stringify(heroDataUrl)}) center / cover no-repeat fixed !important;
   color: ${colors.text} !important;
-}
+}`}
 :is(${main}) :where([class*="message"], [class*="chat"], [class*="composer"], [class*="editor"], [contenteditable="true"], textarea) {
   color: ${colors.text} !important;
 }
-${appId === "doubao" || appId === "astronclaw" || appId === "stepfun" ? "" : `:is(${main}) :where([class*="message"], [class*="bubble"], [class*="composer"], [class*="input-container"]) {
+${appId === "doubao" || appId === "astronclaw" || appId === "stepfun" || appId === "zcode" ? "" : `:is(${main}) :where([class*="message"], [class*="bubble"], [class*="composer"], [class*="input-container"]) {
   background-color: color-mix(in srgb, ${colors.surface} 88%, transparent) !important;
   backdrop-filter: blur(16px) saturate(108%);
 }`}
 :is(${main}) :where(p, span, li, h1, h2, h3, h4, strong, em) { color: ${colors.text} !important; }
 button[class*="bg-primary"], button[class*="bg-accent"] { background-color: ${colors.accent} !important; color: #fff !important; }
 ${appSpecificCss}`;
+}
+function buildDeepSeekHarnessCss(heroDataUrl, colors) {
+  return `
+html {
+  background-color: ${colors.surface} !important;
+  background-image: none !important;
+}
+html::before {
+  content: "";
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: ${colors.surface};
+  background-image: url(${JSON.stringify(heroDataUrl)});
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+}
+body,
+#root,
+#root > [data-slot="root"] > div,
+[class*="_centerCol"],
+[class*="_centerCol"] > [data-slot] > div,
+[data-slot="main"] > div {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+body,
+#root {
+  position: relative;
+  z-index: 1;
+}
+[class*="_centerCol"] :where(
+  [class*="_composer"],
+  [class*="_input"],
+  [class*="_message"],
+  [class*="_card"]
+) {
+  border-color: color-mix(in srgb, ${colors.accent} 24%, transparent) !important;
+}
+`;
+}
+function buildZCodeCss(heroDataUrl, colors) {
+  return `
+html,
+body,
+#root,
+.bg-background-win-alt,
+section.bg-background {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+html {
+  background-color: ${colors.surface} !important;
+}
+html::before {
+  content: "";
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: ${colors.surface};
+  background-image: url(${JSON.stringify(heroDataUrl)});
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+}
+body,
+#root {
+  position: relative;
+  z-index: 1;
+}
+`;
 }
 function buildSparkDeskCss(heroDataUrl, colors) {
   const surfaceValue = parseInt(String(colors.surface).replace("#", ""), 16);
@@ -5547,7 +5662,11 @@ function buildMenuScript(options) {
     body: JSON.stringify({ appId, themeId }),
   }).catch(() => {});
   const themeBlobUrls = new Map();
+  // file:// 协议页面导航后 URL.createObjectURL 创建的 blob URL 会失效,
+  // 导致 hero 背景图丢失;直接在页面内按协议判断,内嵌 data URL。
+  const useBlobUrl = location.protocol !== 'file:';
   const materializeCss = (css, cacheKey) => {
+    if (!useBlobUrl) return css;
     const dataUrl = css.match(new RegExp('data:image/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+'))?.[0];
     if (!dataUrl) return css;
     let blobUrl = themeBlobUrls.get(cacheKey);

@@ -10,10 +10,10 @@ export default defineConfig({
     electron([
       {
         entry: path.resolve(__dirname, 'electron/main.ts'),
-        outDir: path.resolve(__dirname, 'dist-electron'),
         onstart: process.env.DREAM_WORK_MANUAL_ELECTRON ? () => {} : undefined,
         vite: {
           build: {
+            outDir: path.resolve(__dirname, 'dist-electron'),
             rollupOptions: {
               external: ['original-fs'],
             },
@@ -22,10 +22,10 @@ export default defineConfig({
       },
       {
         entry: path.resolve(__dirname, 'electron/preload.ts'),
-        outDir: path.resolve(__dirname, 'dist-electron'),
         onstart: process.env.DREAM_WORK_MANUAL_ELECTRON ? () => {} : undefined,
         vite: {
           build: {
+            outDir: path.resolve(__dirname, 'dist-electron'),
             rollupOptions: {
               external: ['electron'],
               output: {
