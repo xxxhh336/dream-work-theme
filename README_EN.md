@@ -147,6 +147,8 @@ Use `electron:dev` for normal desktop development because `dev` relies on vite-p
 
 The Electron main-process and preload Vite builds now write directly to the root `dist-electron/` directory referenced by `package.json.main`. Changes under `electron/manager/` rebuild and restart the development main process instead of leaving a stale copy under `renderer/dist-electron/`.
 
+Before packaging, `build:app` runs `scripts/verify-package-bundle.cjs` to confirm that the root `dist-electron/main.js` contains current application-adapter markers. `scripts/copy-electron-dist.js` now validates main/preload and copies only extra resources; it no longer deletes the root build or restores a stale bundle from `renderer/dist-electron/`.
+
 Other checks:
 
 ```bash

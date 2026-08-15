@@ -16,7 +16,7 @@
   "scripts": {
     "dev": "vite --port 5173",
     "electron:dev": "node scripts/electron-dev.cjs",
-    "build": "tsc && vite build && node scripts/copy-electron-dist.js && node scripts/build-electron.cjs",
+    "build": "tsc && vite build && node scripts/copy-electron-dist.js && node scripts/verify-package-bundle.cjs && node scripts/build-electron.cjs",
     "build:win": "pnpm build:app && node scripts/build-electron.cjs --win nsis",
     "build:win:x64": "pnpm build:app && node scripts/build-electron.cjs --win nsis --x64",
     "build:mac": "pnpm build:app && node scripts/build-electron.cjs --mac dmg zip",
@@ -30,7 +30,7 @@
     "build:linux:deb:x64": "pnpm build:app && node scripts/package-linux.cjs --arch x64 --deb-only",
     "build:linux:appimage:arm64": "pnpm build:app && node scripts/package-linux.cjs --arch arm64 --appimage-only",
     "build:linux:appimage:x64": "pnpm build:app && node scripts/package-linux.cjs --arch x64 --appimage-only",
-    "build:app": "tsc && vite build && node scripts/copy-electron-dist.js",
+    "build:app": "tsc && vite build && node scripts/copy-electron-dist.js && node scripts/verify-package-bundle.cjs",
     "themes:import-codex": "node scripts/import-codex-dream-skin-themes.cjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"

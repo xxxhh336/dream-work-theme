@@ -147,6 +147,8 @@ pnpm run dev
 
 Electron 主进程和 preload 的 Vite 输出统一写入项目根目录 `dist-electron/`，与 `package.json.main` 保持一致。修改 `electron/manager/` 后，开发模式会重建并重启 Electron 主进程，不再使用 `renderer/dist-electron/` 中的旧副本。
 
+`build:app` 会在打包前运行 `scripts/verify-package-bundle.cjs`，确认根 `dist-electron/main.js` 包含当前应用适配标记。`scripts/copy-electron-dist.js` 只校验 main/preload 并复制额外资源，不再删除根构建结果或从历史 `renderer/dist-electron/` 回拷旧 bundle。
+
 其他检查命令：
 
 ```bash
