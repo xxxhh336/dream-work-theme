@@ -1,32 +1,13 @@
 const fs = require('fs');
 const path = require('path');
 
-const src = path.join('renderer', 'dist-electron');
 const dst = path.join('dist-electron');
-
-// Clean only the destination to avoid stale hashed chunks
-if (fs.existsSync(dst)) {
-  fs.readdirSync(dst).forEach(f => {
-    const fp = path.join(dst, f);
-    if (fs.statSync(fp).isFile()) fs.unlinkSync(fp);
-  });
-} else {
-  fs.mkdirSync(dst, { recursive: true });
-}
-
-if (fs.existsSync(src)) {
-  fs.readdirSync(src).forEach(f => {
-    const s = path.join(src, f);
-    const d = path.join(dst, f);
-    if (fs.statSync(s).isFile()) fs.copyFileSync(s, d);
-  });
-}
-
-const preloadSrc = path.join('renderer', 'dist-electron', 'preload.js');
-const preloadDst = path.join('dist-electron', 'preload.js');
-if (fs.existsSync(preloadSrc)) {
-  fs.mkdirSync(path.dirname(preloadDst), { recursive: true });
-  fs.copyFileSync(preloadSrc, preloadDst);
+const requiredOutputs = ['main.js', 'preload.js'];
+for (const file of requiredOutputs) {
+  const output = path.join(dst, file);
+  if (!fs.existsSync(output)) {
+    throw new Error(`Missing Electron build output: ${output}`);
+  }
 }
 
 // Copy Codex base skin CSS if it exists

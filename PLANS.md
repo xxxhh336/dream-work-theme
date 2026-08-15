@@ -1283,6 +1283,9 @@ CDP 启动差异：
 
 - vite-plugin-electron 的输出目录必须配置在各入口的 `vite.build.outDir`，而不是无效的入口顶层 `outDir`。
 - 主进程和 preload 现在直接构建到根 `dist-electron/`，与 `package.json.main` 一致。修正前 `pnpm run dev` 会把新代码写入 `renderer/dist-electron/`，运行中的 Electron 却继续读取根目录旧 bundle，造成主进程适配修改看似热构建但实际不生效。
+- 正式打包曾存在反向覆盖：`vite build` 已生成最新根 bundle 后，旧 `copy-electron-dist.js` 会删除根 `dist-electron/`，再把历史 `renderer/dist-electron/` 副本复制回来。因此开发版使用新 CSS，而本地和 CI 安装包稳定包含旧 DeepSeek 注入逻辑。
+- 当前 `copy-electron-dist.js` 不再复制 Electron bundle，只校验根 `main.js` / `preload.js` 并复制 Codex 附加 CSS；历史 `renderer/dist-electron/` 生成文件已删除。
+- `build:app` 新增 `verify-package-bundle.cjs`，要求正式 bundle 包含 DeepSeek 应用 ID、`_composerSeat`、`_composerStack` 和 `data-ds-dark-theme` 标记，缺少任一项立即中止打包，避免旧 bundle 再次进入安装包。
 
 ### 9.7 CSS 生成器分层
 
