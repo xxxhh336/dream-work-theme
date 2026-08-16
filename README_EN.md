@@ -62,6 +62,8 @@ Dream Work Theme is a desktop theme manager for supported Electron work applicat
 
 ![Dream Work Theme Interface preview](preview18.png)
 
+![Dream Work Theme Interface preview](preview19.png)
+
 </details>
 
 ## Support Applications
@@ -83,7 +85,7 @@ The current application registry supports:
 - AstronClaw
 - StepFun AI
 - SparkDesk
-- DeepSeek Harness (built from [anywhere-labs/deepseek-harness-desktop](https://github.com/anywhere-labs/deepseek-harness-desktop))
+- DeepSeek Harness / DSH Desktop (built from [anywhere-labs/deepseek-harness-desktop](https://github.com/anywhere-labs/deepseek-harness-desktop))
 - Codex / ChatGPT Desktop
 
 Some applications use preferred debugging ports, while QoderWork, Qwen Office, OpenCode Desktop, and StepFun AI read their live port from `DevToolsActivePort`. HanaAgent prefers `9346`, Kimi Work prefers `9347`, Doubao Desktop prefers `9349`, AgnesCode uses `9350`, MiniMax Code prefers `9351`, AstronClaw prefers `9352`, StepFun is registered with preferred port `9353`, SparkDesk uses `9354`, and DeepSeek Harness prefers `9355`. StepFun writes and uses its own dynamic port, while SparkDesk accepts the fixed `--remote-debugging-port=9354` argument. Before launch, Dream Work Theme performs a real TCP bind check. If a preferred port is occupied or stuck in a Windows ghost-listener state, normal applications automatically advance to an available port and return that live port for injection, status queries, and restore operations. Dream Work Theme also waits for renderers that are likely to be recreated and restores missing injection while the application is running.
@@ -270,13 +272,16 @@ The floating menu shows up to four quick preset themes and is no longer tied to 
 - Multi-tab apply and restore state converges through the Dream Work Theme main-process local state service and the StepFun watcher. Restore clears the theme from every chat tab and restores the tab strip, navigation bar, text, and native StepFun dark appearance without residual transparent surfaces.
 - The StepFun adapter uses only launch arguments, CDP, and runtime CSS/JavaScript injection. It does not modify installed files.
 
-### DeepSeek Harness Notes
+### DeepSeek Harness / DSH Desktop Notes
 
 - This adapter targets the DeepSeek Harness build produced from [anywhere-labs/deepseek-harness-desktop](https://github.com/anywhere-labs/deepseek-harness-desktop). Compatibility is not implied for every similarly named DeepSeek client.
-- The verified Windows version is `0.1.0-rc.5`, installed at `D:\Program Files\DeepSeek Harness\DeepSeek Harness.exe`, with user data under `%APPDATA%\@deepseek-ai\dsh-desktop` and preferred CDP port `9355`.
+- The verified current Windows version is DSH Desktop `2.0.0`, installed at `D:\Program Files\DSH Desktop\DSH Desktop.exe`, with user data under `%APPDATA%\DSH Desktop`. The older DeepSeek Harness `0.1.0-rc.5` path `D:\Program Files\DeepSeek Harness\DeepSeek Harness.exe` and `%APPDATA%\@deepseek-ai\dsh-desktop` remain supported. Both use preferred CDP port `9355`.
+- The application picker displays `DSH Desktop`, prefers the new `DSH Desktop.exe`, and falls back to the legacy `DeepSeek Harness.exe`. Windows path-scoped process termination matches the real executable path instead of a fixed legacy process name.
 - The desktop shell serves its main renderer from a local HTTP endpoint such as `http://127.0.0.1:<dynamic-web-port>/?dsh-desktop-platform=win32`. Injection matches the `dsh-desktop-platform=` marker.
+- DSH Desktop `2.0.0` also adds `dsh-desktop-mode=compatibility` to the renderer URL; the existing target hint continues to match it.
 - `buildDeepSeekHarnessCss()` mounts the hero on a fixed `html::before` layer and makes the root, center column, and content roots transparent so one background spans the sidebar and main content.
 - DeepSeek skips the generic sidebar and composer glass rules. The sidebar, `composerSeat`, and `composerStack` are transparent and filter-free, while the actual composer card retains native local contrast.
+- DSH Desktop `2.0.0` adds an opaque content root inside the otherwise transparent `*_sidebarCol`. The adapter also makes the direct `data-slot="sidebar"` content root transparent so the hero remains visible through the full sidebar, while local controls such as the New Session button retain their own contrast backgrounds.
 - Removing the sidebar ancestor's `backdrop-filter` also prevents it from becoming a fixed-position containing block. The settings overlay remains full-window and its `800px` panel stays centered instead of being constrained to the `280px` sidebar.
 - DeepSeek selects its native palette with `body[data-ds-dark-theme]`, not only `.dark` classes. Theme switching synchronizes this attribute from the manifest surface luminance so all `--dsw-*` text and control tokens follow light or dark mode. Restore reinstates the user's original native DeepSeek palette.
 - The adapter uses launch arguments, CDP, and runtime CSS/JavaScript injection only. It does not modify installed DeepSeek Harness files.
@@ -470,7 +475,7 @@ dream-work-theme/
 - Kimi Work's Work/Chat renderers and website DOM can change with client or site updates, requiring URL-hint and transparency-selector maintenance.
 - StepFun AI uses multiple WebContents and depends on the `app://chat-web/`, `app://ui/pages/browser/`, and membership subscription URLs. Client updates that change the `90px` shell geometry, tab/navigation classes, or subscription CSS-module classes require the continuous-background and transparency selectors to be recalibrated.
 - SparkDesk uses separate `index.html`, `#desk`, and `#settings` WebContents and currently depends on an `80px` tab/navigation offset. Client updates that change these URLs, shell height, composer CSS-module prefixes, or settings structure require target filtering, continuous backgrounds, and light/dark control mappings to be recalibrated.
-- DeepSeek Harness currently depends on the `dsh-desktop-platform=` URL marker, the `_centerCol` / `_sidebarCol` / `_composerSeat` / `_composerStack` CSS-module structures, and the `body[data-ds-dark-theme]` palette attribute. Upstream changes to these contracts require target, transparency, settings-overlay, and palette synchronization adjustments.
+- DSH Desktop currently depends on the `dsh-desktop-platform=` URL marker, the `_centerCol` / `_sidebarCol` / `_composerSeat` / `_composerStack` CSS-module structures, and the `body[data-ds-dark-theme]` palette attribute. Version `2.0.0` confirms these stable suffixes still work. Upstream changes to these contracts require target, transparency, settings-overlay, and palette synchronization adjustments.
 - The macOS/Linux registry candidates for TRAE Work, QoderWork, CatPaw, ZCode, Qwen Office, StepFun AI, SparkDesk, and DeepSeek Harness have not been verified against installed samples. Discovery is unavailable if the product does not publish a build for that platform.
 - Unsigned Windows and macOS packages can trigger operating-system security warnings.
 - Windows currently uses Electron's default executable icon and metadata because executable editing is disabled in the local build configuration.

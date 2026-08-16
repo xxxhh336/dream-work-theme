@@ -1670,6 +1670,8 @@ body,
   background-image: none !important;
 }
 [class*="_sidebarCol"],
+[class*="_sidebarCol"] > [data-slot="sidebar"] > div,
+[class*="_sidebarCol"] [class*="_fade"],
 [class*="_composerSeat"],
 [class*="_composerStack"] {
   background: transparent !important;

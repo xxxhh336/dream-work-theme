@@ -5,6 +5,7 @@ const mainBundle = path.join(__dirname, '..', 'dist-electron', 'main.js');
 const source = fs.readFileSync(mainBundle, 'utf8');
 const requiredMarkers = [
   'deepseek-harness',
+  'DSH Desktop.exe',
   '[class*="_composerSeat"]',
   '[class*="_composerStack"]',
   'data-ds-dark-theme',
