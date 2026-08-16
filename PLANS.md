@@ -367,7 +367,7 @@ dream-work-theme/
 | `astronclaw` | AstronClaw（讯飞星辰） | Electron 桌面应用，专属透明层、动态端口回退与设置 API 原生模式还原 | 首选 `9352`，不可绑定时自动顺延 | 已验证背景图、侧栏、新建任务/对话、我的技能/灵感广场以及深浅模式还原 |
 | `stepfun` | StepFun（阶跃 AI） | Electron 桌面应用，多 WebContents、动态端口、专属连续背景与多 Tab 守护 | 注册首选 `9353`，实际读取 `%APPDATA%\stepfun-desktop\DevToolsActivePort` | 已验证聊天页、Tab/导航栏、新建 Tab、会员页、连续背景和原生深色还原 |
 | `sparkdesk` | SparkDesk（讯飞星火） | Electron 桌面应用，多 WebContents、固定端口、专属连续背景与深浅色控件映射 | `9354` | 已验证主壳、聊天/新建任务、多 Tab、星火设置页、深浅主题控件和多页面还原 |
-| `deepseek-harness` | DeepSeek Harness | `anywhere-labs/deepseek-harness-desktop` 构建，Electron 桌面壳、本地 HTTP renderer、专属透明层与原生 palette 同步 | `9355` | 已验证发现、启动、整窗背景、侧栏/主体透明层、输入区、居中设置浮层及深浅主题 token 同步 |
+| `deepseek-harness` | DSH Desktop / DeepSeek Harness | `anywhere-labs/deepseek-harness-desktop` 构建，Electron 桌面壳、本地 HTTP renderer、专属透明层与原生 palette 同步 | `9355` | 已验证新版 `2.0.0` 与旧版 `0.1.0-rc.5` 的发现、启动、整窗背景、侧栏/主体透明层、输入区、居中设置浮层及深浅主题 token 同步 |
 | `codex` | Codex | Codex 专用结构 | `9340` | 已适配 |
 
 源码 `themes/` 当前包含 345 份 `theme.json`。运行时会按主题名称、作者和 hero 内容去重，因此实际菜单/画廊数量可能略少于 manifest 数量。
@@ -682,7 +682,7 @@ D:\Program Files\SparkDesk\SparkDesk.exe
 
 SparkDesk 接受 `--remote-debugging-port=9354`，Windows 使用 `windowsPathScopedKill`，重启时只结束安装路径匹配的 `SparkDesk.exe`。主窗口由浏览器宿主、多个聊天 Tab 和设置页 WebContents 组成；悬浮球、快捷助手、历史、上传和账号弹窗等辅助目标不注入主题。macOS 注册候选为 `SparkDesk.app`，Linux 注册候选为 `sparkdesk` / `SparkDesk` 和 `sparkdesk.desktop`；非 Windows 候选尚待安装样本验证。
 
-#### DeepSeek Harness
+#### DSH Desktop / DeepSeek Harness
 
 适配目标来源：
 
@@ -693,20 +693,21 @@ https://github.com/anywhere-labs/deepseek-harness-desktop
 Windows 实机安装位置：
 
 ```text
+D:\Program Files\DSH Desktop\DSH Desktop.exe
 D:\Program Files\DeepSeek Harness\DeepSeek Harness.exe
 ```
 
 程序元数据与运行特征：
 
-- 验证版本：`0.1.0-rc.5`
-- 产品名：`DeepSeek Harness`
+- 验证版本：DSH Desktop `2.0.0`；旧版 DeepSeek Harness `0.1.0-rc.5`
+- 产品名：新版 `DSH Desktop`；旧版 `DeepSeek Harness`
 - 应用入口：`resources/app.asar`
-- 用户数据目录：`%APPDATA%\@deepseek-ai\dsh-desktop`
+- 用户数据目录：新版 `%APPDATA%\DSH Desktop`；旧版 `%APPDATA%\@deepseek-ai\dsh-desktop`
 - 首选 CDP 端口：`9355`
-- 主 renderer：`http://127.0.0.1:<动态 Web 端口>/?dsh-desktop-platform=win32`
+- 主 renderer：旧版 `?dsh-desktop-platform=win32`；新版 `?dsh-desktop-mode=compatibility&dsh-desktop-platform=win32`
 - renderer hint：`dsh-desktop-platform=`
 
-DeepSeek Harness 接受 `--remote-debugging-port=9355`。Windows 使用 `windowsPathScopedKill`，重启时只结束安装路径匹配的 `DeepSeek Harness.exe`。注册表同时包含 `D:\Program Files\DeepSeek Harness`、LocalAppData Programs 和 Program Files 候选；macOS/Linux 候选尚未通过安装样本验证。该适配仅针对上述仓库构建的桌面端，不泛化到其他 DeepSeek 客户端。
+DSH Desktop 和旧 DeepSeek Harness 均接受 `--remote-debugging-port=9355`。注册表优先 `D:\Program Files\DSH Desktop\DSH Desktop.exe`，并保留旧路径回退。Windows 使用 `windowsPathScopedKill`，按实际发现的完整可执行路径结束对应进程，因此新旧进程名均可安全处理。macOS/Linux 候选同步加入 DSH Desktop 名称，但尚未通过安装样本验证。该适配仅针对上述仓库构建的桌面端，不泛化到其他 DeepSeek 客户端。
 
 ### 9.4 CDP 启动与端口差异
 
@@ -799,10 +800,10 @@ Kimi Work 首选端口为 `9347`。启动器在 CDP 可用后执行约 `750ms` �
 | AstronClaw | `app.asar/out/renderer/index.html`、`out/renderer/index.html` |
 | StepFun | 宿主：`app://ui/pages/browser/`；聊天：`app://chat-web/`；会员：`https://chat.stepfun.com/subscription` |
 | SparkDesk | 宿主：`out/renderer/index.html`；聊天/新建任务：`#desk`；星火设置：`#settings` |
-| DeepSeek Harness | `http://127.0.0.1:<动态 Web 端口>/?dsh-desktop-platform=win32` |
+| DSH Desktop / DeepSeek Harness | 新版 `?dsh-desktop-mode=compatibility&dsh-desktop-platform=win32`；旧版 `?dsh-desktop-platform=win32` |
 | Codex | `index.html`、`renderer/index.html` |
 
-QoderWork 和千问办公还存在 `voice-overlay.html` 页面，ZCode 存在 Stripe iframe 和 worker target，CatPaw 存在 `about:blank` page。HanaAgent 会替换 renderer target；Kimi Work 的 Work 与 Chat 本来就是两个独立 target；豆包还存在 `doubao-launcher` 和 `doubao-background` 辅助页面；StepFun 还存在 `flow-widget`、`popup-menu` 等辅助目标；`SparkDesk` 还存在 `#floating-ball`、`#ai-chat-manager`、`#quickclient`、`#history-panel`、`#upload-panel` 和账号弹窗 `#settings-panel`。DeepSeek Harness 当前只暴露一个带 `dsh-desktop-platform=` 参数的主 page target。URL hint 可以避免菜单和主题被错误注入辅助页面，HanaAgent、Kimi、豆包、StepFun 和 SparkDesk 还需要在正确 URL hint 的基础上持续处理 target 创建、导航和更替。
+QoderWork 和千问办公还存在 `voice-overlay.html` 页面，ZCode 存在 Stripe iframe 和 worker target，CatPaw 存在 `about:blank` page。HanaAgent 会替换 renderer target；Kimi Work 的 Work 与 Chat 本来就是两个独立 target；豆包还存在 `doubao-launcher` 和 `doubao-background` 辅助页面；StepFun 还存在 `flow-widget`、`popup-menu` 等辅助目标；`SparkDesk` 还存在 `#floating-ball`、`#ai-chat-manager`、`#quickclient`、`#history-panel`、`#upload-panel` 和账号弹窗 `#settings-panel`。DSH Desktop / DeepSeek Harness 当前只暴露一个带 `dsh-desktop-platform=` 参数的主 page target。URL hint 可以避免菜单和主题被错误注入辅助页面，HanaAgent、Kimi、豆包、StepFun 和 SparkDesk 还需要在正确 URL hint 的基础上持续处理 target 创建、导航和更替。
 
 ### 9.6 DOM 与主题表面分析
 
@@ -1255,14 +1256,14 @@ CDP 启动差异：
 - 主题和还原状态通过本机 `/app-state/sparkdesk` 与单调 `actionAt` 收敛。写入前二次确认共享状态，并用 generation 取消旧 watcher 轮次，防止还原后旧主题竞态回写。
 - 还原会停止 watcher、移除持久脚本，并对宿主页、聊天 Tab 和设置页执行幂等二次清理，确保标题栏、导航栏、内容页、主题类和菜单无残留。
 
-#### DeepSeek Harness
+#### DSH Desktop / DeepSeek Harness
 
 实机验证环境：
 
 ```text
 仓库来源：https://github.com/anywhere-labs/deepseek-harness-desktop
-版本：0.1.0-rc.5
-主 renderer：http://127.0.0.1:<动态 Web 端口>/?dsh-desktop-platform=win32
+版本：DSH Desktop 2.0.0 / DeepSeek Harness 0.1.0-rc.5
+主 renderer：http://127.0.0.1:<动态 Web 端口>/?dsh-desktop-mode=compatibility&dsh-desktop-platform=win32
 ```
 
 专属 CSS 与页面结构：
@@ -1271,12 +1272,16 @@ CDP 启动差异：
 - 通用侧栏毛玻璃和 `[class*="message"]` / `[class*="composer"]` 模糊规则对 DeepSeek 禁用。`*_sidebarCol`、`*_composerSeat` 和 `*_composerStack` 强制透明无滤镜，只让实际 composer card 保留原生局部深浅背景。
 - 侧栏祖先若存在 `backdrop-filter`，会为后代 `position: fixed` 创建 containing block，导致 `qB4czW_overlay` 从整窗 `1440×920` 缩成侧栏约 `280×920`。移除该滤镜后，设置 overlay 恢复全窗口，`800×800` panel 正常居中。
 - CSS Modules 类名带构建前缀，因此选择器使用稳定后缀 `_centerCol`、`_sidebarCol`、`_composerSeat`、`_composerStack`。上游重命名这些模块时必须重新实机检查。
+- DSH Desktop `2.0.0` 的外壳类前缀已变化，但上述后缀保持稳定。新版额外验证 `*_frame`、`*_overlayLayer`、新会话 hero composer 和设置浮层，旧专属 CSS 无需分叉即可继续工作。
+- 新版 `*_sidebarCol` 本身透明，但其 `> [data-slot="sidebar"] > div` 内容根会铺满整栏并使用不透明 surface。专属 CSS 额外透明化该直接内容根，使 hero 背景贯穿左侧栏；“新会话”等局部控件背景不受影响。
+- 工作区列表底部的 `*_fade` 是一个高约 `24px`、从透明渐变到原生侧栏 surface 的滚动提示层。侧栏透明后它会在设置按钮上方形成独立深色条；DSH 专属规则会清除该渐变背景，但保留列表滚动和设置按钮布局。
 
 原生明暗 palette 同步：
 
 - DeepSeek token 样式表通过 `body[data-ds-dark-theme]` 选择深色 palette，主要变量包括 `--dsw-alias-label-primary`、`--dsw-alias-label-secondary`、`--dsw-specific-input-major` 和 `--dsw-specific-sidebar-fill`。
 - 通用 `applyMode()` 对 `deepseek-harness` 额外同步该 body 属性。深色主题添加属性，浅色主题移除属性，确保侧栏文字、输入框、按钮、设置页和弹窗使用完整的原生深浅 token，而不是只覆盖单个文字颜色。
 - 实机回归中，深色主题 `1212123123` 的侧栏主文字为 `rgb(249, 250, 251)`；浅色主题 `20170714154137-jvs42` 为 `rgb(15, 17, 21)`。
+- DSH Desktop `2.0.0` 回归中，深色主题下 `data-ds-dark-theme=true`，侧栏设置文字为 `rgb(249, 250, 251)`；浅色主题 `pjyang-red-shrine-008` 移除该属性，设置文字为 `rgb(15, 17, 21)`。设置 overlay 实测覆盖完整 `1264×801` 窗口。
 - 首次注入会记录原生 `data-ds-dark-theme` 状态；还原主题时恢复该快照，不修改用户持久化的 DeepSeek 外观偏好。
 
 开发构建修正：
@@ -1385,7 +1390,7 @@ Codex、HanaAgent、Kimi 和其他非 WorkBuddy 应用使用 Shadow DOM host：
 | AstronClaw | 通过，首选端口 `9352`  匹配 `index.html` | 通过 | 通过，新建任务/对话/我的技能/灵感广场 | 通过 |
 | StepFun | 通过，读取动态端口并匹配宿主/聊天/会员 target | 通过 | 通过，多 Tab 与会员页自动补注入 | 通过，仅聊天页显示 |
 | SparkDesk | 通过，固定端口 `9354` 并匹配宿主/`#desk`/`#settings` | 通过 | 通过，多聊天 Tab 与设置页自动补注入 | 通过，仅 `#desk` 显示 |
-| DeepSeek Harness | 通过，首选端口 `9355` 并匹配 `dsh-desktop-platform=` | 通过 | 通过，整窗背景、透明层、设置浮层和深浅 palette | 通过 |
+| DSH Desktop / DeepSeek Harness | 通过，新版优先路径、旧版回退路径、首选端口 `9355` 并匹配 `dsh-desktop-platform=` | 通过 | 通过，整窗背景、透明层、设置浮层和深浅 palette | 通过 |
 | Codex / ChatGPT Desktop | 通过 | 通过 | 通过 | 通过 |
 
 构建验证：
@@ -1410,7 +1415,7 @@ Codex、HanaAgent、Kimi 和其他非 WorkBuddy 应用使用 Shadow DOM host：
 - SparkDesk `2.3.3.1` 已完成端到端验证：发现 `D:\Program Files\SparkDesk\SparkDesk.exe`，固定端口 `9354`，主题覆盖宿主页、已有/新建聊天 Tab 和真正的 `#settings` 星火设置页；账号弹窗 `#settings-panel` 保持原生。
 - SparkDesk 连续背景已验证：宿主页使用完整背景，`#desk` 与 `#settings` 背景向上偏移 `80px`；Tab、导航栏、聊天主体和设置主体透明，无全屏 `blur(25px)` 遮挡。
 - SparkDesk 深浅主题控件已验证：深色主题下输入框、模型切换、文档/截图/语音/发送按钮和设置卡片使用深色 surface 配亮色前景；亮色主题下自动反转。还原同步清理所有目标，无标题栏或新 Tab 残留。
-- DeepSeek Harness `0.1.0-rc.5` 已完成端到端验证：发现 `D:\Program Files\DeepSeek Harness\DeepSeek Harness.exe`，首选端口 `9355`，主 renderer 匹配 `dsh-desktop-platform=`，主题应用返回 `applied: 1`。
+- DSH Desktop `2.0.0` 已完成端到端验证：发现 `D:\Program Files\DSH Desktop\DSH Desktop.exe`，首选端口 `9355`，主 renderer 匹配 `dsh-desktop-mode=compatibility&dsh-desktop-platform=win32`，主题应用返回 `applied: 1`；旧 DeepSeek Harness `0.1.0-rc.5` 路径继续保留。
 - DeepSeek 整窗背景和浮层已验证：侧栏、`*_centerCol`、`*_composerSeat` 和 `*_composerStack` 透明无滤镜；设置 overlay 为全窗 `1440×920`，`800×800` panel 居中，不再受 `280px` 侧栏 containing block 限制。
 - DeepSeek 深浅 palette 已验证：深色主题添加 `body[data-ds-dark-theme]`，侧栏文字为 `rgb(249, 250, 251)`；浅色主题移除属性，侧栏文字为 `rgb(15, 17, 21)`；还原恢复注入前的原生属性状态。
 - 高频快捷主题已通过实测：不再依赖固定主题 ID，可按应用统计菜单和管理器中的主动切换，并在主题缺失时只显示实际可用项。

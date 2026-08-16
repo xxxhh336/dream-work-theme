@@ -455,7 +455,7 @@ async function killExistingInstances(appId: string, appPath: string): Promise<vo
     if (platform === 'win32') {
       if (definition.windowsPathScopedKill) {
         const script = `$target = [IO.Path]::GetFullPath($env:DREAM_WORK_TARGET_EXE); ` +
-          `Get-CimInstance Win32_Process -Filter "Name='${definition.processName.replace(/'/g, "''")}'" ` +
+          'Get-CimInstance Win32_Process ' +
           '| Where-Object { $_.ExecutablePath -and [IO.Path]::GetFullPath($_.ExecutablePath) -ieq $target } ' +
           '| ForEach-Object { taskkill.exe /T /F /PID $_.ProcessId *> $null }';
         await execFileAsync('powershell.exe', [

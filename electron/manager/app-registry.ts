@@ -158,13 +158,13 @@ export const APP_DEFINITIONS: AppDefinition[] = [
     linux: { executableNames: ['stepfun', 'StepFun'], desktopFiles: ['stepfun.desktop'] },
   },
   {
-    id: 'deepseek-harness', name: 'DeepSeek Harness', exeNames: ['DeepSeek Harness.exe'], processName: 'DeepSeek Harness.exe', defaultPort: 9355,
-    installPaths: ['D:\\Program Files\\DeepSeek Harness', path.join(localAppData, 'Programs', 'DeepSeek Harness'), path.join(programFiles, 'DeepSeek Harness'), path.join(programFilesX86, 'DeepSeek Harness')],
+    id: 'deepseek-harness', name: 'DSH Desktop', exeNames: ['DSH Desktop.exe', 'DeepSeek Harness.exe'], processName: 'DSH Desktop.exe', defaultPort: 9355,
+    installPaths: ['D:\\Program Files\\DSH Desktop', 'D:\\Program Files\\DeepSeek Harness', path.join(localAppData, 'Programs', 'DSH Desktop'), path.join(localAppData, 'Programs', 'DeepSeek Harness'), path.join(programFiles, 'DSH Desktop'), path.join(programFiles, 'DeepSeek Harness'), path.join(programFilesX86, 'DSH Desktop'), path.join(programFilesX86, 'DeepSeek Harness')],
     rendererHints: ['dsh-desktop-platform='], kind: 'generic-work',
     windowsPathScopedKill: true,
     acceptsGenericThemes: true,
-    darwin: { appBundles: ['DeepSeek Harness.app'], executableNames: ['DeepSeek Harness'] },
-    linux: { executableNames: ['deepseek-harness', 'DeepSeek Harness'], desktopFiles: ['deepseek-harness.desktop'] },
+    darwin: { appBundles: ['DSH Desktop.app', 'DeepSeek Harness.app'], executableNames: ['DSH Desktop', 'DeepSeek Harness'] },
+    linux: { executableNames: ['dsh-desktop', 'DSH Desktop', 'deepseek-harness', 'DeepSeek Harness'], desktopFiles: ['dsh-desktop.desktop', 'deepseek-harness.desktop'] },
   },
 ];
 
