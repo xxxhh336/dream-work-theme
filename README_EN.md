@@ -8,7 +8,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License--Apache License 2.0-green?style=flat-square" alt="License"></a>
   <img src="https://img.shields.io/badge/Platform-Windows/macOS/Linux-blue?style=flat-square" alt="Platform">
   <img src="https://img.shields.io/badge/Node-22%2B-orange?style=flat-square" alt="Node">
-  <img src="https://img.shields.io/badge/Themes-200%20built--in-ff69b4?style=flat-square" alt="Themes">
+  <img src="https://img.shields.io/badge/Themes-400%20built--in-ff69b4?style=flat-square" alt="Themes">
 </p>
 
 <div align="center">
@@ -64,6 +64,8 @@ Dream Work Theme is a desktop theme manager for supported Electron work applicat
 
 ![Dream Work Theme Interface preview](preview19.png)
 
+![Dream Work Theme Interface preview](preview20.png)
+
 </details>
 
 ## Support Applications
@@ -86,9 +88,10 @@ The current application registry supports:
 - StepFun AI
 - SparkDesk
 - DeepSeek Harness / DSH Desktop (built from [anywhere-labs/deepseek-harness-desktop](https://github.com/anywhere-labs/deepseek-harness-desktop))
+- MonkeyCode (Tauri / WebView2)
 - Codex / ChatGPT Desktop
 
-Some applications use preferred debugging ports, while QoderWork, Qwen Office, OpenCode Desktop, and StepFun AI read their live port from `DevToolsActivePort`. HanaAgent prefers `9346`, Kimi Work prefers `9347`, Doubao Desktop prefers `9349`, AgnesCode uses `9350`, MiniMax Code prefers `9351`, AstronClaw prefers `9352`, StepFun is registered with preferred port `9353`, SparkDesk uses `9354`, and DeepSeek Harness prefers `9355`. StepFun writes and uses its own dynamic port, while SparkDesk accepts the fixed `--remote-debugging-port=9354` argument. Before launch, Dream Work Theme performs a real TCP bind check. If a preferred port is occupied or stuck in a Windows ghost-listener state, normal applications automatically advance to an available port and return that live port for injection, status queries, and restore operations. Dream Work Theme also waits for renderers that are likely to be recreated and restores missing injection while the application is running.
+Some applications use preferred debugging ports, while QoderWork, Qwen Office, OpenCode Desktop, and StepFun AI read their live port from `DevToolsActivePort`. HanaAgent prefers `9346`, Kimi Work prefers `9347`, Doubao Desktop prefers `9349`, AgnesCode uses `9350`, MiniMax Code prefers `9351`, AstronClaw prefers `9352`, StepFun is registered with preferred port `9353`, SparkDesk uses `9354`, DeepSeek Harness prefers `9355`, and MonkeyCode prefers `9356`. StepFun writes and uses its own dynamic port, while SparkDesk accepts the fixed `--remote-debugging-port=9354` argument. Before launch, Dream Work Theme performs a real TCP bind check. If a preferred port is occupied or stuck in a Windows ghost-listener state, normal applications automatically advance to an available port and return that live port for injection, status queries, and restore operations. Dream Work Theme also waits for renderers that are likely to be recreated and restores missing injection while the application is running.
 
 The AgnesCode release build actively removes a normal `--remote-debugging-port` argument. Dream Work Theme enables CDP through AgnesCode's built-in Playwright debugging entry point and explicitly preserves the packaged `resources/bin/agnesd.exe` backend path. This entry point marks the AgnesCode session as a development session, so its logs may contain update-configuration errors that do not affect theming or chat functionality.
 
@@ -286,6 +289,19 @@ The floating menu shows up to four quick preset themes and is no longer tied to 
 - DeepSeek selects its native palette with `body[data-ds-dark-theme]`, not only `.dark` classes. Theme switching synchronizes this attribute from the manifest surface luminance so all `--dsw-*` text and control tokens follow light or dark mode. Restore reinstates the user's original native DeepSeek palette.
 - The adapter uses launch arguments, CDP, and runtime CSS/JavaScript injection only. It does not modify installed DeepSeek Harness files.
 
+### MonkeyCode Notes
+
+- MonkeyCode is not Electron. It uses Tauri `2.11.5`, Rust, Wry `0.55.1`, and Microsoft Edge WebView2. The verified Windows path is `D:\Program Files\MonkeyCode\monkeycode-desktop.exe`.
+- Dream Work Theme enables standard WebView2 CDP through `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=<port>`, preferring port `9356`; the normal Electron executable argument is not used.
+- The main window URL is exactly `http://tauri.localhost/`, while the desktop-pet window is `http://tauri.localhost/pet.html`. Full theme CSS and the menu are injected only into the main window.
+- `buildMonkeyCodeCss()` maps DaisyUI base/content/accent tokens, mounts the hero on fixed `html::before`, and makes large titlebar/sidebar/main surfaces transparent. Inputs, chat cards, dialogs, and dropdowns retain translucent contrast surfaces.
+- The far-left `nav.w-rail` and the full-height chapter-navigation dropdown rail at the conversation edge remain fully transparent so the hero stays continuous. Chapter popup content and the bottom composer retain local contrast surfaces.
+- Light and dark switching changes only runtime `html[data-theme]` and the inline background. It does not overwrite MonkeyCode's persistent `mc.theme` or `mc.themeBg` settings. The native snapshot survives WebView reloads and restore reinstates the original `monkeycode` or `monkeycode-dark` state.
+- Strict target filtering excludes the pet target. The main-process watcher restores an active theme and menu after reload, while a restored marker keeps reloads fully native after restore.
+- MonkeyCode styling is version-gated from the Windows executable `ProductVersion`. Builds before `26082107` retain the legacy rail/aside/chapter-navigation rules. Build `26082107` and later set `data-dream-monkeycode-modern="true"` and additionally clear the new `mc-workbench-surface-200` sidebar, `mc-workbench-surface-300` workbench layer, and `mc-workbench-surface-100` panes so the new left and right surfaces do not cover the hero.
+- The `26082107` New Task pane adds a direct full-height scrolling `bg-base-100` body. The modern rule clears only that direct pane child, preserving the centered task composer, textarea, model selector, and runtime controls as local contrast surfaces.
+- The adapter uses only process environment, CDP, and runtime CSS/JavaScript injection. It does not modify the MonkeyCode executable or embedded resources.
+
 ## Theme Storage
 
 Themes are loaded from two locations, in priority order:
@@ -476,6 +492,7 @@ dream-work-theme/
 - StepFun AI uses multiple WebContents and depends on the `app://chat-web/`, `app://ui/pages/browser/`, and membership subscription URLs. Client updates that change the `90px` shell geometry, tab/navigation classes, or subscription CSS-module classes require the continuous-background and transparency selectors to be recalibrated.
 - SparkDesk uses separate `index.html`, `#desk`, and `#settings` WebContents and currently depends on an `80px` tab/navigation offset. Client updates that change these URLs, shell height, composer CSS-module prefixes, or settings structure require target filtering, continuous backgrounds, and light/dark control mappings to be recalibrated.
 - DSH Desktop currently depends on the `dsh-desktop-platform=` URL marker, the `_centerCol` / `_sidebarCol` / `_composerSeat` / `_composerStack` CSS-module structures, and the `body[data-ds-dark-theme]` palette attribute. Version `2.0.0` confirms these stable suffixes still work. Upstream changes to these contracts require target, transparency, settings-overlay, and palette synchronization adjustments.
+- MonkeyCode currently depends on the Tauri main URL `http://tauri.localhost/`, DaisyUI base/content tokens, and WebView2 debugging environment support. Changes to its WebView URL, token system, or debugging policy require recalibration.
 - The macOS/Linux registry candidates for TRAE Work, QoderWork, CatPaw, ZCode, Qwen Office, StepFun AI, SparkDesk, and DeepSeek Harness have not been verified against installed samples. Discovery is unavailable if the product does not publish a build for that platform.
 - Unsigned Windows and macOS packages can trigger operating-system security warnings.
 - Windows currently uses Electron's default executable icon and metadata because executable editing is disabled in the local build configuration.

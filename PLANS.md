@@ -10,7 +10,7 @@
 - 完整 Electron 项目
 - 默认 12 套主题
 - 自定义主题制作 SKILL
-- 当前注册 17 款主流 Work 工具
+- 当前注册 18 款主流 Work 工具
 - 每款工具支持创建"主题+应用"桌面快捷启动图标
 - 注入后右下角显示统一主题菜单按钮（切换/上传/还原）
 - 支持 macOS / Windows / Linux 三端
@@ -348,7 +348,7 @@ dream-work-theme/
 
 ### 9.1 当前支持范围
 
-项目目前注册以下 17 款 Work 类桌面应用：
+项目目前注册以下 18 款 Work 类桌面应用：
 
 | 应用 ID | 显示名称 | 应用类型 | 默认 CDP 端口 | 当前状态 |
 |---------|----------|----------|---------------|----------|
@@ -368,11 +368,12 @@ dream-work-theme/
 | `stepfun` | StepFun（阶跃 AI） | Electron 桌面应用，多 WebContents、动态端口、专属连续背景与多 Tab 守护 | 注册首选 `9353`，实际读取 `%APPDATA%\stepfun-desktop\DevToolsActivePort` | 已验证聊天页、Tab/导航栏、新建 Tab、会员页、连续背景和原生深色还原 |
 | `sparkdesk` | SparkDesk（讯飞星火） | Electron 桌面应用，多 WebContents、固定端口、专属连续背景与深浅色控件映射 | `9354` | 已验证主壳、聊天/新建任务、多 Tab、星火设置页、深浅主题控件和多页面还原 |
 | `deepseek-harness` | DSH Desktop / DeepSeek Harness | `anywhere-labs/deepseek-harness-desktop` 构建，Electron 桌面壳、本地 HTTP renderer、专属透明层与原生 palette 同步 | `9355` | 已验证新版 `2.0.0` 与旧版 `0.1.0-rc.5` 的发现、启动、整窗背景、侧栏/主体透明层、输入区、居中设置浮层及深浅主题 token 同步 |
+| `monkeycode` | MonkeyCode | Tauri 2 + Rust + Wry + WebView2，环境变量开启 CDP，严格区分主窗口与桌宠 | `9356` | 已验证发现、启动、hero、深浅主题、原生还原、活跃主题 reload 恢复和桌宠隔离 |
 | `codex` | Codex | Codex 专用结构 | `9340` | 已适配 |
 
-源码 `themes/` 当前包含 345 份 `theme.json`。运行时会按主题名称、作者和 hero 内容去重，因此实际菜单/画廊数量可能略少于 manifest 数量。
+源码 `themes/` 当前包含 403 份 `theme.json`。运行时会按主题名称、作者和 hero 内容去重，因此实际菜单/画廊数量可能略少于 manifest 数量。
 
-主题兼容不再依赖为每个应用批量写入 `theme.json.apps`。`listThemes(appId)` 先读取 manifest 的显式 `compat`，未声明时再使用应用注册表的 `acceptsGenericThemes` 默认值。当前 17 款应用均接受通用主题；主题仍可用 `compat:false` 拒绝某款应用，或通过 `layout` 提供应用特例。
+主题兼容不再依赖为每个应用批量写入 `theme.json.apps`。`listThemes(appId)` 先读取 manifest 的显式 `compat`，未声明时再使用应用注册表的 `acceptsGenericThemes` 默认值。当前 18 款应用均接受通用主题；主题仍可用 `compat:false` 拒绝某款应用，或通过 `layout` 提供应用特例。
 
 ### 9.2 当前应用注册架构
 
@@ -736,7 +737,7 @@ DSH Desktop 和旧 DeepSeek Harness 均接受 `--remote-debugging-port=9355`。�
 - DeepSeek Harness
 - Codex
 
-OpenCode 默认分配 `9348`，但实际运行端口通过 `%APPDATA%\ai.opencode.desktop\DevToolsActivePort` 读取和验证。豆包首选 `9349`，AgnesCode 使用 Playwright 调试入口绑定 `9350`，MiniMax Code 首选 `9351`，AstronClaw 首选 `9352`，StepFun 注册首选 `9353` 但实际运行端口通过 `%APPDATA%\stepfun-desktop\DevToolsActivePort` 读取，讯飞星火使用固定端口 `9354`，DeepSeek Harness 首选 `9355`。
+OpenCode 默认分配 `9348`，但实际运行端口通过 `%APPDATA%\ai.opencode.desktop\DevToolsActivePort` 读取和验证。豆包首选 `9349`，AgnesCode 使用 Playwright 调试入口绑定 `9350`，MiniMax Code 首选 `9351`，AstronClaw 首选 `9352`，StepFun 注册首选 `9353` 但实际运行端口通过 `%APPDATA%\stepfun-desktop\DevToolsActivePort` 读取，讯飞星火使用固定端口 `9354`，DeepSeek Harness 首选 `9355`，MonkeyCode WebView2 首选 `9356`。
 
 Windows 可能出现 `netstat` 仍报告某端口由已不存在 PID 监听，但 TCP/HTTP 无法连接的幽灵监听状态。仅用 `connect()` 判断端口关闭会误认为该端口可复用。当前 `launcher.ts` 使用异步 `net.createServer().listen()` 真实尝试绑定端口；绑定失败时顺延扫描最多 100 个端口，并将实际端口返回前端。AstronClaw 实机回归中 `9352` 处于幽灵监听，启动器自动选择 `9353`，随后 `/json/version`、主 renderer 和主题注入均成功。
 
@@ -801,6 +802,7 @@ Kimi Work 首选端口为 `9347`。启动器在 CDP 可用后执行约 `750ms` �
 | StepFun | 宿主：`app://ui/pages/browser/`；聊天：`app://chat-web/`；会员：`https://chat.stepfun.com/subscription` |
 | SparkDesk | 宿主：`out/renderer/index.html`；聊天/新建任务：`#desk`；星火设置：`#settings` |
 | DSH Desktop / DeepSeek Harness | 新版 `?dsh-desktop-mode=compatibility&dsh-desktop-platform=win32`；旧版 `?dsh-desktop-platform=win32` |
+| MonkeyCode | 主窗口精确 `http://tauri.localhost/`；桌宠 `http://tauri.localhost/pet.html` 明确排除 |
 | Codex | `index.html`、`renderer/index.html` |
 
 QoderWork 和千问办公还存在 `voice-overlay.html` 页面，ZCode 存在 Stripe iframe 和 worker target，CatPaw 存在 `about:blank` page。HanaAgent 会替换 renderer target；Kimi Work 的 Work 与 Chat 本来就是两个独立 target；豆包还存在 `doubao-launcher` 和 `doubao-background` 辅助页面；StepFun 还存在 `flow-widget`、`popup-menu` 等辅助目标；`SparkDesk` 还存在 `#floating-ball`、`#ai-chat-manager`、`#quickclient`、`#history-panel`、`#upload-panel` 和账号弹窗 `#settings-panel`。DSH Desktop / DeepSeek Harness 当前只暴露一个带 `dsh-desktop-platform=` 参数的主 page target。URL hint 可以避免菜单和主题被错误注入辅助页面，HanaAgent、Kimi、豆包、StepFun 和 SparkDesk 还需要在正确 URL hint 的基础上持续处理 target 创建、导航和更替。
@@ -1292,6 +1294,18 @@ CDP 启动差异：
 - 当前 `copy-electron-dist.js` 不再复制 Electron bundle，只校验根 `main.js` / `preload.js` 并复制 Codex 附加 CSS；历史 `renderer/dist-electron/` 生成文件已删除。
 - `build:app` 新增 `verify-package-bundle.cjs`，要求正式 bundle 包含 DeepSeek 应用 ID、`_composerSeat`、`_composerStack` 和 `data-ds-dark-theme` 标记，缺少任一项立即中止打包，避免旧 bundle 再次进入安装包。
 
+#### MonkeyCode
+
+- 框架识别：Tauri `2.11.5`、Rust、Wry `0.55.1`、Microsoft Edge WebView2；主程序为 `D:\Program Files\MonkeyCode\monkeycode-desktop.exe`，独立后端为 `ohmyagent.exe --stdio`。
+- 启动器不传 Electron 调试参数，而在子进程环境中设置 `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9356`。实测 `/json/version` 返回 Edge WebView2 与 CDP `1.3`。
+- WebView2 同时暴露主窗口 `http://tauri.localhost/` 和桌宠 `http://tauri.localhost/pet.html`。`fetchMonkeyCodeTargets()` 使用 URL 精确匹配，且通用 relaxed fallback 对 MonkeyCode 禁用。
+- `buildMonkeyCodeCss()` 映射 DaisyUI base/content/accent token，hero 使用固定 `html::before`，标题栏、侧栏、主内容透明；输入、聊天卡片、弹窗和 dropdown 使用半透明 surface。
+- 最左侧 `nav.w-rail.bg-base-300` 和对话正文左缘的全高章节导航 dropdown 外壳会被通用 base/dropdown surface 重新着色。专属覆盖将这两个大面积外壳透明化，同时保留章节弹出菜单自身的半透明背景。
+- 深浅切换只改变运行时 `html[data-theme]` 与内联背景，不覆盖 MonkeyCode 的 `mc.theme` / `mc.themeBg` 持久偏好。原生快照通过 `dream-work-theme:monkeycode:native` 跨 reload 保存，还原后清除。
+- 活跃主题 reload 后 watcher 会等待新 document ready，再恢复主题与菜单；还原标记会阻止还原后的 reload 再注入。桌宠实测无主题 style、菜单和 `data-dream-theme`。
+- `26082107` 引入新的多 pane 工作台结构。发现阶段只为 MonkeyCode 读取 EXE `ProductVersion`；`parseMonkeyCodeBuild()` 以 `26082107` 为阈值。旧版保持原样，新版页面标记 `data-dream-monkeycode-modern=true`，透明化 `mc-workbench-surface-200/300/100` 三层。实测左侧 `232×1004`、右侧底层 `1688×1004` 和 pane `1688×1004` 均恢复透明。
+- 新建任务 pane 内部另有一个 `mc-workbench-surface-100 > div.flex-1.bg-base-100` 全高滚动主体，原本仍为 72% 不透明。版本限定规则透明化该直接子层；居中 `544×191` 输入卡片和 textarea 继续保留 72%/90% surface。
+
 ### 9.7 CSS 生成器分层
 
 当前 `electron/manager/injector.ts` 中存在 16 个具体 CSS 生成器；`buildAppCss()` 负责分派，通用注册类型和应用专属分支共同覆盖当前应用：
@@ -1391,6 +1405,7 @@ Codex、HanaAgent、Kimi 和其他非 WorkBuddy 应用使用 Shadow DOM host：
 | StepFun | 通过，读取动态端口并匹配宿主/聊天/会员 target | 通过 | 通过，多 Tab 与会员页自动补注入 | 通过，仅聊天页显示 |
 | SparkDesk | 通过，固定端口 `9354` 并匹配宿主/`#desk`/`#settings` | 通过 | 通过，多聊天 Tab 与设置页自动补注入 | 通过，仅 `#desk` 显示 |
 | DSH Desktop / DeepSeek Harness | 通过，新版优先路径、旧版回退路径、首选端口 `9355` 并匹配 `dsh-desktop-platform=` | 通过 | 通过，整窗背景、透明层、设置浮层和深浅 palette | 通过 |
+| MonkeyCode | 通过，WebView2 环境变量端口 `9356`，精确匹配 Tauri 主窗口 | 通过 | 通过，活跃主题 reload 后自动恢复 | 通过，仅主窗口显示，桌宠排除 |
 | Codex / ChatGPT Desktop | 通过 | 通过 | 通过 | 通过 |
 
 构建验证：
@@ -1398,7 +1413,7 @@ Codex、HanaAgent、Kimi 和其他非 WorkBuddy 应用使用 Shadow DOM host：
 - `pnpm typecheck` 通过。
 - `pnpm build:app` 通过。
 - 根目录 `dist-electron/main.js` 与 Vite 最新 Electron 输出保持同步。
-- 17 款应用通过 `acceptsGenericThemes` 默认兼容和 manifest 显式覆盖模型读取主题，无 HanaAgent/Kimi/OpenCode/豆包/AgnesCode/MiniMax Code/AstronClaw/StepFun/SparkDesk/DeepSeek Harness 硬编码放行。
+- 18 款应用通过 `acceptsGenericThemes` 默认兼容和 manifest 显式覆盖模型读取主题，无 HanaAgent/Kimi/OpenCode/豆包/AgnesCode/MiniMax Code/AstronClaw/StepFun/SparkDesk/DeepSeek Harness/MonkeyCode 硬编码放行。
 - Kimi Work 首次注入实测同时覆盖 Work 与 Chat，返回 `applied: 2`；两个 target 重载后均能恢复主题。
 - OpenCode Desktop 实测主题应用返回 `applied: 1`，浮动菜单切换和还原正常；主题重启不会终止同名 OpenCode CLI。
 - 豆包 Desktop 实测主题应用返回 `applied: 1`，菜单切换和还原正常；技能、新工作任务、AI 创作和历史对话导航后主题会自动恢复。
@@ -1576,7 +1591,7 @@ HanaAgent 的 renderer 会在启动和部分界面切换期间被替换。维护
 
 | 文件 | 职责 |
 |------|------|
-| `electron/manager/app-registry.ts` | 17 款应用的三平台发现候选、启动、端口、类型、路径限定进程管理和默认主题兼容注册 |
+| `electron/manager/app-registry.ts` | 18 款应用的三平台发现候选、启动、端口、类型、路径限定进程管理和默认主题兼容注册 |
 | `electron/manager/discovery.ts` | 扫描 Windows 安装目录/版本目录/Codex Appx、macOS bundle 和 Linux desktop/executable |
 | `electron/manager/launcher.ts` | 结束旧进程、跨平台启动、真实 bind 探测与动态端口回退、等待首选端口或 `DevToolsActivePort` CDP，并处理 HanaAgent/Kimi renderer 稳定、Kimi Windows 父进程限制、StepFun 托盘后二次激活、OpenCode/豆包/AstronClaw/StepFun/DeepSeek Harness 路径限定进程管理以及 AgnesCode Playwright CDP、fuse wire 和原生标题栏补丁 |
 | `electron/manager/cdp.ts` | target 发现、WebSocket 会话和 Runtime.evaluate |
@@ -1595,8 +1610,8 @@ HanaAgent 的 renderer 会在启动和部分界面切换期间被替换。维护
 
 | 早期计划 | 当前实现 |
 |----------|----------|
-| 默认 12 套主题 | 当前源码包含 345 份主题 manifest，运行时按内容去重 |
-| 支持至少 5 款主流应用 | 当前注册 17 款应用 |
+| 默认 12 套主题 | 当前源码包含 403 份主题 manifest，运行时按内容去重 |
+| 支持至少 5 款主流应用 | 当前注册 18 款应用 |
 | 所有应用使用固定端口 | QoderWork、千问办公、OpenCode 和 StepFun 使用 `DevToolsActivePort`；SparkDesk 使用固定 `9354`；DeepSeek Harness 首选 `9355`；普通首选端口启动前真实 bind，不可绑定时自动顺延并回传实际端口 |
 | 每款应用单独 profile 文件 | 使用集中式 `app-registry.ts` + 4 类注册类型，并为 HanaAgent、Kimi、OpenCode、豆包、AgnesCode、MiniMax Code、AstronClaw、StepFun、SparkDesk、DeepSeek Harness 增加专属 CSS/生命周期分支 |
 | 主题背景可统一铺 body | WorkBuddy/Codex/其他应用均根据主体 DOM 放置图片，避免侧栏和外壳错误铺图 |

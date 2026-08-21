@@ -6,6 +6,12 @@ const source = fs.readFileSync(mainBundle, 'utf8');
 const requiredMarkers = [
   'deepseek-harness',
   'DSH Desktop.exe',
+  'monkeycode-desktop.exe',
+  'WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS',
+  'dream-work-theme:monkeycode:restored',
+  'dream-work-theme:monkeycode:native',
+  'mc-workbench-surface-300',
+  '26082107',
   '[class*="_composerSeat"]',
   '[class*="_composerStack"]',
   'data-ds-dark-theme',

@@ -8,7 +8,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache License 2.0-green?style=flat-square" alt="License"></a>
   <img src="https://img.shields.io/badge/Platform-Windows/macOS/Linux-blue?style=flat-square" alt="Platform">
   <img src="https://img.shields.io/badge/Node-22%2B-orange?style=flat-square" alt="Node">
-  <img src="https://img.shields.io/badge/Themes-200%20built--in-ff69b4?style=flat-square" alt="Themes">
+  <img src="https://img.shields.io/badge/Themes-400%20built--in-ff69b4?style=flat-square" alt="Themes">
 </p>
 
 <div align="center">
@@ -64,6 +64,8 @@ Dream Work Theme 是面向 Electron Work 类桌面应用的主题管理器。它
 
 ![Dream Work Theme 界面预览](preview19.png)
 
+![Dream Work Theme 界面预览](preview20.png)
+
 </details>
 
 ## 支持应用
@@ -86,9 +88,10 @@ Dream Work Theme 是面向 Electron Work 类桌面应用的主题管理器。它
 - SparkDesk（讯飞星火）
 - StepFun（阶跃 AI）
 - DeepSeek Harness / DSH Desktop（基于 [anywhere-labs/deepseek-harness-desktop](https://github.com/anywhere-labs/deepseek-harness-desktop) 构建）
+- MonkeyCode（Tauri / WebView2）
 - Codex / ChatGPT Desktop
 
-部分应用使用首选调试端口；QoderWork、千问办公、OpenCode Desktop 和阶跃 AI 通过 `DevToolsActivePort` 获取运行时端口。HanaAgent 首选 `9346`，Kimi Work 首选 `9347`，豆包 Desktop 首选 `9349`，AgnesCode 使用 `9350`，MiniMax Code 首选 `9351`，AstronClaw 首选 `9352`，阶跃 AI 配置首选 `9353`，讯飞星火使用 `9354`，DeepSeek Harness 首选 `9355`。阶跃客户端会写入并使用自己的动态端口；星火接受固定 `--remote-debugging-port=9354`。启动前会通过真实 TCP bind 检查端口；若首选端口被占用或处于 Windows 幽灵监听状态，普通应用会自动顺延到可用端口，并把真实端口用于后续注入、状态查询和还原。Dream Work Theme 也会等待易重建的 renderer 稳定，并在运行期间自动恢复丢失的主题。
+部分应用使用首选调试端口；QoderWork、千问办公、OpenCode Desktop 和阶跃 AI 通过 `DevToolsActivePort` 获取运行时端口。HanaAgent 首选 `9346`，Kimi Work 首选 `9347`，豆包 Desktop 首选 `9349`，AgnesCode 使用 `9350`，MiniMax Code 首选 `9351`，AstronClaw 首选 `9352`，阶跃 AI 配置首选 `9353`，讯飞星火使用 `9354`，DeepSeek Harness 首选 `9355`，MonkeyCode 首选 `9356`。阶跃客户端会写入并使用自己的动态端口；星火接受固定 `--remote-debugging-port=9354`。启动前会通过真实 TCP bind 检查端口；若首选端口被占用或处于 Windows 幽灵监听状态，普通应用会自动顺延到可用端口，并把真实端口用于后续注入、状态查询和还原。Dream Work Theme 也会等待易重建的 renderer 稳定，并在运行期间自动恢复丢失的主题。
 
 AgnesCode 正式版会主动移除普通的 `--remote-debugging-port` 参数。Dream Work Theme 通过 AgnesCode 内置的 Playwright 调试入口开启 CDP，并显式保留正式安装包中的 `resources/bin/agnesd.exe` 后端路径。该调试入口会让 AgnesCode 将当前会话标记为开发模式，因此其日志中可能出现不影响主题和聊天功能的更新配置检查错误。
 
@@ -286,6 +289,19 @@ Vite 的 CJS API deprecation 当前只是警告，不会导致构建失败。
 - DeepSeek 的原生明暗 palette 由 `body[data-ds-dark-theme]` 控制，而不是普通 `.dark` class。切换主题时会根据 manifest `surface` 亮度同步该属性，使 `--dsw-*` 文字、按钮、输入框和弹窗 token 一起切换；还原主题时恢复用户原先的 DeepSeek 明暗状态。
 - 该适配只使用启动参数、CDP 和运行时 CSS/JavaScript 注入，不修改 DeepSeek Harness 的安装文件。
 
+### MonkeyCode 说明
+
+- MonkeyCode 不是 Electron，而是 Tauri `2.11.5` + Rust + Wry `0.55.1` + Microsoft Edge WebView2。Windows 实机路径为 `D:\Program Files\MonkeyCode\monkeycode-desktop.exe`。
+- Dream Work Theme 通过 `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=<port>` 为 WebView2 开启标准 CDP，首选端口为 `9356`；普通 Electron 的 EXE 调试参数不适用于该应用。
+- 主窗口 URL 精确为 `http://tauri.localhost/`，桌宠窗口为 `http://tauri.localhost/pet.html`。完整主题和菜单只注入主窗口，桌宠不会被误注入。
+- `buildMonkeyCodeCss()` 映射 DaisyUI 的 base/content/accent token，将 hero 挂载到固定 `html::before`，并透明化标题栏、侧栏和主内容大面积 surface；输入框、聊天卡片、弹窗和下拉层保留半透明对比背景。
+- 最左侧 `nav.w-rail` 和对话正文左缘的全高章节导航 dropdown 轨道保持完全透明，让 hero 背景连续显示；章节弹出内容和底部输入框仍保留局部对比 surface。
+- 深浅主题仅在运行时同步 `html[data-theme]` 和内联背景，不改写 MonkeyCode 自己的 `mc.theme` / `mc.themeBg` 持久设置。原生快照跨 WebView reload 保存，还原时恢复用户原有的 `monkeycode` / `monkeycode-dark` 状态和背景色。
+- 严格 target 白名单禁止 relaxed fallback 误选桌宠。主进程 watcher 会在活跃主题页面 reload 后恢复主题和菜单；还原标记则让还原后的 reload 保持纯原生页面。
+- MonkeyCode 以 Windows EXE `ProductVersion` 做样式分支。`26082107` 之前继续使用旧版 rail/aside/章节导航规则；`26082107` 及以后会设置 `data-dream-monkeycode-modern="true"`，并额外透明化新版 `mc-workbench-surface-200` 左侧栏、`mc-workbench-surface-300` 工作台底层和 `mc-workbench-surface-100` pane，避免左右两侧的新 surface 遮挡 hero。
+- `26082107` 新建任务 pane 内还有一个直接全高 `bg-base-100` 滚动主体；新版规则只透明化 `mc-workbench-surface-100` 的该直接子层，不会清除居中的任务输入卡片、textarea、模型和运行环境控件的局部对比背景。
+- 该适配只使用进程环境变量、CDP 和运行时 CSS/JavaScript 注入，不修改 MonkeyCode EXE 或嵌入资源。
+
 ## 主题存储
 
 主题按以下优先级加载：
@@ -476,6 +492,7 @@ dream-work-theme/
 - 阶跃 AI 使用多个独立 WebContents，并依赖 `app://chat-web/`、`app://ui/pages/browser/` 和会员订阅 URL。客户端更新若改变顶部 `90px` 布局、Tab/导航类名或订阅页模块类名，需要重新校准连续背景和透明层。
 - 讯飞星火使用 `index.html`、`#desk` 和 `#settings` 多个 WebContents，并依赖当前 Tab/导航总高度 `80px`。客户端更新若改变 URL、标题栏高度、输入区 CSS Modules 类名前缀或设置页结构，需要重新校准 target 白名单、连续背景和深浅色控件规则。
 - DSH Desktop 当前依赖 `dsh-desktop-platform=` URL 参数、CSS Modules 的 `_centerCol` / `_sidebarCol` / `_composerSeat` / `_composerStack` 结构，以及 `body[data-ds-dark-theme]` palette 属性。`2.0.0` 已验证这些稳定后缀继续有效；上游桌面端更新这些约定时需要重新校准目标识别、透明层、设置浮层和明暗同步。
+- MonkeyCode 当前依赖 Tauri 主页面 `http://tauri.localhost/`、DaisyUI base/content token 和 WebView2 调试环境变量。上游修改 WebView URL、UI token 或 WebView2 调试策略时需要重新校准。
 - TRAE Work、QoderWork、CatPaw、ZCode、千问办公、阶跃 AI、讯飞星火和 DeepSeek Harness 的 macOS/Linux 注册表候选尚缺对应平台安装样本验证；实际产品若未发布该平台版本则无法发现。
 - 未签名的 Windows/macOS 发布包可能触发系统安全提示。
 - Windows 当前关闭了 EXE 元数据编辑，因此可能显示 Electron 默认图标和文件信息。
