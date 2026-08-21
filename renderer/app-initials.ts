@@ -14,5 +14,6 @@ export function getAppInitials(appId: string, name: string): string {
   if (appId === 'sparkdesk') return 'SD';
   if (appId === 'stepfun') return 'SF';
   if (appId === 'deepseek-harness') return 'DS';
+  if (appId === 'monkeycode') return 'MK';
   return name.slice(0, 2).toUpperCase();
 }

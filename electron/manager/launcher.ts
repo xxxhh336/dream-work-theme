@@ -56,7 +56,7 @@ export async function launchApp(appId: string, themeId?: string): Promise<{ succ
     if (port !== profile.defaultPort) {
       console.warn(`[launcher] Default CDP port ${profile.defaultPort} is unavailable; using ${port}`);
     }
-    const args = [`--remote-debugging-port=${port}`];
+    const args = profile.webView2 ? [] : [`--remote-debugging-port=${port}`];
 
     // Disable extensions for Codex to avoid plugin sync crashes that block CDP.
     if (appId === 'codex') {
@@ -186,6 +186,11 @@ function getLaunchEnvironment(appId: string, appPath: string, port: number): Nod
     env.ENABLE_PLAYWRIGHT = '1';
     env.PLAYWRIGHT_DEBUG_PORT = String(port);
     env.AGNESD_BINARY = path.join(path.dirname(appPath), 'resources', 'bin', os.platform() === 'win32' ? 'agnesd.exe' : 'agnesd');
+  }
+  if (getAppDefinition(appId)?.webView2) {
+    const existing = env.WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS?.trim();
+    const debugArgument = `--remote-debugging-port=${port}`;
+    env.WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = existing ? `${existing} ${debugArgument}` : debugArgument;
   }
   return env;
 }

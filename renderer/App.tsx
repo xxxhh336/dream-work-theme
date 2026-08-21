@@ -28,6 +28,7 @@ const APP_PORTS: Record<string, number> = {
   stepfun: 9353,
   sparkdesk: 9354,
   'deepseek-harness': 9355,
+  monkeycode: 9356,
 };
 
 interface ThemeInfo {

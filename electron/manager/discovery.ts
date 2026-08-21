@@ -56,6 +56,7 @@ export interface DiscoveredApp {
   appId: string;
   name: string;
   path: string;
+  version?: string;
   pid?: number;
 }
 
@@ -73,7 +74,12 @@ export async function discoverApps(): Promise<DiscoveredApp[]> {
 
   for (const definition of APP_DEFINITIONS.filter(app => app.id !== 'codex')) {
     const found = findWindowsExecutable(definition.exeNames, definition.installPaths);
-    if (found) results.push({ appId: definition.id, name: definition.name, path: found });
+    if (found) results.push({
+      appId: definition.id,
+      name: definition.name,
+      path: found,
+      version: definition.id === 'monkeycode' ? await getWindowsProductVersion(found) : undefined,
+    });
   }
 
   const codex = findWindowsExecutable(['Codex.exe', 'ChatGPT.exe'], [
@@ -87,6 +93,24 @@ export async function discoverApps(): Promise<DiscoveredApp[]> {
   else if (codex) results.push({ appId: 'codex', name: 'Codex', path: codex });
 
   return results;
+}
+
+export async function getDiscoveredApp(appId: string): Promise<DiscoveredApp | undefined> {
+  return (await discoverApps()).find(app => app.appId === appId);
+}
+
+async function getWindowsProductVersion(executablePath: string): Promise<string | undefined> {
+  if (os.platform() !== 'win32') return undefined;
+  const escaped = executablePath.replace(/'/g, "''");
+  try {
+    const { stdout } = await execFileAsync('powershell.exe', [
+      '-NoLogo', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command',
+      `(Get-Item -LiteralPath '${escaped}').VersionInfo.ProductVersion`,
+    ], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
+    return stdout.trim() || undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 async function findDefinitionOnCurrentPlatform(definition: AppDefinition): Promise<string | null> {

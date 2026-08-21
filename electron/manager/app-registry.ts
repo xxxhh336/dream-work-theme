@@ -12,6 +12,7 @@ export interface AppDefinition {
   kind: 'workbuddy' | 'codex' | 'vscode-work' | 'generic-work';
   devToolsActivePort?: string;
   windowsPathScopedKill?: boolean;
+  webView2?: boolean;
   acceptsGenericThemes: boolean;
   darwin?: { appBundles: string[]; executableNames: string[] };
   linux?: { executableNames: string[]; desktopFiles: string[] };
@@ -165,6 +166,16 @@ export const APP_DEFINITIONS: AppDefinition[] = [
     acceptsGenericThemes: true,
     darwin: { appBundles: ['DSH Desktop.app', 'DeepSeek Harness.app'], executableNames: ['DSH Desktop', 'DeepSeek Harness'] },
     linux: { executableNames: ['dsh-desktop', 'DSH Desktop', 'deepseek-harness', 'DeepSeek Harness'], desktopFiles: ['dsh-desktop.desktop', 'deepseek-harness.desktop'] },
+  },
+  {
+    id: 'monkeycode', name: 'MonkeyCode', exeNames: ['monkeycode-desktop.exe'], processName: 'monkeycode-desktop.exe', defaultPort: 9356,
+    installPaths: ['D:\\Program Files\\MonkeyCode', path.join(localAppData, 'Programs', 'MonkeyCode'), path.join(programFiles, 'MonkeyCode'), path.join(programFilesX86, 'MonkeyCode')],
+    rendererHints: ['http://tauri.localhost/'], kind: 'generic-work',
+    windowsPathScopedKill: true,
+    webView2: true,
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ['MonkeyCode.app'], executableNames: ['MonkeyCode', 'monkeycode-desktop'] },
+    linux: { executableNames: ['monkeycode-desktop', 'MonkeyCode'], desktopFiles: ['monkeycode.desktop', 'monkeycode-desktop.desktop'] },
   },
 ];
 
