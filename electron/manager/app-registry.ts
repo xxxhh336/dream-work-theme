@@ -177,6 +177,15 @@ export const APP_DEFINITIONS: AppDefinition[] = [
     darwin: { appBundles: ['MonkeyCode.app'], executableNames: ['MonkeyCode', 'monkeycode-desktop'] },
     linux: { executableNames: ['monkeycode-desktop', 'MonkeyCode'], desktopFiles: ['monkeycode.desktop', 'monkeycode-desktop.desktop'] },
   },
+  {
+    id: 'autoclaw', name: 'AutoClaw', exeNames: ['AutoClaw.exe'], processName: 'AutoClaw.exe', defaultPort: 9357,
+    installPaths: ['D:\\Program Files\\AutoClaw', path.join(localAppData, 'Programs', 'AutoClaw'), path.join(programFiles, 'AutoClaw'), path.join(programFilesX86, 'AutoClaw')],
+    rendererHints: ['out/renderer/index.html'], kind: 'generic-work',
+    windowsPathScopedKill: true,
+    acceptsGenericThemes: true,
+    darwin: { appBundles: ['AutoClaw.app'], executableNames: ['AutoClaw'] },
+    linux: { executableNames: ['autoclaw', 'AutoClaw'], desktopFiles: ['autoclaw.desktop'] },
+  },
 ];
 
 export function getAppDefinition(appId: string): AppDefinition | undefined {

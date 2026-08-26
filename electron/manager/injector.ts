@@ -1612,6 +1612,7 @@ function buildGenericWorkCss(appId: string, manifest: any, heroDataUrl: string, 
     sparkdesk: '.app-container',
     'deepseek-harness': '[class*="_centerCol"]',
     monkeycode: 'main',
+    autoclaw: '.autoclaw-home, .autoclaw-shell',
   };
   const sidebarSelectors: Record<string, string> = {
     'qoder-work': '[class*="sidebar"]',
@@ -1623,6 +1624,7 @@ function buildGenericWorkCss(appId: string, manifest: any, heroDataUrl: string, 
     astronclaw: '.local-chat-rail, [class*="local-chat-sidebar"]',
     sparkdesk: '.browser-header, [class*="left_side"], [class*="sidebar"]',
     monkeycode: 'aside, #root > div > div > :first-child',
+    autoclaw: '.autoclaw-shell aside, .autoclaw-shell nav, .autoclaw-shell [class*="sidebar"]',
   };
   const main = mainSelectors[appId] ?? 'main, [role="main"], [class*="main-content"]';
   const sidebar = sidebarSelectors[appId] ?? 'aside, nav, [class*="sidebar"]';
@@ -1650,6 +1652,8 @@ function buildGenericWorkCss(appId: string, manifest: any, heroDataUrl: string, 
                         ? buildMonkeyCodeCss(heroDataUrl, colors, Boolean(options.monkeyCodeModern))
                       : appId === 'zcode'
                         ? buildZCodeCss(heroDataUrl, colors)
+                        : appId === 'autoclaw'
+                          ? buildAutoClawCss(heroDataUrl, colors)
       : '';
   if (appId === 'sparkdesk') {
     return `/* DREAM_THEME:${manifest.id} */\n${appSpecificCss}`;
@@ -1690,6 +1694,538 @@ ${appId === 'doubao' || appId === 'astronclaw' || appId === 'stepfun' || appId =
 :is(${main}) :where(p, span, li, h1, h2, h3, h4, strong, em) { color: ${colors.text} !important; }
 button[class*="bg-primary"], button[class*="bg-accent"] { background-color: ${colors.accent} !important; color: #fff !important; }
 ${appSpecificCss}`;
+}
+
+function buildAutoClawCss(heroDataUrl: string, colors: any): string {
+  const isLight = isLightHex(colors.surface);
+  const panel = isLight
+    ? `color-mix(in srgb, ${colors.surface} 84%, transparent)`
+    : `color-mix(in srgb, ${colors.surface} 78%, transparent)`;
+  const panelStrong = isLight
+    ? `color-mix(in srgb, ${colors.surface} 94%, transparent)`
+    : `color-mix(in srgb, ${colors.surface} 90%, #000000)`;
+  const hover = `color-mix(in srgb, ${colors.accent} ${isLight ? '14%' : '24%'}, ${colors.surface})`;
+  const selected = `color-mix(in srgb, ${colors.accent} ${isLight ? '24%' : '38%'}, ${colors.surface})`;
+  const muted = `color-mix(in srgb, ${colors.text} ${isLight ? '68%' : '76%'}, transparent)`;
+  return `
+html[data-dream-theme],
+html[data-dream-theme] body {
+  --autoclaw-bg-primary: ${colors.surface} !important;
+  --autoclaw-bg-secondary: ${panel} !important;
+  --autoclaw-bg-tertiary: ${panelStrong} !important;
+  --autoclaw-text-primary: ${colors.text} !important;
+  --autoclaw-text-secondary: ${muted} !important;
+  --autoclaw-border: color-mix(in srgb, ${colors.text} 18%, transparent) !important;
+  --autoclaw-accent: ${colors.accent} !important;
+  color: ${colors.text} !important;
+}
+html[data-dream-theme] body::before {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  opacity: 0 !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html,
+body,
+#root,
+.autoclaw-home,
+.autoclaw-shell,
+.autoclaw-sidebar-left,
+.figma-session-sidebar,
+.autoclaw-chat-area,
+.autoclaw-generic-stage,
+.autoclaw-content-region,
+.chat-messages {
+  min-height: 100% !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#root {
+  position: relative !important;
+  isolation: isolate;
+}
+#root::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: ${colors.surface} !important;
+  background-image: url(${JSON.stringify(heroDataUrl)}) !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+}
+.autoclaw-home,
+.autoclaw-shell {
+  width: 100vw !important;
+  min-height: 100vh !important;
+}
+#root .autoclaw-shell .autoclaw-sidebar-left,
+#root .autoclaw-shell .figma-session-sidebar,
+#root .autoclaw-shell .figma-sidebar-footer,
+#root .autoclaw-shell .sidebar-footer-entries,
+#root .autoclaw-shell .sidebar-footer-entry,
+#root .autoclaw-shell .sidebar-footer-entry *,
+#root .autoclaw-shell .autoclaw-left-sidebar-resizer,
+#root .autoclaw-shell > :first-child {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#root .autoclaw-shell .autoclaw-left-sidebar-resizer {
+  width: 4px !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+#root .autoclaw-shell .nested-agent-group,
+#root .autoclaw-shell .nested-group-list,
+#root .autoclaw-shell .nested-group-stack {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+#root .autoclaw-shell .nested-agent-group:hover {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+#root .autoclaw-shell .nested-agent-group:hover > :where(.nested-group-toggle, button:first-child) {
+  background: ${hover} !important;
+  color: ${colors.text} !important;
+}
+#root .autoclaw-shell :where(
+  .figma-topbar,
+  .figma-sidebar-tabs,
+  .new-chat-home-header,
+  .new-chat-home-header-actions,
+  .autoclaw-content-header,
+  [class*="topbar"],
+  [class*="titlebar"]
+) {
+  background-color: transparent !important;
+  background-image: none !important;
+  color: ${colors.text} !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#root .autoclaw-shell :where(
+  .figma-top-collapse-btn,
+  .figma-sidebar-tab,
+  .nested-group-toggle,
+  .nested-group-create,
+  .nested-group-more,
+  .nested-group-expand,
+  .figma-session-main,
+  .figma-session-more-btn,
+  .sidebar-footer-entry,
+  .figma-footer-settings-btn,
+  .figma-footer-feedback-btn,
+  .figma-user-chip,
+  .new-chat-home-header-actions__button,
+  .new-chat-home-header-actions__points-value,
+  .new-chat-home-header-actions__purchase
+) {
+  color: ${colors.text} !important;
+  text-shadow: none !important;
+}
+#root .autoclaw-shell .figma-sidebar-tab :where(
+  .figma-sidebar-tab-icon-frame,
+  .figma-sidebar-tab-img
+) {
+  color: ${colors.text} !important;
+  opacity: 1 !important;
+}
+html[data-dream-theme] #root .autoclaw-home .figma-sidebar-tab .figma-sidebar-tab-icon-frame {
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 7px !important;
+  background: ${panelStrong} !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, ${colors.text} 28%, transparent) !important;
+}
+html[data-dream-theme] #root .autoclaw-home .figma-sidebar-tab .figma-sidebar-tab-img {
+  width: 20px !important;
+  height: 20px !important;
+  filter: none !important;
+  opacity: 1 !important;
+  image-rendering: auto !important;
+}
+#root .autoclaw-shell .figma-sidebar-tab :where(svg, path) {
+  color: ${colors.text} !important;
+  fill: currentColor !important;
+  stroke: currentColor !important;
+  opacity: 1 !important;
+}
+html[data-dream-theme] #root .autoclaw-home :where(
+  .auto-designer-main-header,
+  .auto-coder-main-header,
+  .new-chat-home-header,
+  .autoclaw-content-header,
+  [class*="main-header"]
+),
+html[data-dream-theme] #root .autoclaw-home :where(
+  .auto-designer-main-header,
+  .auto-coder-main-header,
+  .new-chat-home-header,
+  .autoclaw-content-header,
+  [class*="main-header"]
+)::before,
+html[data-dream-theme] #root .autoclaw-home :where(
+  .auto-designer-main-header,
+  .auto-coder-main-header,
+  .new-chat-home-header,
+  .autoclaw-content-header,
+  [class*="main-header"]
+)::after {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#root .autoclaw-shell :where(
+  .figma-sidebar-tab,
+  .nested-agent-group > .nested-group-toggle,
+  .figma-session-main,
+  .sidebar-footer-entry
+):hover {
+  background: ${hover} !important;
+  color: ${colors.text} !important;
+}
+#root .autoclaw-shell :where(
+  .figma-sidebar-tab.active,
+  .nested-agent-group.is-active > .nested-group-toggle,
+  .nested-agent-group.has-active-session > .nested-group-toggle,
+  .figma-session-main.active,
+  .figma-session-main.is-active,
+  .figma-session-item.active,
+  .figma-session-item.is-active,
+  [aria-selected="true"]
+) {
+  background: ${selected} !important;
+  color: ${colors.text} !important;
+}
+#root .autoclaw-shell :where(
+  .figma-sidebar-tab,
+  .nested-agent-group,
+  .nested-agent-group *,
+  .figma-session-main,
+  .figma-session-main *,
+  .figma-session-item,
+  .figma-session-item *,
+  .sidebar-footer-entry,
+  .sidebar-footer-entry *
+) {
+  border-color: color-mix(in srgb, ${colors.text} 16%, transparent) !important;
+}
+#root .autoclaw-shell :where(
+  .figma-sidebar-tab:hover,
+  .figma-sidebar-tab.active,
+  .nested-agent-group > .nested-group-toggle:hover,
+  .nested-agent-group.is-active > .nested-group-toggle,
+  .nested-agent-group.has-active-session > .nested-group-toggle,
+  .figma-session-main:hover,
+  .figma-session-main.active,
+  .figma-session-main.is-active,
+  .figma-session-item:hover,
+  .figma-session-item.active,
+  .figma-session-item.is-active,
+  [aria-selected="true"]
+),
+#root .autoclaw-shell :where(
+  .figma-sidebar-tab:hover,
+  .figma-sidebar-tab.active,
+  .nested-agent-group > .nested-group-toggle:hover,
+  .nested-agent-group.is-active > .nested-group-toggle,
+  .nested-agent-group.has-active-session > .nested-group-toggle,
+  .figma-session-main:hover,
+  .figma-session-main.active,
+  .figma-session-main.is-active,
+  .figma-session-item:hover,
+  .figma-session-item.active,
+  .figma-session-item.is-active,
+  [aria-selected="true"]
+) * {
+  color: ${colors.text} !important;
+  fill: currentColor !important;
+}
+.autoclaw-shell :where(
+  .chat-area,
+  .autoclaw-chat-area,
+  .autoclaw-generic-stage,
+  .autoclaw-content-region,
+  .chat-messages,
+  [class*="content"],
+  [class*="workspace"],
+  [class*="conversation"],
+  [class*="chat-container"],
+  [class*="message-list"]
+) {
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#root .autoclaw-shell :where(
+  .autoclaw-generic-stage,
+  .autoclaw-content-region,
+  .chat-messages
+) {
+  height: calc(100vh - 56px) !important;
+  min-height: 0 !important;
+  max-height: calc(100vh - 56px) !important;
+  box-sizing: border-box !important;
+}
+#root .autoclaw-shell .new-chat-empty-state {
+  min-height: 0 !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  box-sizing: border-box !important;
+  padding-bottom: max(20px, env(safe-area-inset-bottom)) !important;
+}
+#root .autoclaw-shell .chat-messages {
+  scroll-padding-bottom: 24px !important;
+}
+#root .autoclaw-shell .chat-messages > :where(.chat-empty-state, .agent-empty-state) {
+  min-height: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  box-sizing: border-box !important;
+  padding-bottom: 16px !important;
+}
+#root .autoclaw-shell .chat-messages .input-container {
+  position: sticky !important;
+  z-index: 8 !important;
+  bottom: 16px !important;
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  margin-top: auto !important;
+  padding-bottom: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#root .autoclaw-shell :where(
+  .input-container,
+  .input-composer-stack,
+  .new-chat-home-input,
+  .input-skill-strip,
+  .input-main,
+  .input-tools,
+  .input-tools-scroll
+) {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.autoclaw-shell :where(
+  .new-chat-empty-state__mode,
+  .new-chat-empty-state__mode *,
+  .new-chat-empty-state__title,
+  .new-chat-empty-state__subtitle,
+  .new-chat-home-header,
+  .new-chat-home-header *
+) {
+  color: ${colors.text} !important;
+  text-shadow: none !important;
+}
+.autoclaw-shell .new-chat-empty-state__mode {
+  background: ${panel} !important;
+  border-color: color-mix(in srgb, ${colors.text} 18%, transparent) !important;
+}
+.autoclaw-shell .new-chat-empty-state__mode:hover {
+  background: ${hover} !important;
+}
+.autoclaw-shell .new-chat-empty-state__mode.is-active {
+  background: ${selected} !important;
+  color: ${colors.text} !important;
+}
+.autoclaw-shell :where(
+  .input-composer-stack,
+  .new-chat-home-input
+) {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.autoclaw-shell .input-box {
+  background: ${panelStrong} !important;
+  border: 1px solid color-mix(in srgb, ${colors.accent} 30%, transparent) !important;
+  box-shadow: 0 14px 36px color-mix(in srgb, ${colors.surface} 34%, transparent) !important;
+  color: ${colors.text} !important;
+}
+.autoclaw-shell :where(
+  .input-main,
+  .input-textarea-row,
+  .input-textarea,
+  .input-toolbar,
+  .input-footer
+) {
+  background: transparent !important;
+  color: ${colors.text} !important;
+}
+.autoclaw-shell .input-textarea::placeholder {
+  color: ${muted} !important;
+  opacity: 1 !important;
+}
+.autoclaw-shell :where(
+  .tool-btn,
+  .input-model-btn,
+  .input-expert-btn,
+  .goal-template-btn,
+  .input-agent-cluster-btn
+) {
+  background: transparent !important;
+  color: ${muted} !important;
+}
+.autoclaw-shell :where(
+  .tool-btn,
+  .input-model-btn,
+  .input-expert-btn,
+  .goal-template-btn,
+  .input-agent-cluster-btn
+):hover {
+  background: ${hover} !important;
+  color: ${colors.text} !important;
+}
+.autoclaw-shell .send-btn {
+  background: ${colors.accent} !important;
+  color: ${isLight ? colors.surface : '#ffffff'} !important;
+  border-color: transparent !important;
+}
+.autoclaw-shell .send-btn:disabled {
+  background: color-mix(in srgb, ${colors.accent} 32%, ${colors.surface}) !important;
+  color: ${colors.text} !important;
+  border-color: color-mix(in srgb, ${colors.accent} 36%, transparent) !important;
+  opacity: 1 !important;
+}
+.autoclaw-shell :where(
+  .new-chat-empty-state__quick-actions,
+  .new-chat-empty-state__suggestions,
+  .new-chat-empty-state__cards,
+  .new-chat-empty-state__actions,
+  .new-chat-empty-state__main > :last-child,
+  .new-chat-home-shortcuts,
+  [class*="quick-action"],
+  [class*="shortcut"],
+  [class*="suggestion"]
+) {
+  background: transparent !important;
+  color: ${colors.text} !important;
+}
+.autoclaw-shell :where(
+  .new-chat-empty-state__quick-actions,
+  .new-chat-empty-state__suggestions,
+  .new-chat-empty-state__cards,
+  .new-chat-empty-state__actions,
+  .new-chat-empty-state__main > :last-child,
+  .new-chat-home-shortcuts,
+  [class*="quick-action"],
+  [class*="shortcut"],
+  [class*="suggestion"]
+) :where(button, [role="button"], a) {
+  background: ${panelStrong} !important;
+  color: ${colors.text} !important;
+  border-color: color-mix(in srgb, ${colors.text} 18%, transparent) !important;
+}
+.autoclaw-shell :where(
+  .new-chat-empty-state__quick-actions,
+  .new-chat-empty-state__suggestions,
+  .new-chat-empty-state__cards,
+  .new-chat-empty-state__actions,
+  .new-chat-empty-state__main > :last-child,
+  .new-chat-home-shortcuts,
+  [class*="quick-action"],
+  [class*="shortcut"],
+  [class*="suggestion"]
+) :where(button, [role="button"], a):hover {
+  background: ${hover} !important;
+  color: ${colors.text} !important;
+}
+.autoclaw-shell :where(
+  .chat-area,
+  .autoclaw-chat-area,
+  .chat-messages
+)::before,
+.autoclaw-shell :where(
+  .chat-area,
+  .autoclaw-chat-area,
+  .chat-messages
+)::after {
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#root .autoclaw-home .autoclaw-sidebar-left.collapsed + .autoclaw-chat-area,
+#root .autoclaw-home .autoclaw-sidebar-left.collapsed + .autoclaw-chat-area::before,
+#root .autoclaw-home .autoclaw-sidebar-left.collapsed + .autoclaw-chat-area::after,
+#root .autoclaw-home .autoclaw-sidebar-left.collapsed + .autoclaw-chat-area .autoclaw-generic-stage,
+#root .autoclaw-home .autoclaw-sidebar-left.collapsed + .autoclaw-chat-area .autoclaw-content-region {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.autoclaw-shell :where(
+  [class*="message-item"],
+  [class*="message-bubble"],
+  [class*="message-content"]
+) {
+  background-color: color-mix(in srgb, ${colors.surface} 68%, transparent) !important;
+  backdrop-filter: blur(12px) saturate(108%);
+}
+.autoclaw-shell :where(
+  aside,
+  nav,
+  [class*="sidebar"],
+  [class*="sider"]
+) {
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.autoclaw-shell :where(
+  textarea,
+  [contenteditable="true"]
+) {
+  background-color: color-mix(in srgb, ${colors.surface} 78%, transparent) !important;
+  color: ${colors.text} !important;
+}
+`;
 }
 
 async function fetchMonkeyCodeTargets(port: number): Promise<any[]> {
@@ -4349,10 +4885,28 @@ export function buildMenuScript(options: {
     const v = parseInt(m[1], 16);
     return (0.299 * ((v >> 16) & 255) + 0.587 * ((v >> 8) & 255) + 0.114 * (v & 255)) > 140;
   };
+  const syncAutoClawMode = (dark) => {
+    if (appId !== 'autoclaw') return;
+    const html = document.documentElement;
+    const body = document.body;
+    html.dataset.theme = dark ? 'dark' : 'light';
+    body.dataset.theme = dark ? 'dark' : 'light';
+    html.style.colorScheme = dark ? 'dark' : 'light';
+    body.style.colorScheme = dark ? 'dark' : 'light';
+    [html, body].forEach((target) => {
+      target.classList.toggle('dark', dark);
+      target.classList.toggle('vscode-dark', dark);
+      target.classList.toggle('cb-dark', dark);
+      target.classList.toggle('light', !dark);
+      target.classList.toggle('vscode-light', !dark);
+      target.classList.toggle('cb-light', !dark);
+    });
+  };
   const applyMode = (surface) => {
     const dark = !isLightSurface(surface);
     const body = document.body;
     const html = document.documentElement;
+    syncAutoClawMode(dark);
     html.dataset.dreamShell = dark ? "dark" : "light";
     body.dataset.vscodeThemeKind = dark ? "vscode-dark" : "vscode-light";
     body.dataset.vscodeThemeName = dark ? "IDE Dark" : "IDE Light";
@@ -4366,6 +4920,10 @@ export function buildMenuScript(options: {
     if (appId === 'monkeycode') {
       html.dataset.theme = dark ? 'dark' : 'light';
       html.style.background = surface;
+    }
+    if (appId === 'autoclaw') {
+      clearInterval(window.__dreamAutoClawModeGuard);
+      window.__dreamAutoClawModeGuard = setInterval(() => syncAutoClawMode(dark), 250);
     }
   };
   if (!window[nativeModeKey]) {
@@ -4387,6 +4945,9 @@ export function buildMenuScript(options: {
       monkeyCodeStoredTheme: appId === 'monkeycode' ? localStorage.getItem('mc.theme') : null,
       monkeyCodeStoredBackground: appId === 'monkeycode' ? localStorage.getItem('mc.themeBg') : null,
       stepFunTheme: appId === 'stepfun' ? localStorage.getItem('theme') : null,
+      autoClawHtmlTheme: appId === 'autoclaw' ? html.dataset.theme : undefined,
+      autoClawBodyTheme: appId === 'autoclaw' ? body.dataset.theme : undefined,
+      autoClawBodyColorScheme: appId === 'autoclaw' ? body.style.colorScheme : undefined,
     };
     if (appId === 'monkeycode' && !monkeyCodeNative) {
       try { localStorage.setItem(monkeyCodeNativeKey, JSON.stringify(window[nativeModeKey])); } catch {}
@@ -4397,6 +4958,14 @@ export function buildMenuScript(options: {
     if (!nativeMode) return;
     const html = document.documentElement;
     const body = document.body;
+    if (appId === 'autoclaw') {
+      clearInterval(window.__dreamAutoClawVisualGuard);
+      delete window.__dreamAutoClawVisualGuard;
+    }
+    if (appId === 'autoclaw') {
+      clearInterval(window.__dreamAutoClawModeGuard);
+      delete window.__dreamAutoClawModeGuard;
+    }
     let nativeDark = nativeMode.htmlClasses.includes('dark') || nativeMode.bodyClasses.includes('dark');
     if (appId === 'minimax-code' || appId === 'agnes-code' || appId === 'astronclaw' || appId === 'stepfun') {
       try {
@@ -4449,6 +5018,13 @@ export function buildMenuScript(options: {
           else localStorage.setItem('mc.themeBg', nativeMode.monkeyCodeStoredBackground);
           localStorage.removeItem(monkeyCodeNativeKey);
         } catch {}
+      }
+      if (appId === 'autoclaw') {
+        if (nativeMode.autoClawHtmlTheme === undefined) delete html.dataset.theme;
+        else html.dataset.theme = nativeMode.autoClawHtmlTheme;
+        if (nativeMode.autoClawBodyTheme === undefined) delete body.dataset.theme;
+        else body.dataset.theme = nativeMode.autoClawBodyTheme;
+        body.style.colorScheme = nativeMode.autoClawBodyColorScheme || '';
       }
     }
     delete html.dataset.dreamShell;
@@ -4526,6 +5102,22 @@ export function buildMenuScript(options: {
     void writeStepFunState(themeId, actionAt);
     void writeSparkDeskState(themeId, actionAt);
     if (appId !== 'hana-agent' && appId !== 'kimi' && appId !== 'stepfun') applyMode(theme.surface);
+    if (appId === 'autoclaw') {
+      const dark = !isLightSurface(theme.surface);
+      const iconImageCss = 'width:20px!important;height:20px!important;filter:none!important;opacity:1!important;';
+      const iconFrameCss = 'width:24px!important;height:24px!important;border-radius:7px!important;background:' + (dark ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.08)') + '!important;box-shadow:inset 0 0 0 1px ' + (dark ? 'rgba(255,255,255,.28)' : 'rgba(0,0,0,.18)') + '!important;';
+      const headerCss = 'background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;';
+      const applyAutoClawInlineOverrides = () => {
+        document.querySelectorAll('.figma-sidebar-tab .figma-sidebar-tab-img').forEach((node) => { node.style.cssText += iconImageCss; });
+        document.querySelectorAll('.figma-sidebar-tab .figma-sidebar-tab-icon-frame').forEach((node) => { node.style.cssText += iconFrameCss; });
+        document.querySelectorAll('.auto-designer-main-header, .auto-coder-main-header, .new-chat-home-header, .autoclaw-content-header, [class*="main-header"]').forEach((node) => {
+          node.style.cssText += headerCss;
+        });
+      };
+      applyAutoClawInlineOverrides();
+      clearInterval(window.__dreamAutoClawVisualGuard);
+      window.__dreamAutoClawVisualGuard = setInterval(applyAutoClawInlineOverrides, 300);
+    }
     
     // Codex themes require the codex-dream-skin class on <html> for CSS selectors to match
     if (appId === 'codex') {

@@ -66,6 +66,8 @@ Dream Work Theme is a desktop theme manager for supported Electron work applicat
 
 ![Dream Work Theme Interface preview](preview20.png)
 
+![Dream Work Theme Interface preview](preview21.png)
+
 </details>
 
 ## Support Applications
@@ -89,9 +91,10 @@ The current application registry supports:
 - SparkDesk
 - DeepSeek Harness / DSH Desktop (built from [anywhere-labs/deepseek-harness-desktop](https://github.com/anywhere-labs/deepseek-harness-desktop))
 - MonkeyCode (Tauri / WebView2)
+- AutoClaw
 - Codex / ChatGPT Desktop
 
-Some applications use preferred debugging ports, while QoderWork, Qwen Office, OpenCode Desktop, and StepFun AI read their live port from `DevToolsActivePort`. HanaAgent prefers `9346`, Kimi Work prefers `9347`, Doubao Desktop prefers `9349`, AgnesCode uses `9350`, MiniMax Code prefers `9351`, AstronClaw prefers `9352`, StepFun is registered with preferred port `9353`, SparkDesk uses `9354`, DeepSeek Harness prefers `9355`, and MonkeyCode prefers `9356`. StepFun writes and uses its own dynamic port, while SparkDesk accepts the fixed `--remote-debugging-port=9354` argument. Before launch, Dream Work Theme performs a real TCP bind check. If a preferred port is occupied or stuck in a Windows ghost-listener state, normal applications automatically advance to an available port and return that live port for injection, status queries, and restore operations. Dream Work Theme also waits for renderers that are likely to be recreated and restores missing injection while the application is running.
+Some applications use preferred debugging ports, while QoderWork, Qwen Office, OpenCode Desktop, and StepFun AI read their live port from `DevToolsActivePort`. HanaAgent prefers `9346`, Kimi Work prefers `9347`, Doubao Desktop prefers `9349`, AgnesCode uses `9350`, MiniMax Code prefers `9351`, AstronClaw prefers `9352`, StepFun is registered with preferred port `9353`, SparkDesk uses `9354`, DeepSeek Harness prefers `9355`, MonkeyCode prefers `9356`, and AutoClaw prefers `9357`. StepFun writes and uses its own dynamic port, while SparkDesk accepts the fixed `--remote-debugging-port=9354` argument. Before launch, Dream Work Theme performs a real TCP bind check. If a preferred port is occupied or stuck in a Windows ghost-listener state, normal applications automatically advance to an available port and return that live port for injection, status queries, and restore operations. Dream Work Theme also waits for renderers that are likely to be recreated and restores missing injection while the application is running.
 
 The AgnesCode release build actively removes a normal `--remote-debugging-port` argument. Dream Work Theme enables CDP through AgnesCode's built-in Playwright debugging entry point and explicitly preserves the packaged `resources/bin/agnesd.exe` backend path. This entry point marks the AgnesCode session as a development session, so its logs may contain update-configuration errors that do not affect theming or chat functionality.
 
@@ -301,6 +304,16 @@ The floating menu shows up to four quick preset themes and is no longer tied to 
 - MonkeyCode styling is version-gated from the Windows executable `ProductVersion`. Builds before `26082107` retain the legacy rail/aside/chapter-navigation rules. Build `26082107` and later set `data-dream-monkeycode-modern="true"` and additionally clear the new `mc-workbench-surface-200` sidebar, `mc-workbench-surface-300` workbench layer, and `mc-workbench-surface-100` panes so the new left and right surfaces do not cover the hero.
 - The `26082107` New Task pane adds a direct full-height scrolling `bg-base-100` body. The modern rule clears only that direct pane child, preserving the centered task composer, textarea, model selector, and runtime controls as local contrast surfaces.
 - The adapter uses only process environment, CDP, and runtime CSS/JavaScript injection. It does not modify the MonkeyCode executable or embedded resources.
+
+### AutoClaw Notes
+
+- The verified Windows version is AutoClaw `1.17.7`, installed at `D:\Program Files\AutoClaw\AutoClaw.exe`. Its main renderer is `file:///.../resources/app.asar/out/renderer/index.html`, and its preferred CDP port is `9357`.
+- AutoClaw's Windows manifest declares `requestedExecutionLevel="requireAdministrator"`. A normal Electron `spawn()` returns `EACCES`, so Dream Work Theme uses one UAC-elevated flow to terminate the existing executable by full path and start a new instance with debugging arguments. A launch-completion marker prevents the injector from attaching to an old target that is about to exit.
+- AutoClaw can advance beyond the requested port. The launcher scans candidate ports, verifies an AutoClaw User-Agent from `/json/version`, confirms `out/renderer/index.html` in `/json/list`, and returns the live port to the injector.
+- The dedicated `buildAutoClawCss()` mounts the hero on a fixed full-window `#root::before` layer. Sidebar, session list, main content, header, message scroller, and composer wrappers remain transparent; only the actual composer, message cards, and controls that need contrast retain local theme surfaces.
+- Theme surface luminance synchronizes AutoClaw's runtime `data-theme`, `color-scheme`, and light/dark classes. A runtime guard counters AutoClaw React effects that reapply the persisted native appearance, while restore stops the guard and reinstates the native state.
+- Real-device checks cover the full-window hero, floating menu, project/session hover and selection, the three top-tab icons, transparent main header, collapsed sidebar, New Chat and conversation composers, and bottom composer visibility on assistant pages such as Thinking Assistant.
+- The AutoClaw adapter uses UAC launch, CDP, and runtime CSS/JavaScript injection only. It does not modify installed AutoClaw files.
 
 ## Theme Storage
 

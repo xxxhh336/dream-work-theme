@@ -49,8 +49,11 @@ export async function launchApp(appId: string, themeId?: string): Promise<{ succ
     
     // Kill existing instances to ensure fresh launch with debug port
     console.log(`[launcher] Killing existing ${appId} instances...`);
-    await killExistingInstances(appId, appPath);
-    await waitForPortToClose(profile.defaultPort, 15000);
+    const elevatedAutoClaw = appId === 'autoclaw' && os.platform() === 'win32';
+    if (!elevatedAutoClaw) {
+      await killExistingInstances(appId, appPath);
+      await waitForPortToClose(profile.defaultPort, 15000);
+    }
 
     const port = await findAvailablePort(profile.defaultPort);
     if (port !== profile.defaultPort) {
@@ -80,7 +83,9 @@ export async function launchApp(appId: string, themeId?: string): Promise<{ succ
     const launchEnvironment = getLaunchEnvironment(appId, appPath, port);
     const pid = appId === 'kimi' && os.platform() === 'win32'
       ? await launchKimiDetached(appPath, args)
-      : launchDetached(appPath, args, launchEnvironment);
+      : appId === 'autoclaw' && os.platform() === 'win32'
+        ? await launchElevatedDetached(appPath, args, launchEnvironment)
+        : await launchDetached(appPath, args, launchEnvironment);
 
     console.log(`[launcher] Spawned process${pid ? ` with PID: ${pid}` : ''}`);
 
@@ -90,11 +95,13 @@ export async function launchApp(appId: string, themeId?: string): Promise<{ succ
     if (devToolsActivePort) {
       if (appId === 'stepfun') {
         actualPort = await waitForDevToolsActivePortFile(devToolsActivePort, 30000);
-        launchDetached(appPath, [], launchEnvironment);
+        await launchDetached(appPath, [], launchEnvironment);
         await verifyRendererEndpoint(actualPort, profile.rendererHints, 30000);
       } else {
         actualPort = await waitForDevToolsActivePort(devToolsActivePort, profile.rendererHints, 30000);
       }
+    } else if (appId === 'autoclaw' && os.platform() === 'win32') {
+      actualPort = await waitForAutoClawPort(port, profile.rendererHints, 30000);
     } else {
       await waitForPort(port, 30000);
     }
@@ -111,14 +118,92 @@ export async function launchApp(appId: string, themeId?: string): Promise<{ succ
   }
 }
 
-function launchDetached(appPath: string, args: string[], env: NodeJS.ProcessEnv): number | undefined {
-  const child = spawn(appPath, args, {
-    detached: true,
-    stdio: 'ignore',
-    env,
+function launchDetached(appPath: string, args: string[], env: NodeJS.ProcessEnv): Promise<number | undefined> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(appPath, args, {
+      detached: true,
+      stdio: 'ignore',
+      env,
+    });
+    child.once('error', reject);
+    child.once('spawn', () => {
+      child.removeListener('error', reject);
+      child.unref();
+      resolve(child.pid);
+    });
   });
-  child.unref();
-  return child.pid;
+}
+
+async function launchElevatedDetached(appPath: string, args: string[], env: NodeJS.ProcessEnv): Promise<undefined> {
+  const launchMarker = path.join(os.tmpdir(), `dream-work-autoclaw-${process.pid}-${Date.now()}.ready`);
+  try { fs.unlinkSync(launchMarker); } catch {}
+  const encodedAppPath = Buffer.from(appPath, 'utf8').toString('base64');
+  const encodedWorkingDirectory = Buffer.from(path.dirname(appPath), 'utf8').toString('base64');
+  const encodedLaunchMarker = Buffer.from(launchMarker, 'utf8').toString('base64');
+  const encodedArgs = Buffer.from(JSON.stringify(args), 'utf8').toString('base64');
+  const elevatedScript = [
+    `$appPath = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${encodedAppPath}'))`,
+    `$workingDirectory = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${encodedWorkingDirectory}'))`,
+    `$launchMarker = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${encodedLaunchMarker}'))`,
+    '$target = [IO.Path]::GetFullPath($appPath)',
+    'Get-CimInstance Win32_Process | Where-Object { $_.ExecutablePath -and [IO.Path]::GetFullPath($_.ExecutablePath) -ieq $target } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }',
+    'Start-Sleep -Milliseconds 500',
+    `$argsJson = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${encodedArgs}'))`,
+    '[string[]]$launchArgs = @($argsJson | ConvertFrom-Json)',
+    'Start-Process -FilePath $appPath -ArgumentList $launchArgs -WorkingDirectory $workingDirectory',
+    "[IO.File]::WriteAllText($launchMarker, 'ready')",
+  ].join('; ');
+  const encodedScript = Buffer.from(elevatedScript, 'utf16le').toString('base64');
+  const script = `Start-Process -FilePath powershell.exe -ArgumentList '-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand ${encodedScript}' -Verb RunAs`;
+
+  try {
+    await spawnAndWait('powershell.exe', [
+      '-NoLogo',
+      '-NoProfile',
+      '-NonInteractive',
+      '-ExecutionPolicy',
+      'Bypass',
+      '-Command',
+      script,
+    ], env);
+    await waitForFile(launchMarker, 30000);
+  } catch (error: any) {
+    const message = String(error?.message || error);
+    if (/canceled by the user|operation was canceled|操作已被用户取消|用户取消/i.test(message)) {
+      throw new Error('AutoClaw requires administrator permission to enable theme injection; the UAC prompt was canceled');
+    }
+    throw error;
+  } finally {
+    try { fs.unlinkSync(launchMarker); } catch {}
+  }
+  return undefined;
+}
+
+async function waitForFile(filePath: string, timeoutMs: number): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (fs.existsSync(filePath)) return;
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  throw new Error(`Timed out waiting for elevated AutoClaw launch confirmation`);
+}
+
+function spawnAndWait(command: string, args: string[], env: NodeJS.ProcessEnv): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      stdio: 'ignore',
+      env,
+      windowsHide: true,
+    });
+    child.once('error', reject);
+    child.once('exit', (code, signal) => {
+      if (code === 0) {
+        resolve();
+        return;
+      }
+      reject(new Error(`${command} exited with ${signal ? `signal ${signal}` : `code ${code ?? 'unknown'}`}`));
+    });
+  });
 }
 
 async function launchKimiDetached(appPath: string, args: string[]): Promise<undefined> {
@@ -407,6 +492,59 @@ async function waitForPort(port: number, timeoutMs: number): Promise<void> {
     }
   }
   throw new Error(`CDP port ${port} did not become ready within ${timeoutMs}ms (last error: ${lastError})`);
+}
+
+async function waitForAutoClawPort(startPort: number, rendererHints: string[], timeoutMs: number): Promise<number> {
+  const deadline = Date.now() + timeoutMs;
+  let lastError = 'AutoClaw CDP endpoint was not found';
+
+  while (Date.now() < deadline) {
+    for (let port = startPort; port < Math.min(startPort + 100, 65536); port++) {
+      try {
+        const version = await fetchJson(`http://127.0.0.1:${port}/json/version`, 500);
+        const identity = `${version?.Browser ?? ''} ${version?.['User-Agent'] ?? ''}`.toLowerCase();
+        if (!identity.includes('autoclaw')) continue;
+
+        const targets = await fetchJson(`http://127.0.0.1:${port}/json/list`, 500);
+        const hasRenderer = Array.isArray(targets) && targets.some(target =>
+          target?.type === 'page' &&
+          typeof target.url === 'string' &&
+          rendererHints.some(hint => target.url.includes(hint))
+        );
+        if (hasRenderer) return port;
+        lastError = `AutoClaw CDP on port ${port} did not expose its renderer`;
+      } catch (error: any) {
+        lastError = error?.message || String(error);
+      }
+    }
+    await new Promise(resolve => setTimeout(resolve, 250));
+  }
+
+  throw new Error(`Timed out waiting for AutoClaw CDP near port ${startPort}: ${lastError}`);
+}
+
+async function fetchJson(url: string, timeoutMs: number): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const request = http.get(url, { timeout: timeoutMs }, response => {
+      if (response.statusCode !== 200) {
+        response.resume();
+        reject(new Error(`HTTP ${response.statusCode ?? 'unknown'} from ${url}`));
+        return;
+      }
+      let body = '';
+      response.setEncoding('utf8');
+      response.on('data', chunk => { body += chunk; });
+      response.on('end', () => {
+        try {
+          resolve(JSON.parse(body));
+        } catch (error) {
+          reject(error);
+        }
+      });
+    });
+    request.on('timeout', () => request.destroy(new Error(`Timed out fetching ${url}`)));
+    request.on('error', reject);
+  });
 }
 
 async function verifyCdpEndpoint(port: number, timeoutMs: number): Promise<void> {

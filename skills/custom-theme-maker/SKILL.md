@@ -26,6 +26,11 @@ doubao
 agnes-code
 minimax-code
 astronclaw
+sparkdesk
+stepfun
+deepseek-harness
+monkeycode
+autoclaw
 ```
 
 ## 输出
@@ -83,6 +88,8 @@ hero 也可以使用 JPEG、WebP 或 GIF，只需让 `hero` 字段与实际文�
 HanaAgent 适配时还应验证启动后的 renderer 重建场景：主题应在 renderer 稳定后显示；点击「还原主题」后，等待数秒并刷新或切换界面，主题都不应自动恢复。
 
 AstronClaw 适配时应检查新建任务、历史对话、我的技能和灵感广场，避免通用 `[class*="message"]`、`bg-card` 或 `backdrop-filter` 形成大面积遮挡；还原测试必须分别覆盖其设置 API 中的浅色、深色和跟随系统模式。
+
+AutoClaw 适配时必须同时检查浅色和深色主题。主题 `surface` 亮度应同步 AutoClaw 的运行时 `data-theme` / `color-scheme`；全窗口背景、折叠侧栏、项目/会话 hover 与选中态、顶部 Tab 图标、右侧标题栏、新建对话、历史对话、沉思/监控/浏览器助手输入区和右下角菜单都应保持可读且不被全屏 surface 或模糊层遮挡。
 
 ## 应用当前执行的校验
 

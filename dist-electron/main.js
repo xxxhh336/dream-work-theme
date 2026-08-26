@@ -1,4 +1,4 @@
-"use strict";var vt=Object.defineProperty;var St=(e,t,n)=>t in e?vt(e,t,{enumerable:!0,configurable:!0,writable:!0,value:n}):e[t]=n;var D=(e,t,n)=>St(e,typeof t!="symbol"?t+"":t,n);const T=require("electron"),$t=require("path"),Ct=require("fs"),de=require("child_process"),Be=require("util"),Tt=require("os"),_t=require("original-fs"),Et=require("http"),At=require("net"),It=require("fs/promises"),Pt=require("crypto");function G(e){const t=Object.create(null,{[Symbol.toStringTag]:{value:"Module"}});if(e){for(const n in e)if(n!=="default"){const a=Object.getOwnPropertyDescriptor(e,n);Object.defineProperty(t,n,a.get?a:{enumerable:!0,get:()=>e[n]})}}return t.default=e,Object.freeze(t)}const d=G($t),h=G(Ct),x=G(Tt),F=G(_t),tt=G(Et),Re=G(At),Le=G(Pt),v=process.env.LOCALAPPDATA||d.join(x.homedir(),"AppData","Local"),Y=process.env.APPDATA||d.join(x.homedir(),"AppData","Roaming"),I=process.env.ProgramFiles||"C:\\Program Files",j=process.env["ProgramFiles(x86)"]||"C:\\Program Files (x86)",be=[{id:"workbuddy",name:"WorkBuddy",exeNames:["WorkBuddy.exe"],processName:"WorkBuddy.exe",defaultPort:9339,installPaths:[d.join(v,"workbuddy"),d.join(v,"Programs","workbuddy"),d.join(I,"WorkBuddy"),d.join(j,"WorkBuddy"),"D:\\Program Files\\WorkBuddy"],rendererHints:["app.asar/renderer/index.html","renderer/index.html","index.html"],kind:"workbuddy",acceptsGenericThemes:!0,darwin:{appBundles:["WorkBuddy.app"],executableNames:["WorkBuddy"]},linux:{executableNames:["workbuddy","WorkBuddy"],desktopFiles:["workbuddy.desktop"]}},{id:"codex",name:"Codex",exeNames:["ChatGPT.exe","Codex.exe"],processName:"ChatGPT.exe",defaultPort:9340,installPaths:[d.join(v,"Programs","Codex"),d.join(v,"Programs","OpenAI","Codex"),d.join(I,"Codex"),d.join(j,"Codex"),"D:\\Program Files\\Codex"],rendererHints:["index.html","renderer/index.html"],kind:"codex",acceptsGenericThemes:!0,darwin:{appBundles:["ChatGPT.app","Codex.app"],executableNames:["ChatGPT","Codex"]},linux:{executableNames:["codex","Codex"],desktopFiles:["codex.desktop"]}},{id:"trae-work",name:"TRAE Work",exeNames:["TRAE SOLO CN.exe","TRAE Work CN.exe"],processName:"TRAE SOLO CN.exe",defaultPort:9341,installPaths:["D:\\Program Files\\TRAE SOLO CN",d.join(v,"Programs","TRAE SOLO CN"),d.join(I,"TRAE SOLO CN")],rendererHints:["solo/solo-lite.html","solo-lite.html"],kind:"vscode-work",acceptsGenericThemes:!0,darwin:{appBundles:["TRAE SOLO CN.app","TRAE Work CN.app","TRAE.app"],executableNames:["TRAE SOLO CN","TRAE Work CN","TRAE"]},linux:{executableNames:["trae","trae-work","TRAE"],desktopFiles:["trae.desktop","trae-work.desktop"]}},{id:"qoder-work",name:"QoderWork",exeNames:["QoderWork CN.exe","QoderWork.exe"],processName:"QoderWork CN.exe",defaultPort:9342,installPaths:["D:\\Program Files\\QoderWork CN",d.join(v,"Programs","QoderWork CN"),d.join(I,"QoderWork CN")],rendererHints:["out/renderer/index.html","renderer/index.html"],kind:"generic-work",devToolsActivePort:d.join(Y,"QoderWork CN","DevToolsActivePort"),acceptsGenericThemes:!0,darwin:{appBundles:["QoderWork CN.app","QoderWork.app"],executableNames:["QoderWork CN","QoderWork"]},linux:{executableNames:["qoder-work","qoderwork","QoderWork"],desktopFiles:["qoder-work.desktop","qoderwork.desktop"]}},{id:"catpaw",name:"CatPaw",exeNames:["CatPaw.exe"],processName:"CatPaw.exe",defaultPort:9343,installPaths:[d.join(v,"CatPaw"),d.join(v,"Programs","CatPaw"),d.join(I,"CatPaw")],rendererHints:["app.asar/dist/index.html","dist/index.html"],kind:"generic-work",acceptsGenericThemes:!0,darwin:{appBundles:["CatPaw.app"],executableNames:["CatPaw"]},linux:{executableNames:["catpaw","CatPaw"],desktopFiles:["catpaw.desktop"]}},{id:"zcode",name:"ZCode",exeNames:["ZCode.exe"],processName:"ZCode.exe",defaultPort:9344,installPaths:["D:\\Program Files\\ZCode",d.join(v,"Programs","ZCode"),d.join(I,"ZCode")],rendererHints:["out/renderer/index.html","renderer/index.html"],kind:"generic-work",acceptsGenericThemes:!0,darwin:{appBundles:["ZCode.app"],executableNames:["ZCode"]},linux:{executableNames:["zcode","ZCode"],desktopFiles:["zcode.desktop"]}},{id:"qwen-office",name:"千问办公",exeNames:["QwenWorkCN.exe"],processName:"QwenWorkCN.exe",defaultPort:9345,installPaths:["D:\\Program Files\\QwenWorkCN",d.join(v,"Programs","QwenWorkCN"),d.join(I,"QwenWorkCN")],rendererHints:["out/renderer/index.html","renderer/index.html"],kind:"generic-work",devToolsActivePort:d.join(Y,"QwenWorkCN","DevToolsActivePort"),acceptsGenericThemes:!0,darwin:{appBundles:["QwenWorkCN.app","Qwen Work.app"],executableNames:["QwenWorkCN","Qwen Work"]},linux:{executableNames:["qwen-work","qwenwork","QwenWorkCN"],desktopFiles:["qwen-work.desktop","qwenwork.desktop"]}},{id:"hana-agent",name:"HanaAgent",exeNames:["HanaAgent.exe"],processName:"HanaAgent.exe",defaultPort:9346,installPaths:[d.join(v,"Programs","HanaAgent"),d.join(I,"HanaAgent"),d.join(j,"HanaAgent")],rendererHints:[".hanako/artifacts/renderer/","artifacts/renderer/","/index.html"],kind:"generic-work",acceptsGenericThemes:!0,darwin:{appBundles:["HanaAgent.app"],executableNames:["HanaAgent"]},linux:{executableNames:["hana-agent","HanaAgent"],desktopFiles:["hana-agent.desktop"]}},{id:"kimi",name:"Kimi Work",exeNames:["Kimi.exe"],processName:"Kimi.exe",defaultPort:9347,installPaths:["D:\\Program Files\\Kimi",d.join(v,"Programs","Kimi"),d.join(I,"Kimi"),d.join(j,"Kimi")],rendererHints:["kimi-agent.html","kimichat.html","https://www.kimi.com/"],kind:"generic-work",devToolsActivePort:d.join(Y,"kimi-desktop","DevToolsActivePort"),acceptsGenericThemes:!0,darwin:{appBundles:["Kimi.app"],executableNames:["Kimi"]},linux:{executableNames:["kimi","Kimi"],desktopFiles:["kimi.desktop"]}},{id:"opencode",name:"OpenCode",exeNames:["OpenCode.exe"],processName:"OpenCode.exe",defaultPort:9348,installPaths:[d.join(v,"Programs","@opencode-aidesktop"),d.join(v,"Programs","OpenCode"),d.join(I,"OpenCode"),d.join(j,"OpenCode")],rendererHints:["oc://renderer/index.html"],kind:"generic-work",devToolsActivePort:d.join(Y,"ai.opencode.desktop","DevToolsActivePort"),windowsPathScopedKill:!0,acceptsGenericThemes:!0,darwin:{appBundles:["OpenCode.app"],executableNames:["OpenCode"]},linux:{executableNames:["opencode-desktop","OpenCode"],desktopFiles:["opencode-desktop.desktop"]}},{id:"doubao",name:"豆包",exeNames:["Doubao.exe"],processName:"Doubao.exe",defaultPort:9349,installPaths:[d.join(v,"Doubao","Application","app"),d.join(v,"Doubao","Application"),d.join(I,"Doubao"),d.join(j,"Doubao")],rendererHints:["doubao://doubao-chat/chat"],kind:"generic-work",windowsPathScopedKill:!0,acceptsGenericThemes:!0,darwin:{appBundles:["Doubao.app"],executableNames:["Doubao"]},linux:{executableNames:["doubao","Doubao"],desktopFiles:["doubao.desktop"]}},{id:"agnes-code",name:"AgnesCode",exeNames:["AgnesCode.exe"],processName:"AgnesCode.exe",defaultPort:9350,installPaths:["D:\\Program Files\\AgnesCode",d.join(v,"Programs","AgnesCode"),d.join(I,"AgnesCode"),d.join(j,"AgnesCode")],rendererHints:["app.asar/.vite/renderer/main_window/index.html"],kind:"generic-work",windowsPathScopedKill:!0,acceptsGenericThemes:!0,darwin:{appBundles:["AgnesCode.app"],executableNames:["AgnesCode"]},linux:{executableNames:["agnes-code","agnescode","AgnesCode"],desktopFiles:["agnes-code.desktop","agnescode.desktop"]}},{id:"minimax-code",name:"MiniMax Code",exeNames:["MiniMax Code.exe"],processName:"MiniMax Code.exe",defaultPort:9351,installPaths:["D:\\Program Files\\MiniMax Code",d.join(v,"Programs","MiniMax Code"),d.join(I,"MiniMax Code"),d.join(j,"MiniMax Code")],rendererHints:["app://./archon"],kind:"generic-work",windowsPathScopedKill:!0,acceptsGenericThemes:!0,darwin:{appBundles:["MiniMax Code.app"],executableNames:["MiniMax Code"]},linux:{executableNames:["minimax-code","MiniMax Code"],desktopFiles:["minimax-code.desktop"]}},{id:"astronclaw",name:"AstronClaw",exeNames:["AstronClaw.exe"],processName:"AstronClaw.exe",defaultPort:9352,installPaths:["D:\\Program Files\\AstronClaw",d.join(v,"Programs","AstronClaw"),d.join(I,"AstronClaw"),d.join(j,"AstronClaw")],rendererHints:["app.asar/out/renderer/index.html","out/renderer/index.html"],kind:"generic-work",windowsPathScopedKill:!0,acceptsGenericThemes:!0,darwin:{appBundles:["AstronClaw.app"],executableNames:["AstronClaw"]},linux:{executableNames:["astronclaw","AstronClaw"],desktopFiles:["astronclaw.desktop"]}},{id:"sparkdesk",name:"SparkDesk",exeNames:["SparkDesk.exe"],processName:"SparkDesk.exe",defaultPort:9354,installPaths:["D:\\Program Files\\SparkDesk",d.join(v,"Programs","SparkDesk"),d.join(I,"SparkDesk"),d.join(j,"SparkDesk")],rendererHints:["out/renderer/index.html#desk","out/renderer/index.html"],kind:"generic-work",windowsPathScopedKill:!0,acceptsGenericThemes:!0,darwin:{appBundles:["SparkDesk.app"],executableNames:["SparkDesk"]},linux:{executableNames:["sparkdesk","SparkDesk"],desktopFiles:["sparkdesk.desktop"]}},{id:"stepfun",name:"StepFun",exeNames:["StepFun.exe"],processName:"StepFun.exe",defaultPort:9353,installPaths:["D:\\Program Files\\StepFun\\StepFun",d.join(v,"Programs","StepFun"),d.join(I,"StepFun"),d.join(j,"StepFun")],rendererHints:["app://chat-web/"],kind:"generic-work",devToolsActivePort:d.join(Y,"stepfun-desktop","DevToolsActivePort"),windowsPathScopedKill:!0,acceptsGenericThemes:!0,darwin:{appBundles:["StepFun.app"],executableNames:["StepFun"]},linux:{executableNames:["stepfun","StepFun"],desktopFiles:["stepfun.desktop"]}},{id:"deepseek-harness",name:"DSH Desktop",exeNames:["DSH Desktop.exe","DeepSeek Harness.exe"],processName:"DSH Desktop.exe",defaultPort:9355,installPaths:["D:\\Program Files\\DSH Desktop","D:\\Program Files\\DeepSeek Harness",d.join(v,"Programs","DSH Desktop"),d.join(v,"Programs","DeepSeek Harness"),d.join(I,"DSH Desktop"),d.join(I,"DeepSeek Harness"),d.join(j,"DSH Desktop"),d.join(j,"DeepSeek Harness")],rendererHints:["dsh-desktop-platform="],kind:"generic-work",windowsPathScopedKill:!0,acceptsGenericThemes:!0,darwin:{appBundles:["DSH Desktop.app","DeepSeek Harness.app"],executableNames:["DSH Desktop","DeepSeek Harness"]},linux:{executableNames:["dsh-desktop","DSH Desktop","deepseek-harness","DeepSeek Harness"],desktopFiles:["dsh-desktop.desktop","deepseek-harness.desktop"]}},{id:"monkeycode",name:"MonkeyCode",exeNames:["monkeycode-desktop.exe"],processName:"monkeycode-desktop.exe",defaultPort:9356,installPaths:["D:\\Program Files\\MonkeyCode",d.join(v,"Programs","MonkeyCode"),d.join(I,"MonkeyCode"),d.join(j,"MonkeyCode")],rendererHints:["http://tauri.localhost/"],kind:"generic-work",windowsPathScopedKill:!0,webView2:!0,acceptsGenericThemes:!0,darwin:{appBundles:["MonkeyCode.app"],executableNames:["MonkeyCode","monkeycode-desktop"]},linux:{executableNames:["monkeycode-desktop","MonkeyCode"],desktopFiles:["monkeycode.desktop","monkeycode-desktop.desktop"]}}];function O(e){return be.find(t=>t.id===e)}const $e=Be.promisify(de.execFile);function Dt(){const e=[],t=d.join(process.env.ProgramFiles||"C:\\Program Files","WindowsApps");if(!h.existsSync(t))return e;try{const n=h.readdirSync(t);for(const a of n)if(/^OpenAI\.Codex_\d+/i.test(a)){const o=d.join(t,a,"app","ChatGPT.exe");h.existsSync(o)&&e.push(o)}}catch{}return e}async function Nt(){const e=`
+"use strict";var St=Object.defineProperty;var Ct=(e,t,a)=>t in e?St(e,t,{enumerable:!0,configurable:!0,writable:!0,value:a}):e[t]=a;var D=(e,t,a)=>Ct(e,typeof t!="symbol"?t+"":t,a);const T=require("electron"),Tt=require("path"),_t=require("fs"),Z=require("child_process"),Be=require("util"),Et=require("os"),At=require("original-fs"),It=require("http"),Pt=require("net"),Dt=require("fs/promises"),Nt=require("crypto");function J(e){const t=Object.create(null,{[Symbol.toStringTag]:{value:"Module"}});if(e){for(const a in e)if(a!=="default"){const n=Object.getOwnPropertyDescriptor(e,a);Object.defineProperty(t,a,n.get?n:{enumerable:!0,get:()=>e[a]})}}return t.default=e,Object.freeze(t)}const d=J(Tt),h=J(_t),k=J(Et),L=J(At),Re=J(It),Fe=J(Pt),Le=J(Nt),v=process.env.LOCALAPPDATA||d.join(k.homedir(),"AppData","Local"),ee=process.env.APPDATA||d.join(k.homedir(),"AppData","Roaming"),E=process.env.ProgramFiles||"C:\\Program Files",N=process.env["ProgramFiles(x86)"]||"C:\\Program Files (x86)",fe=[{id:"workbuddy",name:"WorkBuddy",exeNames:["WorkBuddy.exe"],processName:"WorkBuddy.exe",defaultPort:9339,installPaths:[d.join(v,"workbuddy"),d.join(v,"Programs","workbuddy"),d.join(E,"WorkBuddy"),d.join(N,"WorkBuddy"),"D:\\Program Files\\WorkBuddy"],rendererHints:["app.asar/renderer/index.html","renderer/index.html","index.html"],kind:"workbuddy",acceptsGenericThemes:!0,darwin:{appBundles:["WorkBuddy.app"],executableNames:["WorkBuddy"]},linux:{executableNames:["workbuddy","WorkBuddy"],desktopFiles:["workbuddy.desktop"]}},{id:"codex",name:"Codex",exeNames:["ChatGPT.exe","Codex.exe"],processName:"ChatGPT.exe",defaultPort:9340,installPaths:[d.join(v,"Programs","Codex"),d.join(v,"Programs","OpenAI","Codex"),d.join(E,"Codex"),d.join(N,"Codex"),"D:\\Program Files\\Codex"],rendererHints:["index.html","renderer/index.html"],kind:"codex",acceptsGenericThemes:!0,darwin:{appBundles:["ChatGPT.app","Codex.app"],executableNames:["ChatGPT","Codex"]},linux:{executableNames:["codex","Codex"],desktopFiles:["codex.desktop"]}},{id:"trae-work",name:"TRAE Work",exeNames:["TRAE SOLO CN.exe","TRAE Work CN.exe"],processName:"TRAE SOLO CN.exe",defaultPort:9341,installPaths:["D:\\Program Files\\TRAE SOLO CN",d.join(v,"Programs","TRAE SOLO CN"),d.join(E,"TRAE SOLO CN")],rendererHints:["solo/solo-lite.html","solo-lite.html"],kind:"vscode-work",acceptsGenericThemes:!0,darwin:{appBundles:["TRAE SOLO CN.app","TRAE Work CN.app","TRAE.app"],executableNames:["TRAE SOLO CN","TRAE Work CN","TRAE"]},linux:{executableNames:["trae","trae-work","TRAE"],desktopFiles:["trae.desktop","trae-work.desktop"]}},{id:"qoder-work",name:"QoderWork",exeNames:["QoderWork CN.exe","QoderWork.exe"],processName:"QoderWork CN.exe",defaultPort:9342,installPaths:["D:\\Program Files\\QoderWork CN",d.join(v,"Programs","QoderWork CN"),d.join(E,"QoderWork CN")],rendererHints:["out/renderer/index.html","renderer/index.html"],kind:"generic-work",devToolsActivePort:d.join(ee,"QoderWork CN","DevToolsActivePort"),acceptsGenericThemes:!0,darwin:{appBundles:["QoderWork CN.app","QoderWork.app"],executableNames:["QoderWork CN","QoderWork"]},linux:{executableNames:["qoder-work","qoderwork","QoderWork"],desktopFiles:["qoder-work.desktop","qoderwork.desktop"]}},{id:"catpaw",name:"CatPaw",exeNames:["CatPaw.exe"],processName:"CatPaw.exe",defaultPort:9343,installPaths:[d.join(v,"CatPaw"),d.join(v,"Programs","CatPaw"),d.join(E,"CatPaw")],rendererHints:["app.asar/dist/index.html","dist/index.html"],kind:"generic-work",acceptsGenericThemes:!0,darwin:{appBundles:["CatPaw.app"],executableNames:["CatPaw"]},linux:{executableNames:["catpaw","CatPaw"],desktopFiles:["catpaw.desktop"]}},{id:"zcode",name:"ZCode",exeNames:["ZCode.exe"],processName:"ZCode.exe",defaultPort:9344,installPaths:["D:\\Program Files\\ZCode",d.join(v,"Programs","ZCode"),d.join(E,"ZCode")],rendererHints:["out/renderer/index.html","renderer/index.html"],kind:"generic-work",acceptsGenericThemes:!0,darwin:{appBundles:["ZCode.app"],executableNames:["ZCode"]},linux:{executableNames:["zcode","ZCode"],desktopFiles:["zcode.desktop"]}},{id:"qwen-office",name:"千问办公",exeNames:["QwenWorkCN.exe"],processName:"QwenWorkCN.exe",defaultPort:9345,installPaths:["D:\\Program Files\\QwenWorkCN",d.join(v,"Programs","QwenWorkCN"),d.join(E,"QwenWorkCN")],rendererHints:["out/renderer/index.html","renderer/index.html"],kind:"generic-work",devToolsActivePort:d.join(ee,"QwenWorkCN","DevToolsActivePort"),acceptsGenericThemes:!0,darwin:{appBundles:["QwenWorkCN.app","Qwen Work.app"],executableNames:["QwenWorkCN","Qwen Work"]},linux:{executableNames:["qwen-work","qwenwork","QwenWorkCN"],desktopFiles:["qwen-work.desktop","qwenwork.desktop"]}},{id:"hana-agent",name:"HanaAgent",exeNames:["HanaAgent.exe"],processName:"HanaAgent.exe",defaultPort:9346,installPaths:[d.join(v,"Programs","HanaAgent"),d.join(E,"HanaAgent"),d.join(N,"HanaAgent")],rendererHints:[".hanako/artifacts/renderer/","artifacts/renderer/","/index.html"],kind:"generic-work",acceptsGenericThemes:!0,darwin:{appBundles:["HanaAgent.app"],executableNames:["HanaAgent"]},linux:{executableNames:["hana-agent","HanaAgent"],desktopFiles:["hana-agent.desktop"]}},{id:"kimi",name:"Kimi Work",exeNames:["Kimi.exe"],processName:"Kimi.exe",defaultPort:9347,installPaths:["D:\\Program Files\\Kimi",d.join(v,"Programs","Kimi"),d.join(E,"Kimi"),d.join(N,"Kimi")],rendererHints:["kimi-agent.html","kimichat.html","https://www.kimi.com/"],kind:"generic-work",devToolsActivePort:d.join(ee,"kimi-desktop","DevToolsActivePort"),acceptsGenericThemes:!0,darwin:{appBundles:["Kimi.app"],executableNames:["Kimi"]},linux:{executableNames:["kimi","Kimi"],desktopFiles:["kimi.desktop"]}},{id:"opencode",name:"OpenCode",exeNames:["OpenCode.exe"],processName:"OpenCode.exe",defaultPort:9348,installPaths:[d.join(v,"Programs","@opencode-aidesktop"),d.join(v,"Programs","OpenCode"),d.join(E,"OpenCode"),d.join(N,"OpenCode")],rendererHints:["oc://renderer/index.html"],kind:"generic-work",devToolsActivePort:d.join(ee,"ai.opencode.desktop","DevToolsActivePort"),windowsPathScopedKill:!0,acceptsGenericThemes:!0,darwin:{appBundles:["OpenCode.app"],executableNames:["OpenCode"]},linux:{executableNames:["opencode-desktop","OpenCode"],desktopFiles:["opencode-desktop.desktop"]}},{id:"doubao",name:"豆包",exeNames:["Doubao.exe"],processName:"Doubao.exe",defaultPort:9349,installPaths:[d.join(v,"Doubao","Application","app"),d.join(v,"Doubao","Application"),d.join(E,"Doubao"),d.join(N,"Doubao")],rendererHints:["doubao://doubao-chat/chat"],kind:"generic-work",windowsPathScopedKill:!0,acceptsGenericThemes:!0,darwin:{appBundles:["Doubao.app"],executableNames:["Doubao"]},linux:{executableNames:["doubao","Doubao"],desktopFiles:["doubao.desktop"]}},{id:"agnes-code",name:"AgnesCode",exeNames:["AgnesCode.exe"],processName:"AgnesCode.exe",defaultPort:9350,installPaths:["D:\\Program Files\\AgnesCode",d.join(v,"Programs","AgnesCode"),d.join(E,"AgnesCode"),d.join(N,"AgnesCode")],rendererHints:["app.asar/.vite/renderer/main_window/index.html"],kind:"generic-work",windowsPathScopedKill:!0,acceptsGenericThemes:!0,darwin:{appBundles:["AgnesCode.app"],executableNames:["AgnesCode"]},linux:{executableNames:["agnes-code","agnescode","AgnesCode"],desktopFiles:["agnes-code.desktop","agnescode.desktop"]}},{id:"minimax-code",name:"MiniMax Code",exeNames:["MiniMax Code.exe"],processName:"MiniMax Code.exe",defaultPort:9351,installPaths:["D:\\Program Files\\MiniMax Code",d.join(v,"Programs","MiniMax Code"),d.join(E,"MiniMax Code"),d.join(N,"MiniMax Code")],rendererHints:["app://./archon"],kind:"generic-work",windowsPathScopedKill:!0,acceptsGenericThemes:!0,darwin:{appBundles:["MiniMax Code.app"],executableNames:["MiniMax Code"]},linux:{executableNames:["minimax-code","MiniMax Code"],desktopFiles:["minimax-code.desktop"]}},{id:"astronclaw",name:"AstronClaw",exeNames:["AstronClaw.exe"],processName:"AstronClaw.exe",defaultPort:9352,installPaths:["D:\\Program Files\\AstronClaw",d.join(v,"Programs","AstronClaw"),d.join(E,"AstronClaw"),d.join(N,"AstronClaw")],rendererHints:["app.asar/out/renderer/index.html","out/renderer/index.html"],kind:"generic-work",windowsPathScopedKill:!0,acceptsGenericThemes:!0,darwin:{appBundles:["AstronClaw.app"],executableNames:["AstronClaw"]},linux:{executableNames:["astronclaw","AstronClaw"],desktopFiles:["astronclaw.desktop"]}},{id:"sparkdesk",name:"SparkDesk",exeNames:["SparkDesk.exe"],processName:"SparkDesk.exe",defaultPort:9354,installPaths:["D:\\Program Files\\SparkDesk",d.join(v,"Programs","SparkDesk"),d.join(E,"SparkDesk"),d.join(N,"SparkDesk")],rendererHints:["out/renderer/index.html#desk","out/renderer/index.html"],kind:"generic-work",windowsPathScopedKill:!0,acceptsGenericThemes:!0,darwin:{appBundles:["SparkDesk.app"],executableNames:["SparkDesk"]},linux:{executableNames:["sparkdesk","SparkDesk"],desktopFiles:["sparkdesk.desktop"]}},{id:"stepfun",name:"StepFun",exeNames:["StepFun.exe"],processName:"StepFun.exe",defaultPort:9353,installPaths:["D:\\Program Files\\StepFun\\StepFun",d.join(v,"Programs","StepFun"),d.join(E,"StepFun"),d.join(N,"StepFun")],rendererHints:["app://chat-web/"],kind:"generic-work",devToolsActivePort:d.join(ee,"stepfun-desktop","DevToolsActivePort"),windowsPathScopedKill:!0,acceptsGenericThemes:!0,darwin:{appBundles:["StepFun.app"],executableNames:["StepFun"]},linux:{executableNames:["stepfun","StepFun"],desktopFiles:["stepfun.desktop"]}},{id:"deepseek-harness",name:"DSH Desktop",exeNames:["DSH Desktop.exe","DeepSeek Harness.exe"],processName:"DSH Desktop.exe",defaultPort:9355,installPaths:["D:\\Program Files\\DSH Desktop","D:\\Program Files\\DeepSeek Harness",d.join(v,"Programs","DSH Desktop"),d.join(v,"Programs","DeepSeek Harness"),d.join(E,"DSH Desktop"),d.join(E,"DeepSeek Harness"),d.join(N,"DSH Desktop"),d.join(N,"DeepSeek Harness")],rendererHints:["dsh-desktop-platform="],kind:"generic-work",windowsPathScopedKill:!0,acceptsGenericThemes:!0,darwin:{appBundles:["DSH Desktop.app","DeepSeek Harness.app"],executableNames:["DSH Desktop","DeepSeek Harness"]},linux:{executableNames:["dsh-desktop","DSH Desktop","deepseek-harness","DeepSeek Harness"],desktopFiles:["dsh-desktop.desktop","deepseek-harness.desktop"]}},{id:"monkeycode",name:"MonkeyCode",exeNames:["monkeycode-desktop.exe"],processName:"monkeycode-desktop.exe",defaultPort:9356,installPaths:["D:\\Program Files\\MonkeyCode",d.join(v,"Programs","MonkeyCode"),d.join(E,"MonkeyCode"),d.join(N,"MonkeyCode")],rendererHints:["http://tauri.localhost/"],kind:"generic-work",windowsPathScopedKill:!0,webView2:!0,acceptsGenericThemes:!0,darwin:{appBundles:["MonkeyCode.app"],executableNames:["MonkeyCode","monkeycode-desktop"]},linux:{executableNames:["monkeycode-desktop","MonkeyCode"],desktopFiles:["monkeycode.desktop","monkeycode-desktop.desktop"]}},{id:"autoclaw",name:"AutoClaw",exeNames:["AutoClaw.exe"],processName:"AutoClaw.exe",defaultPort:9357,installPaths:["D:\\Program Files\\AutoClaw",d.join(v,"Programs","AutoClaw"),d.join(E,"AutoClaw"),d.join(N,"AutoClaw")],rendererHints:["out/renderer/index.html"],kind:"generic-work",windowsPathScopedKill:!0,acceptsGenericThemes:!0,darwin:{appBundles:["AutoClaw.app"],executableNames:["AutoClaw"]},linux:{executableNames:["autoclaw","AutoClaw"],desktopFiles:["autoclaw.desktop"]}}];function O(e){return fe.find(t=>t.id===e)}const Se=Be.promisify(Z.execFile);function Mt(){const e=[],t=d.join(process.env.ProgramFiles||"C:\\Program Files","WindowsApps");if(!h.existsSync(t))return e;try{const a=h.readdirSync(t);for(const n of a)if(/^OpenAI\.Codex_\d+/i.test(n)){const o=d.join(t,n,"app","ChatGPT.exe");h.existsSync(o)&&e.push(o)}}catch{}return e}async function jt(){const e=`
 $ErrorActionPreference = 'SilentlyContinue'
 $package = Get-AppxPackage -Name 'OpenAI.Codex' -ErrorAction SilentlyContinue
 if (-not $package) { exit 1 }
@@ -7,15 +7,15 @@ $rel = [string]$manifest.Package.Applications.Application.Executable
 if (-not $rel) { exit 1 }
 $full = Join-Path $package.InstallLocation $rel
 if (Test-Path -LiteralPath $full -PathType Leaf) { Write-Output $full } else { exit 1 }
-`;try{const{stdout:t}=await $e("powershell.exe",["-NoLogo","-NoProfile","-NonInteractive","-ExecutionPolicy","Bypass","-Command",e],{encoding:"utf8",maxBuffer:4194304}),n=t.trim();if(n&&h.existsSync(n))return n}catch{}return null}async function nt(){const e=[];if(x.platform()!=="win32"){for(const o of be){const r=await Ot(o);r&&e.push({appId:o.id,name:o.name,path:r})}return e}for(const o of be.filter(r=>r.id!=="codex")){const r=Ge(o.exeNames,o.installPaths);r&&e.push({appId:o.id,name:o.name,path:r,version:o.id==="monkeycode"?await jt(r):void 0})}const n=Ge(["Codex.exe","ChatGPT.exe"],[d.join(process.env.LOCALAPPDATA||"","Programs","Codex"),d.join(process.env.LOCALAPPDATA||"","Programs","OpenAI","Codex"),...Dt()]),a=n?null:await Nt();return a?e.push({appId:"codex",name:"Codex",path:a}):n&&e.push({appId:"codex",name:"Codex",path:n}),e}async function Mt(e){return(await nt()).find(t=>t.appId===e)}async function jt(e){if(x.platform()!=="win32")return;const t=e.replace(/'/g,"''");try{const{stdout:n}=await $e("powershell.exe",["-NoLogo","-NoProfile","-NonInteractive","-ExecutionPolicy","Bypass","-Command",`(Get-Item -LiteralPath '${t}').VersionInfo.ProductVersion`],{encoding:"utf8",maxBuffer:1048576});return n.trim()||void 0}catch{return}}async function Ot(e){var n,a,o;const t=x.platform();if(t==="darwin"){for(const r of((n=e.darwin)==null?void 0:n.appBundles)??[]){const i=d.join("/Applications",r);if(h.existsSync(i))return i}return null}if(t==="linux"){for(const r of((a=e.linux)==null?void 0:a.desktopFiles)??[]){const i=await Bt(r);if(i)return i}for(const r of((o=e.linux)==null?void 0:o.executableNames)??[])try{const{stdout:i}=await $e("which",[r],{encoding:"utf8"}),l=i.trim();if(l&&h.existsSync(l))return l}catch{}}return null}async function Bt(e){for(const t of[d.join(x.homedir(),".local","share","applications",e),d.join("/usr/share/applications",e),d.join("/usr/local/share/applications",e)]){if(!h.existsSync(t))continue;const n=h.readFileSync(t,"utf8").match(/^Exec=(?:env\s+\S+=\S+\s+)*(?:"([^"]+)"|(\S+))/m),a=(n==null?void 0:n[1])||(n==null?void 0:n[2]);if(a){if(d.isAbsolute(a)&&h.existsSync(a))return a;try{const{stdout:o}=await $e("which",[a],{encoding:"utf8"}),r=o.trim();if(r&&h.existsSync(r))return r}catch{}}}return null}function Ge(e,t){for(const n of t){if(!n||!h.existsSync(n))continue;if(h.statSync(n).isFile()&&e.some(o=>d.basename(n).toLowerCase()===o.toLowerCase()))return n;for(const o of e){const r=d.join(n,o);if(h.existsSync(r))return r}try{const o=h.readdirSync(n,{withFileTypes:!0}).filter(r=>r.isDirectory()).sort((r,i)=>i.name.localeCompare(r.name,void 0,{numeric:!0}));for(const r of o)for(const i of e){const l=d.join(n,r.name,i);if(h.existsSync(l))return l}}catch{}}return null}const we=Be.promisify(de.execFile);async function Rt(e){const t=O(e);if(!t)return!1;const n=ot(t);if(x.platform()==="win32"){for(const a of n)try{const{stdout:o}=await we("tasklist.exe",["/FI",`IMAGENAME eq ${a}`,"/FO","CSV","/NH"],{encoding:"utf8",windowsHide:!0});if(o.split(/\r?\n/).some(r=>r.trim().toLowerCase().startsWith(`"${a.toLowerCase()}"`)))return!0}catch{}return!1}for(const a of n)try{return await we("pgrep",["-f",a],{encoding:"utf8"}),!0}catch{}return!1}async function at(e,t){const n=O(e);if(!n)return{success:!1,error:`Unknown app: ${e}`};try{const a=Qt(e);console.log(`[launcher] Killing existing ${e} instances...`),await Vt(e,a),await Xt(n.defaultPort,15e3);const o=await zt(n.defaultPort);o!==n.defaultPort&&console.warn(`[launcher] Default CDP port ${n.defaultPort} is unavailable; using ${o}`);const r=n.webView2?[]:[`--remote-debugging-port=${o}`];e==="codex"&&r.push("--disable-extensions"),t&&e!=="kimi"&&r.push(`--dream-theme=${t}`),e==="agnes-code"&&x.platform()==="win32"&&await Wt(a);const i=x.platform()==="win32"?n.devToolsActivePort:void 0;if(i)try{h.unlinkSync(i)}catch{}console.log(`[launcher] Launching ${a} with args: ${r.join(" ")}`);const l=Ft(e,a,o),s=e==="kimi"&&x.platform()==="win32"?await Lt(a,r):qe(a,r,l);console.log(`[launcher] Spawned process${s?` with PID: ${s}`:""}`),console.log(`[launcher] Waiting for CDP port ${o} to be ready...`);let c=o;return i?e==="stepfun"?(c=await Ht(i,3e4),qe(a,[],l),await rt(c,n.rendererHints,3e4)):c=await Ut(i,n.rendererHints,3e4):await Gt(o,3e4),console.log(`[launcher] CDP port ${c} is ready`),(e==="hana-agent"||e==="kimi")&&await Kt(c,n.rendererHints,3e4,e==="kimi"?750:3e3),{success:!0,port:c}}catch(a){return console.error("[launcher] Launch failed:",a),{success:!1,error:a.message}}}function qe(e,t,n){const a=de.spawn(e,t,{detached:!0,stdio:"ignore",env:n});return a.unref(),a.pid}async function Lt(e,t){const n=d.join(x.tmpdir(),`dream-work-kimi-${process.pid}-${Date.now()}.lnk`),a={...De(),DREAM_WORK_LAUNCH_EXE:e,DREAM_WORK_LAUNCH_ARGS:JSON.stringify(t),DREAM_WORK_LAUNCH_CWD:d.dirname(e),DREAM_WORK_LAUNCH_SHORTCUT:n},o=["[string[]]$launchArgs = @($env:DREAM_WORK_LAUNCH_ARGS | ConvertFrom-Json)","$shell = New-Object -ComObject WScript.Shell","$shortcut = $shell.CreateShortcut($env:DREAM_WORK_LAUNCH_SHORTCUT)","$shortcut.TargetPath = $env:DREAM_WORK_LAUNCH_EXE","$shortcut.Arguments = [string]::Join(' ', $launchArgs)","$shortcut.WorkingDirectory = $env:DREAM_WORK_LAUNCH_CWD","$shortcut.Save()"].join("; ");await we("powershell.exe",["-NoLogo","-NoProfile","-NonInteractive","-ExecutionPolicy","Bypass","-Command",o],{env:a,windowsHide:!0}),de.spawn(d.join(process.env.WINDIR||"C:\\Windows","explorer.exe"),[n],{detached:!0,stdio:"ignore",env:De()}).unref(),setTimeout(()=>{try{h.unlinkSync(n)}catch{}},15e3).unref()}function De(){const e={...process.env};for(const t of["VITE_DEV_SERVER_URL","ELECTRON_RENDERER_URL","MAIN_VITE_DEV_SERVER_URL","ELECTRON_RUN_AS_NODE"])delete e[t];return e}function Ft(e,t,n){var o,r;const a=De();if(e==="agnes-code"&&(a.AGNES_DEV="1",a.ENABLE_PLAYWRIGHT="1",a.PLAYWRIGHT_DEBUG_PORT=String(n),a.AGNESD_BINARY=d.join(d.dirname(t),"resources","bin",x.platform()==="win32"?"agnesd.exe":"agnesd")),(o=O(e))!=null&&o.webView2){const i=(r=a.WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS)==null?void 0:r.trim(),l=`--remote-debugging-port=${n}`;a.WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=i?`${i} ${l}`:l}return a}async function Wt(e){const t=d.dirname(e),n=d.join(t,"resources","app.asar"),a=`${e}.dream-work-original`,o=`${n}.dream-work-titlebar.json`,r=F.readFileSync(n),i=r.toString("latin1");if(/function ([\w$]+)\(e,t="sidebar"\)\{return\{color:"#00000000",symbolColor:([\w$]+)\[e\],height:32\}\}/.test(i)){Ve(e),console.log("[launcher] AgnesCode native title bar overlay is already transparent");return}const c=/function ([\w$]+)\(e,t="sidebar"\)\{return\{color:t==="content"\?([\w$]+)\(e\):([\w$]+)\(e\),symbolColor:([\w$]+)\[e\],height:32\}\}/.exec(i);if(!c||c.index<0)throw new Error("AgnesCode title bar implementation was not recognized; the installed version may have changed");F.copyFileSync(e,a),Ve(e);const u=c[0],p=`function ${c[1]}(e,t="sidebar"){return{color:"#00000000",symbolColor:${c[4]}[e],height:32}}`;if(p.length>u.length)throw new Error("AgnesCode title bar patch does not fit the original ASAR entry");F.writeFileSync(o,JSON.stringify({archiveSize:r.length,offset:c.index,original:Buffer.from(u,"latin1").toString("base64")}));const m=Buffer.from(p.padEnd(u.length," "),"latin1"),g=F.openSync(n,"r+");try{F.writeSync(g,m,0,m.length,c.index),F.fsyncSync(g)}finally{F.closeSync(g)}console.log("[launcher] Patched AgnesCode native window controls overlay to transparent")}function Ve(e){const t=Buffer.from("dL7pKGdnNz796PbbjQWNKmHXBZaB9tsX","ascii"),n=F.readFileSync(e),a=n.indexOf(t),o=n.lastIndexOf(t);if(a<0)throw new Error("AgnesCode Electron fuse wire was not found");const r=a===o?[a]:[a,o];let i=!1;for(const l of r){const s=l+t.length,c=n[s],u=n[s+1];if(c!==1||u<=4)throw new Error(`Unsupported AgnesCode Electron fuse wire: version=${c}, length=${u}`);const p=s+2+4;n[p]!==48&&(n[p]=48,i=!0)}i&&(F.writeFileSync(e,n),console.log("[launcher] Disabled AgnesCode embedded ASAR integrity validation"))}function ot(e){var t,n;return x.platform()==="darwin"?((t=e.darwin)==null?void 0:t.executableNames)??[]:x.platform()==="linux"?((n=e.linux)==null?void 0:n.executableNames)??[]:[...new Set([e.processName,...e.exeNames].filter(Boolean))]}async function Ut(e,t,n){const a=Date.now();let o=0;for(;Date.now()-a<n;){try{const r=h.readFileSync(e,"utf8").split(/\r?\n/,1)[0],i=Number(r);if(Number.isInteger(i)&&i>0)return o=i,await rt(i,t,3e3),i}catch{}await new Promise(r=>setTimeout(r,500))}throw new Error(`DevToolsActivePort did not expose a live renderer${o?` on port ${o}`:""}: ${e}`)}async function Ht(e,t){const n=Date.now();let a=0;for(;Date.now()-n<t;){try{const o=h.readFileSync(e,"utf8").split(/\r?\n/,1)[0],r=Number(o);if(Number.isInteger(r)&&r>0&&(a=r,(await fetch(`http://127.0.0.1:${r}/json/version`,{signal:AbortSignal.timeout(1e3)})).ok))return r}catch{}await new Promise(o=>setTimeout(o,500))}throw new Error(`DevToolsActivePort did not expose a live endpoint${a?` on port ${a}`:""}: ${e}`)}async function rt(e,t,n){const a=Date.now();for(;Date.now()-a<n;){try{const o=await fetch(`http://127.0.0.1:${e}/json/list`,{signal:AbortSignal.timeout(1e3)});if(o.ok){const r=await o.json();if(Array.isArray(r)&&r.some(i=>(i==null?void 0:i.type)==="page"&&t.some(l=>String(i.url).includes(l))))return}}catch{}await new Promise(o=>setTimeout(o,250))}throw new Error(`CDP renderer endpoint is not ready on port ${e}`)}async function Kt(e,t,n,a){const o=Date.now();let r="",i=0;for(;Date.now()-o<n;){try{const c=(await(await fetch(`http://127.0.0.1:${e}/json/list`,{signal:AbortSignal.timeout(1e3)})).json()).find(u=>(u==null?void 0:u.type)==="page"&&t.some(p=>String(u.url).includes(p)));if(c!=null&&c.id){if(c.id!==r)r=c.id,i=Date.now();else if(Date.now()-i>=a){console.log(`[launcher] Stable renderer ${r} confirmed`);return}}}catch{}await new Promise(l=>setTimeout(l,250))}throw new Error(`Renderer did not stabilize on port ${e}`)}async function zt(e){for(let t=e;t<=e+100;t++)if(await Jt(t))return t;throw new Error(`No available CDP port found between ${e} and ${e+100}`)}function Jt(e){return new Promise(t=>{const n=Re.createServer();n.unref(),n.once("error",()=>t(!1)),n.listen(e,"127.0.0.1",()=>{n.close(a=>t(!a))})})}async function Gt(e,t){const n=Date.now();let a="unknown";for(;Date.now()-n<t;)try{await new Promise((o,r)=>{const i=Re.createConnection(e,"127.0.0.1",()=>{i.end(),o()});i.once("error",l=>{a=l.message,r(l)}),setTimeout(()=>{i.destroy(),r(new Error("timeout"))},1e3)}),console.log(`[launcher] Port ${e} is open, verifying CDP endpoint...`),await qt(e,15e3),console.log(`[launcher] CDP endpoint verified on port ${e}`);return}catch(o){a=o.message,console.log(`[launcher] Port check failed: ${o.message}, retrying...`),await new Promise(r=>setTimeout(r,1e3))}throw new Error(`CDP port ${e} did not become ready within ${t}ms (last error: ${a})`)}async function qt(e,t){const n=Date.now();for(;Date.now()-n<t;)try{await new Promise((a,o)=>{const r=tt.request({hostname:"127.0.0.1",port:e,path:"/json/version",method:"GET",timeout:2e3},i=>{let l="";i.on("data",s=>{l+=s}),i.on("end",()=>{i.statusCode===200?(console.log(`[launcher] CDP version response: ${l.substring(0,200)}`),a()):o(new Error(`HTTP ${i.statusCode}`))})});r.on("error",o),r.on("timeout",()=>{r.destroy(),o(new Error("timeout"))}),r.end()});return}catch(a){if(Date.now()-n>=t)throw a;await new Promise(o=>setTimeout(o,1e3))}}async function Vt(e,t){const n=x.platform(),a=O(e);if(!a)return;const o=ot(a);try{if(n==="win32"){if(a.windowsPathScopedKill){await we("powershell.exe",["-NoLogo","-NoProfile","-NonInteractive","-ExecutionPolicy","Bypass","-Command","$target = [IO.Path]::GetFullPath($env:DREAM_WORK_TARGET_EXE); Get-CimInstance Win32_Process | Where-Object { $_.ExecutablePath -and [IO.Path]::GetFullPath($_.ExecutablePath) -ieq $target } | ForEach-Object { taskkill.exe /T /F /PID $_.ProcessId *> $null }"],{env:{...process.env,DREAM_WORK_TARGET_EXE:t},windowsHide:!0}).catch(()=>{}),console.log(`[launcher] Killed existing ${e} instances at ${t}`);return}const{execSync:r}=require("child_process");for(const i of o)try{r(`taskkill /T /F /IM "${i}" 2>nul`,{stdio:"ignore"}),console.log(`[launcher] Killed existing ${i} process tree`)}catch{}}else if(n==="darwin"){const{execSync:r}=require("child_process");for(const i of o)try{r(`pkill -f "${i}" 2>/dev/null || true`,{stdio:"ignore"}),console.log(`[launcher] Killed existing ${i} processes`)}catch{}}else if(n==="linux"){const{execSync:r}=require("child_process");for(const i of o)try{r(`pkill -f "${i}" 2>/dev/null || true`,{stdio:"ignore"}),console.log(`[launcher] Killed existing ${i} processes`)}catch{}}}catch(r){console.warn("[launcher] Failed to kill existing instances:",r)}}async function Xt(e,t){const n=Date.now();for(;Date.now()-n<t;){if(!await new Promise(o=>{const r=Re.createConnection(e,"127.0.0.1");r.once("connect",()=>{r.destroy(),o(!0)}),r.once("error",()=>o(!1)),r.setTimeout(500,()=>{r.destroy(),o(!1)})})){console.log(`[launcher] Previous CDP port ${e} is closed`);return}await new Promise(o=>setTimeout(o,250))}throw new Error(`Existing ${e} CDP service did not stop; refusing to inject into the old application instance`)}function Qt(e){var a,o,r,i;const t=O(e);if(!t)throw new Error(`Unknown app: ${e}`);const n=x.platform();if(n==="win32"){for(const c of t.installPaths){if(!c||!h.existsSync(c))continue;if(h.statSync(c).isFile())return c;for(const p of t.exeNames){const m=d.join(c,p);if(h.existsSync(m))return m}const u=h.readdirSync(c,{withFileTypes:!0}).filter(p=>p.isDirectory()).sort((p,m)=>m.name.localeCompare(p.name,void 0,{numeric:!0}));for(const p of u)for(const m of t.exeNames){const g=d.join(c,p.name,m);if(h.existsSync(g))return g}}const l=t.exeNames,s=[process.env.ProgramFiles,process.env["ProgramFiles(x86)"]].filter(Boolean);for(const c of s){if(!c||!h.existsSync(c))continue;const p=h.readdirSync(c).find(m=>m.toLowerCase().includes(e.replace("-",""))||m.toLowerCase().includes(t.name.toLowerCase()));if(p){const m=d.join(c,p);for(const g of l){const b=d.join(m,g);if(h.existsSync(b))return b}}}if(e==="codex"){const c=d.join(process.env.ProgramFiles||"C:\\Program Files","WindowsApps");console.log("[launcher] Codex WindowsApps fallback, path:",c);try{const p=h.readdirSync(c).find(m=>/^OpenAI\.Codex_\d+/i.test(m));if(p){const m=d.join(c,p,"app","ChatGPT.exe");if(h.existsSync(m))return console.log("[launcher] Found Codex via WindowsApps scan:",m),m}}catch(u){console.log("[launcher] WindowsApps scan error:",u.message)}try{const{execFileSync:u}=require("child_process"),p="Get-AppxPackage -Name 'OpenAI.Codex' -ErrorAction SilentlyContinue | ForEach-Object { Join-Path $_.InstallLocation (Get-AppxPackageManifest -Package $_.PackageFullName).Package.Applications.Application.Executable }";console.log("[launcher] Running PowerShell fallback...");const m=u("powershell.exe",["-NoLogo","-NoProfile","-NonInteractive","-ExecutionPolicy","Bypass","-Command",p],{encoding:"utf8",stdio:["pipe","pipe","ignore"]}).trim();if(console.log("[launcher] PowerShell result:",m),m&&h.existsSync(m))return m}catch(u){console.log("[launcher] PowerShell fallback error:",u.message)}}}else if(n==="darwin")for(const l of((a=t.darwin)==null?void 0:a.appBundles)??[]){const s=d.join("/Applications",l);if(h.existsSync(s))for(const c of((o=t.darwin)==null?void 0:o.executableNames)??[]){const u=d.join(s,"Contents","MacOS",c);if(h.existsSync(u))return u}}else if(n==="linux"){const l=((r=t.linux)==null?void 0:r.executableNames)??[];for(const c of((i=t.linux)==null?void 0:i.desktopFiles)??[]){const u=Zt(c);if(u)return u}const s=["/usr/bin","/usr/local/bin","/opt",d.join(x.homedir(),".local","bin"),"/snap/bin"];for(const c of s)if(h.existsSync(c))for(const u of l){const p=d.join(c,u);if(h.existsSync(p))return p}for(const c of l)try{const{execFileSync:u}=require("child_process"),p=u("which",[c],{encoding:"utf8",stdio:["ignore","pipe","ignore"]}).trim();if(p&&h.existsSync(p))return p}catch{}}throw new Error(`Could not find ${e} executable`)}function Zt(e){for(const t of[d.join(x.homedir(),".local","share","applications",e),d.join("/usr/share/applications",e),d.join("/usr/local/share/applications",e)]){if(!h.existsSync(t))continue;const n=h.readFileSync(t,"utf8").match(/^Exec=(?:env\s+\S+=\S+\s+)*(?:"([^"]+)"|(\S+))/m),a=(n==null?void 0:n[1])||(n==null?void 0:n[2]);if(a){if(d.isAbsolute(a)&&h.existsSync(a))return a;try{const{execFileSync:o}=require("child_process"),r=o("which",[a],{encoding:"utf8",stdio:["ignore","pipe","ignore"]}).trim();if(r&&h.existsSync(r))return r}catch{}}}}const Yt=5e3,en=100,tn=15e3,nn=1e4,an=5e3;function on(e){if(!Number.isInteger(e)||e<1024||e>65535)throw new TypeError("port must be an integer from 1024 through 65535");return e}function X(e,t,n={}){const a=n.allowZero?0:Number.EPSILON;if(!Number.isFinite(e)||e<a){const o=n.allowZero?"non-negative":"positive";throw new TypeError(`${t} must be a finite ${o} number`)}return e}function st(e){if(typeof e!="string"||e.length===0||e!==e.trim())throw new TypeError("webSocketDebuggerUrl must be a non-empty URL string");let t;try{t=new URL(e)}catch(n){throw new TypeError(`webSocketDebuggerUrl is invalid: ${n.message}`)}if(t.protocol!=="ws:"||t.hostname!=="127.0.0.1"||t.username||t.password||t.hash||!t.port)throw new TypeError("webSocketDebuggerUrl must use ws://127.0.0.1 with an explicit port");return on(Number(t.port)),t}function rn(e,t){if(e===null||typeof e!="object"||Array.isArray(e)||e.type!=="page"||typeof e.url!="string"||typeof e.webSocketDebuggerUrl!="string")return!1;try{st(e.webSocketDebuggerUrl)}catch{return!1}return e.url.includes(t)}function Fe(e){if(e===null||typeof e!="object"||Array.isArray(e)||e.type!=="page"||typeof e.url!="string"||typeof e.webSocketDebuggerUrl!="string")return!1;try{return st(e.webSocketDebuggerUrl),!0}catch{return!1}}function sn(e){return new Promise(t=>setTimeout(t,e))}async function Xe(e,t){const n=Math.max(0,t.deadline-Date.now());let a=null;try{return await Promise.race([e,new Promise((o,r)=>{a=setTimeout(()=>{var i;(i=t.onTimeout)==null||i.call(t),r(new Error(`${t.label} timed out after ${t.timeoutMs}ms`))},n)})])}finally{a&&clearTimeout(a)}}async function Z(e,t,n={}){const a=X(n.timeoutMs??an,"timeoutMs",{allowZero:!1}),o=n.fetchImpl??globalThis.fetch;if(typeof o!="function")throw new TypeError("fetchImpl must be a function");const r=`http://127.0.0.1:${e}/json/list`,i=new AbortController,l=Date.now()+a,s=n.quiet===!0;s||console.log(`[cdp] fetchRendererTargets: port=${e}, timeoutMs=${a}, endpoint=${r}`);let c;try{c=await Xe(Promise.resolve(o(r,{redirect:"error",signal:i.signal})),{deadline:l,timeoutMs:a,label:"renderer target discovery",onTimeout:()=>i.abort()})}catch(p){throw s||console.log("[cdp] fetchRendererTargets error:",p),new Error(`failed to fetch renderer targets from ${r}: ${p.message}`)}if(c===null||typeof c!="object"||!c.ok)throw new Error(`renderer target discovery failed with HTTP ${(c==null?void 0:c.status)??"unknown"}`);let u;try{u=await Xe(Promise.resolve(c.json()),{deadline:l,timeoutMs:a,label:"renderer target discovery JSON",onTimeout:()=>i.abort()})}catch(p){throw new Error(`malformed renderer target JSON from ${r}: ${p.message}`)}if(!Array.isArray(u))throw new Error("malformed renderer target JSON: expected an array");return u.filter(p=>rn(p,t)).sort(ln)}async function cn(e,t,n={}){const a=X(n.timeoutMs??Yt,"timeoutMs",{allowZero:!0}),o=X(n.pollMs??en,"pollMs",{allowZero:!1}),r=n.fetchImpl??globalThis.fetch;let i=0;const l=Date.now()+a;let s=new Error("no renderer discovery attempt completed");for(console.log(`[cdp] waitForRendererTargets: port=${e}, hint=${t}, timeoutMs=${a}`);;){try{const u=Math.max(1,Math.min(a-i,l-Date.now()));console.log(`[cdp] Attempting fetch: elapsed=${i}ms, remainingBudget=${u}ms, deadline=${l}`);const p=await Z(e,t,{fetchImpl:r,timeoutMs:u});if(p.length>0)return p;s=new Error("no matching renderer/index.html page targets")}catch(u){s=u instanceof Error?u:new Error(String(u)),console.log("[cdp] Fetch error:",s.message)}if(i>=a||Date.now()>=l)throw new Error(`timed out after ${a}ms waiting for renderer targets on 127.0.0.1:${e}: ${s.message}`);const c=Math.min(o,a-i);await sn(c),i+=c}}class C{constructor(t,n={}){D(this,"webSocketDebuggerUrl");D(this,"WebSocketImpl");D(this,"commandTimeoutMs");D(this,"connectTimeoutMs");D(this,"socket",null);D(this,"nextRequestId",1);D(this,"pending",new Map);D(this,"socketOpen",!1);D(this,"opened",!1);D(this,"closed",!1);D(this,"closeStarted",!1);D(this,"terminalError",null);D(this,"openPromise",null);D(this,"resolveOpen",null);D(this,"rejectOpen",null);D(this,"connectTimer",null);this.webSocketDebuggerUrl=t;let a=null,o=null;try{a=require("ws")??null,a||(o="ws loaded but WebSocket is undefined")}catch(r){o=`ws require failed: ${(r==null?void 0:r.message)??r}`}if(!a)try{const r=require("undici");a=(r==null?void 0:r.WebSocket)??null,a||(o="undici loaded but WebSocket is undefined")}catch(r){o=`undici require failed: ${(r==null?void 0:r.message)??r}`}if(!a&&typeof globalThis.WebSocket=="function"&&(a=globalThis.WebSocket,o=null),!a){const r=o?` (${o})`:"";throw new Error(`No WebSocket implementation available for CDP${r}`)}this.WebSocketImpl=n.WebSocketImpl??a,this.commandTimeoutMs=X(n.commandTimeoutMs??tn,"commandTimeoutMs"),this.connectTimeoutMs=X(n.connectTimeoutMs??nn,"connectTimeoutMs")}open(){if(this.closed)return Promise.reject(this.terminalError??new Error("CDP session is closed"));if(this.opened)return Promise.resolve(this);if(this.openPromise)return this.openPromise;this.openPromise=new Promise((n,a)=>{this.resolveOpen=n,this.rejectOpen=a}),this.connectTimer=setTimeout(()=>{this.terminate(new Error(`CDP WebSocket connect timed out after ${this.connectTimeoutMs}ms`)),this.closeSocket()},this.connectTimeoutMs);try{this.socket=new this.WebSocketImpl(this.webSocketDebuggerUrl)}catch(n){return this.terminate(new Error(`failed to open CDP WebSocket: ${n.message}`)),this.openPromise}const t=this.socket;return t.onopen=()=>{this.closed||this.socketOpen||(this.clearConnectTimer(),this.socketOpen=!0,Promise.all([this.send("Runtime.enable"),this.send("Page.enable")]).then(()=>{if(this.closed)return;this.opened=!0;const n=this.resolveOpen;this.resolveOpen=null,this.rejectOpen=null,n==null||n(this)}).catch(n=>{this.terminate(n),this.closeSocket()}))},t.onmessage=n=>this.handleMessage(n),t.onerror=n=>{const a=n.error,o=a instanceof Error?a.message:typeof n.message=="string"&&n.message.length>0?n.message:"unknown socket error";this.terminate(new Error(`CDP WebSocket error: ${o}`)),this.closeSocket()},t.onclose=()=>{this.closeStarted=!0,this.terminate(new Error("CDP WebSocket closed"))},this.openPromise}send(t,n={},a={}){if(this.closed)return Promise.reject(this.terminalError??new Error("CDP session is closed"));if(!this.socketOpen||!this.socket)return Promise.reject(new Error("CDP session is not open"));if(typeof t!="string"||t.length===0)return Promise.reject(new TypeError("CDP method must be a non-empty string"));const o=X(a.timeoutMs??this.commandTimeoutMs,"timeoutMs"),r=this.nextRequestId++;return new Promise((i,l)=>{const s=setTimeout(()=>{this.pending.delete(r),l(new Error(`CDP ${t} timed out after ${o}ms`))},o);this.pending.set(r,{resolve:i,reject:l,timer:s});try{this.socket.send(JSON.stringify({id:r,method:t,params:n}))}catch(c){clearTimeout(s),this.pending.delete(r),l(new Error(`failed to send CDP ${t}: ${c.message}`))}})}async evaluate(t,n={}){var o,r,i;if(typeof t!="string")throw new TypeError("Runtime.evaluate expression must be a string");const a=await this.send("Runtime.evaluate",{expression:t,awaitPromise:!0,returnByValue:!0},n);if(a!=null&&a.exceptionDetails)throw new Error(`Runtime.evaluate failed: ${((o=a.exceptionDetails.exception)==null?void 0:o.description)??a.exceptionDetails.text??"unknown JavaScript exception"}`);if(((r=a==null?void 0:a.result)==null?void 0:r.type)!=="undefined")return(i=a==null?void 0:a.result)==null?void 0:i.value}async addScriptToEvaluateOnNewDocument(t){const n=await this.send("Page.addScriptToEvaluateOnNewDocument",{source:t});return n==null?void 0:n.identifier}async removeScriptToEvaluateOnNewDocument(t){await this.send("Page.removeScriptToEvaluateOnNewDocument",{identifier:t})}close(){this.closeStarted||(this.terminate(new Error("CDP session closed by client")),this.closeSocket())}handleMessage(t){if(typeof t.data!="string"){this.terminate(new Error("received a non-text CDP WebSocket message")),this.closeSocket();return}let n;try{n=JSON.parse(t.data)}catch(o){this.terminate(new Error(`received malformed CDP JSON: ${o.message}`)),this.closeSocket();return}if(!Number.isInteger(n==null?void 0:n.id))return;const a=this.pending.get(n.id);if(a){if(this.pending.delete(n.id),clearTimeout(a.timer),n.error){a.reject(new Error(`CDP error: ${n.error.message}`));return}a.resolve(n.result)}}terminate(t){if(this.terminalError)return;this.clearConnectTimer(),this.terminalError=t,this.closed=!0,this.socketOpen=!1;const n=this.rejectOpen;this.resolveOpen=null,this.rejectOpen=null,n==null||n(t);for(const{reject:a,timer:o}of this.pending.values())clearTimeout(o),a(t);this.pending.clear()}clearConnectTimer(){this.connectTimer!==null&&(clearTimeout(this.connectTimer),this.connectTimer=null)}closeSocket(){if(this.closeStarted||(this.closeStarted=!0,!this.socket||typeof this.socket.close!="function"))return;const t=this.WebSocketImpl.CLOSING??2,n=this.WebSocketImpl.CLOSED??3;this.socket.readyState===t||this.socket.readyState===n||this.socket.close()}}function ln(e,t){const n=[String(e.id??""),e.url,e.webSocketDebuggerUrl],a=[String(t.id??""),t.url,t.webSocketDebuggerUrl];for(let o=0;o<n.length;o++){if(n[o]<a[o])return-1;if(n[o]>a[o])return 1}return 0}function dn(){return d.join(T.app.getAppPath(),"themes")}function it(){const e=d.join(T.app.getPath("userData"),"themes");return h.mkdirSync(e,{recursive:!0}),e}function mn(){return[it(),dn()]}const Qe=new Map;function Ce(e){const t=[],n=new Set;for(const o of mn()){if(!h.existsSync(o))continue;const r=h.readdirSync(o,{withFileTypes:!0});for(const i of r){if(!i.isDirectory())continue;const l=d.join(o,i.name),s=d.join(l,"theme.json");if(h.existsSync(s))try{const c=JSON.parse(h.readFileSync(s,"utf-8")),u=wn(c);if(n.has(u.id))continue;const p=d.join(l,u.hero);if(!h.existsSync(p)||!h.statSync(p).isFile())throw new Error(`theme hero is missing: ${u.hero}`);if(e&&!un(u,e))continue;n.add(u.id),t.push({id:u.id,name:u.name,author:u.author,path:l,manifest:u})}catch(c){console.error(`Failed to load theme ${i.name}:`,c)}}}const a=new Map;for(const o of t){const r=d.join(o.path,o.manifest.hero),i=Ne(r),l=`${o.name.trim().toLocaleLowerCase()}\0${o.author.trim().toLocaleLowerCase()}\0${i}`,s=a.get(l);(!s||pn(o.id,s.id))&&a.set(l,o)}return[...a.values()].sort((o,r)=>o.name.localeCompare(r.name))}function un(e,t){var a,o;const n=(a=e.apps[t])==null?void 0:a.compat;return n!==void 0?n:((o=O(t))==null?void 0:o.acceptsGenericThemes)===!0}function Ne(e){const t=h.statSync(e),n=Qe.get(e);if(n&&n.size===t.size&&n.mtimeMs===t.mtimeMs)return n.hash;const a=Le.createHash("sha256").update(h.readFileSync(e)).digest("hex");return Qe.set(e,{size:t.size,mtimeMs:t.mtimeMs,hash:a}),a}function pn(e,t){const n=e.startsWith("custom-"),a=t.startsWith("custom-");return n!==a?!n:e.length<t.length||e.length===t.length&&e.localeCompare(t)<0}function ct(e,t){return Ce(t).find(n=>n.id===e)}function hn(e){const t=ct(e);if(!t)return;const n=d.resolve(t.path,t.manifest.hero);if(n.startsWith(`${d.resolve(t.path)}${d.sep}`))return n}function gn(e){return`theme-asset://local/${encodeURIComponent(e)}`}function fn(e){const t=d.join(e.path,e.manifest.hero),n=h.readFileSync(t);return`data:${kn(e.manifest.hero)};base64,${n.toString("base64")}`}function bn(e,t,n){const a=Ne(n);return Ce().some(o=>o.name.trim().toLowerCase()!==e.trim().toLowerCase()||o.author.trim().toLowerCase()!==t.trim().toLowerCase()?!1:Ne(d.join(o.path,o.manifest.hero))===a)}function wn(e){if(typeof e!="object"||e===null||Array.isArray(e))throw new Error("theme manifest must be an object");if(e.schemaVersion!==1)throw new Error(`unsupported theme schema ${e.schemaVersion}`);if(typeof e.id!="string"||!/^[a-z0-9-]+$/.test(e.id))throw new Error("theme id must use lowercase letters, numbers, and hyphens");if(typeof e.name!="string"||!e.name.trim())throw new Error("theme name must be a non-empty string");if(typeof e.author!="string")throw new Error("theme author must be a string");if(typeof e.hero!="string")throw new Error("theme hero must be a string");if(typeof e.colors!="object"||e.colors===null)throw new Error("theme colors must be an object");const t=["accent","secondary","surface","text"];for(const n of t)if(typeof e.colors[n]!="string"||!/^#[0-9a-fA-F]{6}$/.test(e.colors[n]))throw new Error(`theme color ${n} must be a hex color`);return{schemaVersion:1,id:e.id,name:e.name.trim(),author:e.author,hero:e.hero,colors:{accent:e.colors.accent,secondary:e.colors.secondary,surface:e.colors.surface,text:e.colors.text},copy:e.copy??void 0,apps:e.apps??{}}}function kn(e){const t=d.extname(e).toLowerCase();return{".png":"image/png",".jpg":"image/jpeg",".jpeg":"image/jpeg",".webp":"image/webp",".gif":"image/gif"}[t]||"image/png"}const lt=5,yn=32*1024*1024;let ue=null;const pe=new Map;function Te(){try{const e=JSON.parse(h.readFileSync(dt(),"utf8"));return Ue(e)}catch{return[]}}function xn(e){const t=Ue(e),n=[...Te()];for(const o of t){const r=n.findIndex(i=>i.id===o.id);r>=0?n[r]=o:n.push(o)}const a=n.slice(0,lt);return We(a),a}function Me(e){if(!/^custom-[a-z0-9-]+$/i.test(e))throw new Error("Invalid custom theme id");const t=Te().filter(n=>n.id!==e);return We(t),console.log(`[custom-theme-store] Deleted ${e}; ${t.length} custom themes remain`),t}function vn(e,t,n,a=4){const o=ut()[e]??{};return[...t].sort((r,i)=>{if(r===n)return-1;if(i===n)return 1;const l=o[r]??{count:0,lastUsedAt:0},s=o[i]??{count:0,lastUsedAt:0};return s.count-l.count||s.lastUsedAt-l.lastUsedAt}).slice(0,a)}function je(e,t){if(!/^[a-z0-9-]+$/i.test(e)||!/^[a-z0-9-]+$/i.test(t))return;const n=ut(),a=n[e]??{},o=a[t]??{count:0};a[t]={count:o.count+1,lastUsedAt:Date.now()},n[e]=a,pt(mt(),n)}function _e(){return ue||(ue=new Promise((e,t)=>{const n=Le.randomBytes(24).toString("hex"),a=tt.createServer((o,r)=>{var s,c;if(r.setHeader("Access-Control-Allow-Origin","*"),r.setHeader("Access-Control-Allow-Headers","Authorization, Content-Type"),r.setHeader("Access-Control-Allow-Methods","GET, PUT, POST, DELETE, OPTIONS"),r.setHeader("Access-Control-Allow-Private-Network","true"),o.method==="OPTIONS"){r.writeHead(204).end();return}if(o.headers.authorization!==`Bearer ${n}`){r.writeHead(401).end("Unauthorized");return}if(o.url==="/theme-usage"&&o.method==="POST"){he(o,r,u=>{if(typeof(u==null?void 0:u.appId)!="string"||typeof(u==null?void 0:u.themeId)!="string")throw new Error("Invalid theme usage payload");je(u.appId,u.themeId),J(r,200,{success:!0})});return}const i=(s=o.url)==null?void 0:s.match(/^\/app-state\/([a-z0-9-]+)$/i);if(i){const u=i[1].toLowerCase();if(o.method==="GET"){J(r,200,pe.get(u)??null);return}if(o.method==="PUT"){he(o,r,p=>{if(typeof(p==null?void 0:p.themeId)!="string"||!Number.isFinite(Number(p==null?void 0:p.actionAt)))throw new Error("Invalid app state payload");const m={themeId:p.themeId,actionAt:Number(p.actionAt)},g=pe.get(u);(!g||m.actionAt>=g.actionAt)&&pe.set(u,m),J(r,200,pe.get(u))});return}r.writeHead(405).end("Method not allowed");return}if(o.url==="/custom-themes/delete"&&o.method==="POST"){he(o,r,u=>{if(typeof(u==null?void 0:u.themeId)!="string"||!/^custom-[a-z0-9-]+$/i.test(u.themeId))throw new Error("Invalid custom theme id");const p=Me(u.themeId);J(r,200,p)});return}const l=(c=o.url)==null?void 0:c.match(/^\/custom-themes\/([a-z0-9-]+)$/i);if(l&&o.method==="DELETE"){const u=decodeURIComponent(l[1]),p=Me(u);J(r,200,p);return}if(o.url!=="/custom-themes"){r.writeHead(404).end("Not found");return}if(o.method==="GET"){J(r,200,Te());return}if(o.method!=="PUT"){r.writeHead(405).end("Method not allowed");return}he(o,r,u=>{const p=Ue(u);We(p),J(r,200,p)})});a.once("error",t),a.listen(0,"127.0.0.1",()=>{const o=a.address();if(!o||typeof o=="string"){a.close(),t(new Error("Shared custom theme service did not expose a TCP port"));return}const r=`http://127.0.0.1:${o.port}`;e({endpoint:`${r}/custom-themes`,usageEndpoint:`${r}/theme-usage`,appStateEndpoint:`${r}/app-state`,token:n})})}),ue)}function dt(){return d.join(T.app.getPath("userData"),"custom-themes.json")}function mt(){return d.join(T.app.getPath("userData"),"theme-usage.json")}function We(e){pt(dt(),e)}function ut(){try{const e=JSON.parse(h.readFileSync(mt(),"utf8"));return e&&typeof e=="object"&&!Array.isArray(e)?e:{}}catch{return{}}}function pt(e,t){h.mkdirSync(d.dirname(e),{recursive:!0}),h.writeFileSync(e,`${JSON.stringify(t,null,2)}
-`)}function he(e,t,n){let a=0;const o=[];e.on("data",r=>{if(a+=r.length,a>yn){t.writeHead(413).end("Payload too large"),e.destroy();return}o.push(r)}),e.on("end",()=>{if(!t.headersSent)try{n(JSON.parse(Buffer.concat(o).toString("utf8")))}catch(r){t.writeHead(400).end(r.message)}})}function Ue(e){if(!Array.isArray(e))throw new Error("Custom themes must be an array");return e.slice(0,lt).map((t,n)=>{var o;if(!t||typeof t!="object")throw new Error(`Invalid custom theme at index ${n}`);const a=t;if(typeof a.id!="string"||!/^custom-[a-z0-9-]+$/i.test(a.id))throw new Error(`Invalid custom theme id at index ${n}`);if(typeof a.name!="string"||!a.name.trim())throw new Error(`Invalid custom theme name at index ${n}`);if(typeof a.dataUrl!="string"||!/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(a.dataUrl))throw new Error(`Invalid custom theme image at index ${n}`);for(const r of["accent","secondary","surface","text"])if(typeof((o=a.colors)==null?void 0:o[r])!="string"||!/^#[0-9a-f]{6}$/i.test(a.colors[r]))throw new Error(`Invalid custom theme color ${r} at index ${n}`);return{id:a.id,name:a.name.trim(),dataUrl:a.dataUrl,colors:{accent:a.colors.accent,secondary:a.colors.secondary,surface:a.colors.surface,text:a.colors.text}}})}function J(e,t,n){e.writeHead(t,{"Content-Type":"application/json; charset=utf-8"}),e.end(JSON.stringify(n))}const P="dream-work-style",$="dream-work-menu",ie=new Map,te=new Map,K=new Map,ke=new Map,Ae=new Map,ge=new Map,Oe=new Map,ye=new Map,V=new Map,xe=new Map,ne=new Map,ae=new Map,ve=new Map,oe=new Map,L=new Map,ce=new Map,re=new Map,se=new Map,W="dream-work-theme:kimi:restored",Q="dream-work-theme:kimi:action-at",ht=new Set,k={id:"wb-dream-sentinel-id",hero:"data:image/png;base64,WBDREAMHEROSENTINEL",accent:"#010203",secondary:"#040506",surface:"#070809",text:"#0a0b0c"};let fe=null;async function Sn(){if(!fe)try{const e=d.resolve(__dirname,"manager","codex-dream-skin.css");fe=await It.readFile(e,"utf-8")}catch(e){console.warn("[injector] Failed to load Codex base CSS:",e.message),fe=""}return fe}async function gt(e,t,n,a={}){var u,p;const o=O(e),r=((u=a.profile)==null?void 0:u.version)??(e==="monkeycode"?(p=await Mt(e))==null?void 0:p.version:void 0),i=e==="monkeycode"&&Rn(r)>=26082107,l=a.rendererUrlHint?[a.rendererUrlHint]:(o==null?void 0:o.rendererHints)??["renderer/index.html","index.html"];let s=[],c="No renderer targets found";for(const m of l)try{if(console.log(`[injector] Trying hint "${m}" on port ${n}`),s=await cn(n,m,{timeoutMs:2e4,pollMs:500}),s.length>0){console.log(`[injector] Found ${s.length} targets with hint "${m}"`);break}}catch(g){c=g.message,console.log(`[injector] Hint "${m}" failed: ${g.message}`)}if(e==="sparkdesk")try{const m=await le(n);m.length>0&&(s=m)}catch(m){console.log(`[injector] Failed to collect SparkDesk targets: ${m.message}`)}if(e==="stepfun")try{const m=await He(n);m.length>0&&(s=m)}catch(m){console.log(`[injector] Failed to collect all StepFun targets: ${m.message}`)}if(e==="monkeycode")try{const m=await Ee(n);m.length>0&&(s=m,await Wn(s))}catch(m){console.log(`[injector] Failed to collect MonkeyCode main target: ${m.message}`)}if(e==="kimi")try{const m=await Ke(n);m.length>0&&(s=m),await _n(s)}catch(m){console.log(`[injector] Failed to collect all Kimi targets: ${m.message}`)}if(s.length===0&&e!=="monkeycode")try{console.log(`[injector] Strict hints failed, trying relaxed page-target fallback on port ${n}`);const g=await(await fetch(`http://127.0.0.1:${n}/json/list`,{signal:AbortSignal.timeout(5e3)})).json(),b=(Array.isArray(g)?g:[]).filter(Fe).sort((E,N)=>{const z=[String(E.id??""),E.url,E.webSocketDebuggerUrl],U=[String(N.id??""),N.url,N.webSocketDebuggerUrl];for(let M=0;M<z.length;M++){if(z[M]<U[M])return-1;if(z[M]>U[M])return 1}return 0});b.length>0&&(console.log(`[injector] Relaxed fallback found ${b.length} page targets`),s=b)}catch(m){console.log(`[injector] Relaxed fallback failed: ${m.message}`)}if(s.length===0)return{success:!1,applied:0,error:c};try{const m=Ce(e);if(console.log(`[injector] Loaded ${m.length} themes`),!m.some(f=>f.id===t))return{success:!1,applied:0,error:`Theme ${t} is not compatible with ${e}`};const g=vn(e,m.map(f=>f.id),t),b=new Map(m.map(f=>[f.id,f])),E=g.map(f=>b.get(f)).filter(Boolean),N=new Map;for(const f of E){const y=Bn(e,f);N.set(f.id,{name:f.name,css:Ze(e,f.manifest,fn(f),{monkeyCodeModern:i})+(y?On(f):""),surface:f.manifest.colors.surface})}const z=Array.from(N.entries()).map(([f,y])=>{var A;return{id:f,name:y.name,css:y.css,surface:y.surface,accent:((A=m.find(w=>w.id===f))==null?void 0:A.manifest.colors.accent)??"#24c9d7"}});let U=Te();if(U.length===0){const f=e==="workbuddy"?"dreamCustomThemes":"dreamCodexCustomThemes";for(const y of s){const A=new C(y.webSocketDebuggerUrl);try{await A.open();const w=await A.evaluate(`(() => localStorage.getItem(${JSON.stringify(f)}) || '[]')()`),_=JSON.parse(w).filter(S=>!ht.has(S==null?void 0:S.id));if(Array.isArray(_)&&_.length>0){U=xn(_);break}}catch(w){console.warn(`[injector] Failed to import existing custom themes from ${e} target ${y.id}:`,w)}finally{A.close()}}}const M=await _e();if(e==="stepfun"){const f=Date.now();await fetch(`${M.appStateEndpoint}/stepfun`,{method:"PUT",headers:{Authorization:`Bearer ${M.token}`,"Content-Type":"application/json"},body:JSON.stringify({themeId:t,actionAt:f})}).catch(()=>{});for(const y of s.filter(A=>String(A.url).startsWith("app://chat-web/"))){const A=new C(y.webSocketDebuggerUrl);try{await A.open(),await A.evaluate(`(() => {
-            localStorage.setItem('dream-work-theme:stepfun:state', ${JSON.stringify(JSON.stringify({themeId:t,actionAt:f}))});
-          })()`)}catch{}finally{A.close()}}}e==="sparkdesk"&&await fetch(`${M.appStateEndpoint}/sparkdesk`,{method:"PUT",headers:{Authorization:`Bearer ${M.token}`,"Content-Type":"application/json"},body:JSON.stringify({themeId:t,actionAt:Date.now()})}).catch(()=>{});const B=e==="workbuddy"?ra({styleId:P,menuId:$,currentThemeId:t,themes:z,sharedCustomThemes:U,sharedCustomThemeService:M,cssTemplate:bt({id:k.id,colors:{accent:k.accent,secondary:k.secondary,surface:k.surface,text:k.text},copy:null},k.hero,{accent:k.accent,secondary:k.secondary,surface:k.surface,text:k.text})}):e==="hana-agent"?ea({styleId:P,menuId:$,currentThemeId:t,themes:z,sharedCustomThemes:U,sharedCustomThemeService:M,cssTemplate:ft({id:k.id,colors:{accent:k.accent,secondary:k.secondary,surface:k.surface,text:k.text}},k.hero,{accent:k.accent,secondary:k.secondary,surface:k.surface,text:k.text})}):sa({styleId:P,menuId:$,currentThemeId:t,appId:e,monkeyCodeModern:i,themes:z,sharedCustomThemes:U,sharedCustomThemeService:M,cssTemplate:Ze(e,{id:k.id,colors:{accent:k.accent,secondary:k.secondary,surface:k.surface,text:k.text}},k.hero,{monkeyCodeModern:i})});let R=0;for(const f of s)try{console.log(`[injector] Injecting to target ${f.id}: ${f.url}`);const y=new C(f.webSocketDebuggerUrl);if(await y.open(),e==="workbuddy"){let w=!1;const _=Date.now()+15e3;for(;Date.now()<_&&(w=await y.evaluate(`(() => {
+`;try{const{stdout:t}=await Se("powershell.exe",["-NoLogo","-NoProfile","-NonInteractive","-ExecutionPolicy","Bypass","-Command",e],{encoding:"utf8",maxBuffer:4194304}),a=t.trim();if(a&&h.existsSync(a))return a}catch{}return null}async function nt(){const e=[];if(k.platform()!=="win32"){for(const o of fe){const r=await Rt(o);r&&e.push({appId:o.id,name:o.name,path:r})}return e}for(const o of fe.filter(r=>r.id!=="codex")){const r=qe(o.exeNames,o.installPaths);r&&e.push({appId:o.id,name:o.name,path:r,version:o.id==="monkeycode"?await Bt(r):void 0})}const a=qe(["Codex.exe","ChatGPT.exe"],[d.join(process.env.LOCALAPPDATA||"","Programs","Codex"),d.join(process.env.LOCALAPPDATA||"","Programs","OpenAI","Codex"),...Mt()]),n=a?null:await jt();return n?e.push({appId:"codex",name:"Codex",path:n}):a&&e.push({appId:"codex",name:"Codex",path:a}),e}async function Ot(e){return(await nt()).find(t=>t.appId===e)}async function Bt(e){if(k.platform()!=="win32")return;const t=e.replace(/'/g,"''");try{const{stdout:a}=await Se("powershell.exe",["-NoLogo","-NoProfile","-NonInteractive","-ExecutionPolicy","Bypass","-Command",`(Get-Item -LiteralPath '${t}').VersionInfo.ProductVersion`],{encoding:"utf8",maxBuffer:1048576});return a.trim()||void 0}catch{return}}async function Rt(e){var a,n,o;const t=k.platform();if(t==="darwin"){for(const r of((a=e.darwin)==null?void 0:a.appBundles)??[]){const s=d.join("/Applications",r);if(h.existsSync(s))return s}return null}if(t==="linux"){for(const r of((n=e.linux)==null?void 0:n.desktopFiles)??[]){const s=await Ft(r);if(s)return s}for(const r of((o=e.linux)==null?void 0:o.executableNames)??[])try{const{stdout:s}=await Se("which",[r],{encoding:"utf8"}),c=s.trim();if(c&&h.existsSync(c))return c}catch{}}return null}async function Ft(e){for(const t of[d.join(k.homedir(),".local","share","applications",e),d.join("/usr/share/applications",e),d.join("/usr/local/share/applications",e)]){if(!h.existsSync(t))continue;const a=h.readFileSync(t,"utf8").match(/^Exec=(?:env\s+\S+=\S+\s+)*(?:"([^"]+)"|(\S+))/m),n=(a==null?void 0:a[1])||(a==null?void 0:a[2]);if(n){if(d.isAbsolute(n)&&h.existsSync(n))return n;try{const{stdout:o}=await Se("which",[n],{encoding:"utf8"}),r=o.trim();if(r&&h.existsSync(r))return r}catch{}}}return null}function qe(e,t){for(const a of t){if(!a||!h.existsSync(a))continue;if(h.statSync(a).isFile()&&e.some(o=>d.basename(a).toLowerCase()===o.toLowerCase()))return a;for(const o of e){const r=d.join(a,o);if(h.existsSync(r))return r}try{const o=h.readdirSync(a,{withFileTypes:!0}).filter(r=>r.isDirectory()).sort((r,s)=>s.name.localeCompare(r.name,void 0,{numeric:!0}));for(const r of o)for(const s of e){const c=d.join(a,r.name,s);if(h.existsSync(c))return c}}catch{}}return null}const we=Be.promisify(Z.execFile);async function Lt(e){const t=O(e);if(!t)return!1;const a=rt(t);if(k.platform()==="win32"){for(const n of a)try{const{stdout:o}=await we("tasklist.exe",["/FI",`IMAGENAME eq ${n}`,"/FO","CSV","/NH"],{encoding:"utf8",windowsHide:!0});if(o.split(/\r?\n/).some(r=>r.trim().toLowerCase().startsWith(`"${n.toLowerCase()}"`)))return!0}catch{}return!1}for(const n of a)try{return await we("pgrep",["-f",n],{encoding:"utf8"}),!0}catch{}return!1}async function ot(e,t){const a=O(e);if(!a)return{success:!1,error:`Unknown app: ${e}`};try{const n=na(e);console.log(`[launcher] Killing existing ${e} instances...`),e==="autoclaw"&&k.platform()==="win32"||(await ta(e,n),await aa(a.defaultPort,15e3));const r=await Xt(a.defaultPort);r!==a.defaultPort&&console.warn(`[launcher] Default CDP port ${a.defaultPort} is unavailable; using ${r}`);const s=a.webView2?[]:[`--remote-debugging-port=${r}`];e==="codex"&&s.push("--disable-extensions"),t&&e!=="kimi"&&s.push(`--dream-theme=${t}`),e==="agnes-code"&&k.platform()==="win32"&&await Gt(n);const c=k.platform()==="win32"?a.devToolsActivePort:void 0;if(c)try{h.unlinkSync(c)}catch{}console.log(`[launcher] Launching ${n} with args: ${s.join(" ")}`);const i=Kt(e,n,r),l=e==="kimi"&&k.platform()==="win32"?await zt(n,s):e==="autoclaw"&&k.platform()==="win32"?await Wt(n,s,i):await Ve(n,s,i);console.log(`[launcher] Spawned process${l?` with PID: ${l}`:""}`),console.log(`[launcher] Waiting for CDP port ${r} to be ready...`);let m=r;return c?e==="stepfun"?(m=await qt(c,3e4),await Ve(n,[],i),await st(m,a.rendererHints,3e4)):m=await Jt(c,a.rendererHints,3e4):e==="autoclaw"&&k.platform()==="win32"?m=await Yt(r,a.rendererHints,3e4):await Zt(r,3e4),console.log(`[launcher] CDP port ${m} is ready`),(e==="hana-agent"||e==="kimi")&&await Vt(m,a.rendererHints,3e4,e==="kimi"?750:3e3),{success:!0,port:m}}catch(n){return console.error("[launcher] Launch failed:",n),{success:!1,error:n.message}}}function Ve(e,t,a){return new Promise((n,o)=>{const r=Z.spawn(e,t,{detached:!0,stdio:"ignore",env:a});r.once("error",o),r.once("spawn",()=>{r.removeListener("error",o),r.unref(),n(r.pid)})})}async function Wt(e,t,a){const n=d.join(k.tmpdir(),`dream-work-autoclaw-${process.pid}-${Date.now()}.ready`);try{h.unlinkSync(n)}catch{}const o=Buffer.from(e,"utf8").toString("base64"),r=Buffer.from(d.dirname(e),"utf8").toString("base64"),s=Buffer.from(n,"utf8").toString("base64"),c=Buffer.from(JSON.stringify(t),"utf8").toString("base64"),i=[`$appPath = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${o}'))`,`$workingDirectory = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${r}'))`,`$launchMarker = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${s}'))`,"$target = [IO.Path]::GetFullPath($appPath)","Get-CimInstance Win32_Process | Where-Object { $_.ExecutablePath -and [IO.Path]::GetFullPath($_.ExecutablePath) -ieq $target } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }","Start-Sleep -Milliseconds 500",`$argsJson = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${c}'))`,"[string[]]$launchArgs = @($argsJson | ConvertFrom-Json)","Start-Process -FilePath $appPath -ArgumentList $launchArgs -WorkingDirectory $workingDirectory","[IO.File]::WriteAllText($launchMarker, 'ready')"].join("; "),m=`Start-Process -FilePath powershell.exe -ArgumentList '-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand ${Buffer.from(i,"utf16le").toString("base64")}' -Verb RunAs`;try{await Ht("powershell.exe",["-NoLogo","-NoProfile","-NonInteractive","-ExecutionPolicy","Bypass","-Command",m],a),await Ut(n,3e4)}catch(p){const u=String((p==null?void 0:p.message)||p);throw/canceled by the user|operation was canceled|操作已被用户取消|用户取消/i.test(u)?new Error("AutoClaw requires administrator permission to enable theme injection; the UAC prompt was canceled"):p}finally{try{h.unlinkSync(n)}catch{}}}async function Ut(e,t){const a=Date.now()+t;for(;Date.now()<a;){if(h.existsSync(e))return;await new Promise(n=>setTimeout(n,100))}throw new Error("Timed out waiting for elevated AutoClaw launch confirmation")}function Ht(e,t,a){return new Promise((n,o)=>{const r=Z.spawn(e,t,{stdio:"ignore",env:a,windowsHide:!0});r.once("error",o),r.once("exit",(s,c)=>{if(s===0){n();return}o(new Error(`${e} exited with ${c?`signal ${c}`:`code ${s??"unknown"}`}`))})})}async function zt(e,t){const a=d.join(k.tmpdir(),`dream-work-kimi-${process.pid}-${Date.now()}.lnk`),n={...De(),DREAM_WORK_LAUNCH_EXE:e,DREAM_WORK_LAUNCH_ARGS:JSON.stringify(t),DREAM_WORK_LAUNCH_CWD:d.dirname(e),DREAM_WORK_LAUNCH_SHORTCUT:a},o=["[string[]]$launchArgs = @($env:DREAM_WORK_LAUNCH_ARGS | ConvertFrom-Json)","$shell = New-Object -ComObject WScript.Shell","$shortcut = $shell.CreateShortcut($env:DREAM_WORK_LAUNCH_SHORTCUT)","$shortcut.TargetPath = $env:DREAM_WORK_LAUNCH_EXE","$shortcut.Arguments = [string]::Join(' ', $launchArgs)","$shortcut.WorkingDirectory = $env:DREAM_WORK_LAUNCH_CWD","$shortcut.Save()"].join("; ");await we("powershell.exe",["-NoLogo","-NoProfile","-NonInteractive","-ExecutionPolicy","Bypass","-Command",o],{env:n,windowsHide:!0}),Z.spawn(d.join(process.env.WINDIR||"C:\\Windows","explorer.exe"),[a],{detached:!0,stdio:"ignore",env:De()}).unref(),setTimeout(()=>{try{h.unlinkSync(a)}catch{}},15e3).unref()}function De(){const e={...process.env};for(const t of["VITE_DEV_SERVER_URL","ELECTRON_RENDERER_URL","MAIN_VITE_DEV_SERVER_URL","ELECTRON_RUN_AS_NODE"])delete e[t];return e}function Kt(e,t,a){var o,r;const n=De();if(e==="agnes-code"&&(n.AGNES_DEV="1",n.ENABLE_PLAYWRIGHT="1",n.PLAYWRIGHT_DEBUG_PORT=String(a),n.AGNESD_BINARY=d.join(d.dirname(t),"resources","bin",k.platform()==="win32"?"agnesd.exe":"agnesd")),(o=O(e))!=null&&o.webView2){const s=(r=n.WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS)==null?void 0:r.trim(),c=`--remote-debugging-port=${a}`;n.WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=s?`${s} ${c}`:c}return n}async function Gt(e){const t=d.dirname(e),a=d.join(t,"resources","app.asar"),n=`${e}.dream-work-original`,o=`${a}.dream-work-titlebar.json`,r=L.readFileSync(a),s=r.toString("latin1");if(/function ([\w$]+)\(e,t="sidebar"\)\{return\{color:"#00000000",symbolColor:([\w$]+)\[e\],height:32\}\}/.test(s)){Xe(e),console.log("[launcher] AgnesCode native title bar overlay is already transparent");return}const l=/function ([\w$]+)\(e,t="sidebar"\)\{return\{color:t==="content"\?([\w$]+)\(e\):([\w$]+)\(e\),symbolColor:([\w$]+)\[e\],height:32\}\}/.exec(s);if(!l||l.index<0)throw new Error("AgnesCode title bar implementation was not recognized; the installed version may have changed");L.copyFileSync(e,n),Xe(e);const m=l[0],p=`function ${l[1]}(e,t="sidebar"){return{color:"#00000000",symbolColor:${l[4]}[e],height:32}}`;if(p.length>m.length)throw new Error("AgnesCode title bar patch does not fit the original ASAR entry");L.writeFileSync(o,JSON.stringify({archiveSize:r.length,offset:l.index,original:Buffer.from(m,"latin1").toString("base64")}));const u=Buffer.from(p.padEnd(m.length," "),"latin1"),g=L.openSync(a,"r+");try{L.writeSync(g,u,0,u.length,l.index),L.fsyncSync(g)}finally{L.closeSync(g)}console.log("[launcher] Patched AgnesCode native window controls overlay to transparent")}function Xe(e){const t=Buffer.from("dL7pKGdnNz796PbbjQWNKmHXBZaB9tsX","ascii"),a=L.readFileSync(e),n=a.indexOf(t),o=a.lastIndexOf(t);if(n<0)throw new Error("AgnesCode Electron fuse wire was not found");const r=n===o?[n]:[n,o];let s=!1;for(const c of r){const i=c+t.length,l=a[i],m=a[i+1];if(l!==1||m<=4)throw new Error(`Unsupported AgnesCode Electron fuse wire: version=${l}, length=${m}`);const p=i+2+4;a[p]!==48&&(a[p]=48,s=!0)}s&&(L.writeFileSync(e,a),console.log("[launcher] Disabled AgnesCode embedded ASAR integrity validation"))}function rt(e){var t,a;return k.platform()==="darwin"?((t=e.darwin)==null?void 0:t.executableNames)??[]:k.platform()==="linux"?((a=e.linux)==null?void 0:a.executableNames)??[]:[...new Set([e.processName,...e.exeNames].filter(Boolean))]}async function Jt(e,t,a){const n=Date.now();let o=0;for(;Date.now()-n<a;){try{const r=h.readFileSync(e,"utf8").split(/\r?\n/,1)[0],s=Number(r);if(Number.isInteger(s)&&s>0)return o=s,await st(s,t,3e3),s}catch{}await new Promise(r=>setTimeout(r,500))}throw new Error(`DevToolsActivePort did not expose a live renderer${o?` on port ${o}`:""}: ${e}`)}async function qt(e,t){const a=Date.now();let n=0;for(;Date.now()-a<t;){try{const o=h.readFileSync(e,"utf8").split(/\r?\n/,1)[0],r=Number(o);if(Number.isInteger(r)&&r>0&&(n=r,(await fetch(`http://127.0.0.1:${r}/json/version`,{signal:AbortSignal.timeout(1e3)})).ok))return r}catch{}await new Promise(o=>setTimeout(o,500))}throw new Error(`DevToolsActivePort did not expose a live endpoint${n?` on port ${n}`:""}: ${e}`)}async function st(e,t,a){const n=Date.now();for(;Date.now()-n<a;){try{const o=await fetch(`http://127.0.0.1:${e}/json/list`,{signal:AbortSignal.timeout(1e3)});if(o.ok){const r=await o.json();if(Array.isArray(r)&&r.some(s=>(s==null?void 0:s.type)==="page"&&t.some(c=>String(s.url).includes(c))))return}}catch{}await new Promise(o=>setTimeout(o,250))}throw new Error(`CDP renderer endpoint is not ready on port ${e}`)}async function Vt(e,t,a,n){const o=Date.now();let r="",s=0;for(;Date.now()-o<a;){try{const l=(await(await fetch(`http://127.0.0.1:${e}/json/list`,{signal:AbortSignal.timeout(1e3)})).json()).find(m=>(m==null?void 0:m.type)==="page"&&t.some(p=>String(m.url).includes(p)));if(l!=null&&l.id){if(l.id!==r)r=l.id,s=Date.now();else if(Date.now()-s>=n){console.log(`[launcher] Stable renderer ${r} confirmed`);return}}}catch{}await new Promise(c=>setTimeout(c,250))}throw new Error(`Renderer did not stabilize on port ${e}`)}async function Xt(e){for(let t=e;t<=e+100;t++)if(await Qt(t))return t;throw new Error(`No available CDP port found between ${e} and ${e+100}`)}function Qt(e){return new Promise(t=>{const a=Fe.createServer();a.unref(),a.once("error",()=>t(!1)),a.listen(e,"127.0.0.1",()=>{a.close(n=>t(!n))})})}async function Zt(e,t){const a=Date.now();let n="unknown";for(;Date.now()-a<t;)try{await new Promise((o,r)=>{const s=Fe.createConnection(e,"127.0.0.1",()=>{s.end(),o()});s.once("error",c=>{n=c.message,r(c)}),setTimeout(()=>{s.destroy(),r(new Error("timeout"))},1e3)}),console.log(`[launcher] Port ${e} is open, verifying CDP endpoint...`),await ea(e,15e3),console.log(`[launcher] CDP endpoint verified on port ${e}`);return}catch(o){n=o.message,console.log(`[launcher] Port check failed: ${o.message}, retrying...`),await new Promise(r=>setTimeout(r,1e3))}throw new Error(`CDP port ${e} did not become ready within ${t}ms (last error: ${n})`)}async function Yt(e,t,a){const n=Date.now()+a;let o="AutoClaw CDP endpoint was not found";for(;Date.now()<n;){for(let r=e;r<Math.min(e+100,65536);r++)try{const s=await Qe(`http://127.0.0.1:${r}/json/version`,500);if(!`${(s==null?void 0:s.Browser)??""} ${(s==null?void 0:s["User-Agent"])??""}`.toLowerCase().includes("autoclaw"))continue;const i=await Qe(`http://127.0.0.1:${r}/json/list`,500);if(Array.isArray(i)&&i.some(m=>(m==null?void 0:m.type)==="page"&&typeof m.url=="string"&&t.some(p=>m.url.includes(p))))return r;o=`AutoClaw CDP on port ${r} did not expose its renderer`}catch(s){o=(s==null?void 0:s.message)||String(s)}await new Promise(r=>setTimeout(r,250))}throw new Error(`Timed out waiting for AutoClaw CDP near port ${e}: ${o}`)}async function Qe(e,t){return new Promise((a,n)=>{const o=Re.get(e,{timeout:t},r=>{if(r.statusCode!==200){r.resume(),n(new Error(`HTTP ${r.statusCode??"unknown"} from ${e}`));return}let s="";r.setEncoding("utf8"),r.on("data",c=>{s+=c}),r.on("end",()=>{try{a(JSON.parse(s))}catch(c){n(c)}})});o.on("timeout",()=>o.destroy(new Error(`Timed out fetching ${e}`))),o.on("error",n)})}async function ea(e,t){const a=Date.now();for(;Date.now()-a<t;)try{await new Promise((n,o)=>{const r=Re.request({hostname:"127.0.0.1",port:e,path:"/json/version",method:"GET",timeout:2e3},s=>{let c="";s.on("data",i=>{c+=i}),s.on("end",()=>{s.statusCode===200?(console.log(`[launcher] CDP version response: ${c.substring(0,200)}`),n()):o(new Error(`HTTP ${s.statusCode}`))})});r.on("error",o),r.on("timeout",()=>{r.destroy(),o(new Error("timeout"))}),r.end()});return}catch(n){if(Date.now()-a>=t)throw n;await new Promise(o=>setTimeout(o,1e3))}}async function ta(e,t){const a=k.platform(),n=O(e);if(!n)return;const o=rt(n);try{if(a==="win32"){if(n.windowsPathScopedKill){await we("powershell.exe",["-NoLogo","-NoProfile","-NonInteractive","-ExecutionPolicy","Bypass","-Command","$target = [IO.Path]::GetFullPath($env:DREAM_WORK_TARGET_EXE); Get-CimInstance Win32_Process | Where-Object { $_.ExecutablePath -and [IO.Path]::GetFullPath($_.ExecutablePath) -ieq $target } | ForEach-Object { taskkill.exe /T /F /PID $_.ProcessId *> $null }"],{env:{...process.env,DREAM_WORK_TARGET_EXE:t},windowsHide:!0}).catch(()=>{}),console.log(`[launcher] Killed existing ${e} instances at ${t}`);return}const{execSync:r}=require("child_process");for(const s of o)try{r(`taskkill /T /F /IM "${s}" 2>nul`,{stdio:"ignore"}),console.log(`[launcher] Killed existing ${s} process tree`)}catch{}}else if(a==="darwin"){const{execSync:r}=require("child_process");for(const s of o)try{r(`pkill -f "${s}" 2>/dev/null || true`,{stdio:"ignore"}),console.log(`[launcher] Killed existing ${s} processes`)}catch{}}else if(a==="linux"){const{execSync:r}=require("child_process");for(const s of o)try{r(`pkill -f "${s}" 2>/dev/null || true`,{stdio:"ignore"}),console.log(`[launcher] Killed existing ${s} processes`)}catch{}}}catch(r){console.warn("[launcher] Failed to kill existing instances:",r)}}async function aa(e,t){const a=Date.now();for(;Date.now()-a<t;){if(!await new Promise(o=>{const r=Fe.createConnection(e,"127.0.0.1");r.once("connect",()=>{r.destroy(),o(!0)}),r.once("error",()=>o(!1)),r.setTimeout(500,()=>{r.destroy(),o(!1)})})){console.log(`[launcher] Previous CDP port ${e} is closed`);return}await new Promise(o=>setTimeout(o,250))}throw new Error(`Existing ${e} CDP service did not stop; refusing to inject into the old application instance`)}function na(e){var n,o,r,s;const t=O(e);if(!t)throw new Error(`Unknown app: ${e}`);const a=k.platform();if(a==="win32"){for(const l of t.installPaths){if(!l||!h.existsSync(l))continue;if(h.statSync(l).isFile())return l;for(const p of t.exeNames){const u=d.join(l,p);if(h.existsSync(u))return u}const m=h.readdirSync(l,{withFileTypes:!0}).filter(p=>p.isDirectory()).sort((p,u)=>u.name.localeCompare(p.name,void 0,{numeric:!0}));for(const p of m)for(const u of t.exeNames){const g=d.join(l,p.name,u);if(h.existsSync(g))return g}}const c=t.exeNames,i=[process.env.ProgramFiles,process.env["ProgramFiles(x86)"]].filter(Boolean);for(const l of i){if(!l||!h.existsSync(l))continue;const p=h.readdirSync(l).find(u=>u.toLowerCase().includes(e.replace("-",""))||u.toLowerCase().includes(t.name.toLowerCase()));if(p){const u=d.join(l,p);for(const g of c){const f=d.join(u,g);if(h.existsSync(f))return f}}}if(e==="codex"){const l=d.join(process.env.ProgramFiles||"C:\\Program Files","WindowsApps");console.log("[launcher] Codex WindowsApps fallback, path:",l);try{const p=h.readdirSync(l).find(u=>/^OpenAI\.Codex_\d+/i.test(u));if(p){const u=d.join(l,p,"app","ChatGPT.exe");if(h.existsSync(u))return console.log("[launcher] Found Codex via WindowsApps scan:",u),u}}catch(m){console.log("[launcher] WindowsApps scan error:",m.message)}try{const{execFileSync:m}=require("child_process"),p="Get-AppxPackage -Name 'OpenAI.Codex' -ErrorAction SilentlyContinue | ForEach-Object { Join-Path $_.InstallLocation (Get-AppxPackageManifest -Package $_.PackageFullName).Package.Applications.Application.Executable }";console.log("[launcher] Running PowerShell fallback...");const u=m("powershell.exe",["-NoLogo","-NoProfile","-NonInteractive","-ExecutionPolicy","Bypass","-Command",p],{encoding:"utf8",stdio:["pipe","pipe","ignore"]}).trim();if(console.log("[launcher] PowerShell result:",u),u&&h.existsSync(u))return u}catch(m){console.log("[launcher] PowerShell fallback error:",m.message)}}}else if(a==="darwin")for(const c of((n=t.darwin)==null?void 0:n.appBundles)??[]){const i=d.join("/Applications",c);if(h.existsSync(i))for(const l of((o=t.darwin)==null?void 0:o.executableNames)??[]){const m=d.join(i,"Contents","MacOS",l);if(h.existsSync(m))return m}}else if(a==="linux"){const c=((r=t.linux)==null?void 0:r.executableNames)??[];for(const l of((s=t.linux)==null?void 0:s.desktopFiles)??[]){const m=oa(l);if(m)return m}const i=["/usr/bin","/usr/local/bin","/opt",d.join(k.homedir(),".local","bin"),"/snap/bin"];for(const l of i)if(h.existsSync(l))for(const m of c){const p=d.join(l,m);if(h.existsSync(p))return p}for(const l of c)try{const{execFileSync:m}=require("child_process"),p=m("which",[l],{encoding:"utf8",stdio:["ignore","pipe","ignore"]}).trim();if(p&&h.existsSync(p))return p}catch{}}throw new Error(`Could not find ${e} executable`)}function oa(e){for(const t of[d.join(k.homedir(),".local","share","applications",e),d.join("/usr/share/applications",e),d.join("/usr/local/share/applications",e)]){if(!h.existsSync(t))continue;const a=h.readFileSync(t,"utf8").match(/^Exec=(?:env\s+\S+=\S+\s+)*(?:"([^"]+)"|(\S+))/m),n=(a==null?void 0:a[1])||(a==null?void 0:a[2]);if(n){if(d.isAbsolute(n)&&h.existsSync(n))return n;try{const{execFileSync:o}=require("child_process"),r=o("which",[n],{encoding:"utf8",stdio:["ignore","pipe","ignore"]}).trim();if(r&&h.existsSync(r))return r}catch{}}}}const ra=5e3,sa=100,ia=15e3,ca=1e4,la=5e3;function da(e){if(!Number.isInteger(e)||e<1024||e>65535)throw new TypeError("port must be an integer from 1024 through 65535");return e}function X(e,t,a={}){const n=a.allowZero?0:Number.EPSILON;if(!Number.isFinite(e)||e<n){const o=a.allowZero?"non-negative":"positive";throw new TypeError(`${t} must be a finite ${o} number`)}return e}function it(e){if(typeof e!="string"||e.length===0||e!==e.trim())throw new TypeError("webSocketDebuggerUrl must be a non-empty URL string");let t;try{t=new URL(e)}catch(a){throw new TypeError(`webSocketDebuggerUrl is invalid: ${a.message}`)}if(t.protocol!=="ws:"||t.hostname!=="127.0.0.1"||t.username||t.password||t.hash||!t.port)throw new TypeError("webSocketDebuggerUrl must use ws://127.0.0.1 with an explicit port");return da(Number(t.port)),t}function ma(e,t){if(e===null||typeof e!="object"||Array.isArray(e)||e.type!=="page"||typeof e.url!="string"||typeof e.webSocketDebuggerUrl!="string")return!1;try{it(e.webSocketDebuggerUrl)}catch{return!1}return e.url.includes(t)}function We(e){if(e===null||typeof e!="object"||Array.isArray(e)||e.type!=="page"||typeof e.url!="string"||typeof e.webSocketDebuggerUrl!="string")return!1;try{return it(e.webSocketDebuggerUrl),!0}catch{return!1}}function ua(e){return new Promise(t=>setTimeout(t,e))}async function Ze(e,t){const a=Math.max(0,t.deadline-Date.now());let n=null;try{return await Promise.race([e,new Promise((o,r)=>{n=setTimeout(()=>{var s;(s=t.onTimeout)==null||s.call(t),r(new Error(`${t.label} timed out after ${t.timeoutMs}ms`))},a)})])}finally{n&&clearTimeout(n)}}async function Y(e,t,a={}){const n=X(a.timeoutMs??la,"timeoutMs",{allowZero:!1}),o=a.fetchImpl??globalThis.fetch;if(typeof o!="function")throw new TypeError("fetchImpl must be a function");const r=`http://127.0.0.1:${e}/json/list`,s=new AbortController,c=Date.now()+n,i=a.quiet===!0;i||console.log(`[cdp] fetchRendererTargets: port=${e}, timeoutMs=${n}, endpoint=${r}`);let l;try{l=await Ze(Promise.resolve(o(r,{redirect:"error",signal:s.signal})),{deadline:c,timeoutMs:n,label:"renderer target discovery",onTimeout:()=>s.abort()})}catch(p){throw i||console.log("[cdp] fetchRendererTargets error:",p),new Error(`failed to fetch renderer targets from ${r}: ${p.message}`)}if(l===null||typeof l!="object"||!l.ok)throw new Error(`renderer target discovery failed with HTTP ${(l==null?void 0:l.status)??"unknown"}`);let m;try{m=await Ze(Promise.resolve(l.json()),{deadline:c,timeoutMs:n,label:"renderer target discovery JSON",onTimeout:()=>s.abort()})}catch(p){throw new Error(`malformed renderer target JSON from ${r}: ${p.message}`)}if(!Array.isArray(m))throw new Error("malformed renderer target JSON: expected an array");return m.filter(p=>ma(p,t)).sort(ha)}async function pa(e,t,a={}){const n=X(a.timeoutMs??ra,"timeoutMs",{allowZero:!0}),o=X(a.pollMs??sa,"pollMs",{allowZero:!1}),r=a.fetchImpl??globalThis.fetch;let s=0;const c=Date.now()+n;let i=new Error("no renderer discovery attempt completed");for(console.log(`[cdp] waitForRendererTargets: port=${e}, hint=${t}, timeoutMs=${n}`);;){try{const m=Math.max(1,Math.min(n-s,c-Date.now()));console.log(`[cdp] Attempting fetch: elapsed=${s}ms, remainingBudget=${m}ms, deadline=${c}`);const p=await Y(e,t,{fetchImpl:r,timeoutMs:m});if(p.length>0)return p;i=new Error("no matching renderer/index.html page targets")}catch(m){i=m instanceof Error?m:new Error(String(m)),console.log("[cdp] Fetch error:",i.message)}if(s>=n||Date.now()>=c)throw new Error(`timed out after ${n}ms waiting for renderer targets on 127.0.0.1:${e}: ${i.message}`);const l=Math.min(o,n-s);await ua(l),s+=l}}class C{constructor(t,a={}){D(this,"webSocketDebuggerUrl");D(this,"WebSocketImpl");D(this,"commandTimeoutMs");D(this,"connectTimeoutMs");D(this,"socket",null);D(this,"nextRequestId",1);D(this,"pending",new Map);D(this,"socketOpen",!1);D(this,"opened",!1);D(this,"closed",!1);D(this,"closeStarted",!1);D(this,"terminalError",null);D(this,"openPromise",null);D(this,"resolveOpen",null);D(this,"rejectOpen",null);D(this,"connectTimer",null);this.webSocketDebuggerUrl=t;let n=null,o=null;try{n=require("ws")??null,n||(o="ws loaded but WebSocket is undefined")}catch(r){o=`ws require failed: ${(r==null?void 0:r.message)??r}`}if(!n)try{const r=require("undici");n=(r==null?void 0:r.WebSocket)??null,n||(o="undici loaded but WebSocket is undefined")}catch(r){o=`undici require failed: ${(r==null?void 0:r.message)??r}`}if(!n&&typeof globalThis.WebSocket=="function"&&(n=globalThis.WebSocket,o=null),!n){const r=o?` (${o})`:"";throw new Error(`No WebSocket implementation available for CDP${r}`)}this.WebSocketImpl=a.WebSocketImpl??n,this.commandTimeoutMs=X(a.commandTimeoutMs??ia,"commandTimeoutMs"),this.connectTimeoutMs=X(a.connectTimeoutMs??ca,"connectTimeoutMs")}open(){if(this.closed)return Promise.reject(this.terminalError??new Error("CDP session is closed"));if(this.opened)return Promise.resolve(this);if(this.openPromise)return this.openPromise;this.openPromise=new Promise((a,n)=>{this.resolveOpen=a,this.rejectOpen=n}),this.connectTimer=setTimeout(()=>{this.terminate(new Error(`CDP WebSocket connect timed out after ${this.connectTimeoutMs}ms`)),this.closeSocket()},this.connectTimeoutMs);try{this.socket=new this.WebSocketImpl(this.webSocketDebuggerUrl)}catch(a){return this.terminate(new Error(`failed to open CDP WebSocket: ${a.message}`)),this.openPromise}const t=this.socket;return t.onopen=()=>{this.closed||this.socketOpen||(this.clearConnectTimer(),this.socketOpen=!0,Promise.all([this.send("Runtime.enable"),this.send("Page.enable")]).then(()=>{if(this.closed)return;this.opened=!0;const a=this.resolveOpen;this.resolveOpen=null,this.rejectOpen=null,a==null||a(this)}).catch(a=>{this.terminate(a),this.closeSocket()}))},t.onmessage=a=>this.handleMessage(a),t.onerror=a=>{const n=a.error,o=n instanceof Error?n.message:typeof a.message=="string"&&a.message.length>0?a.message:"unknown socket error";this.terminate(new Error(`CDP WebSocket error: ${o}`)),this.closeSocket()},t.onclose=()=>{this.closeStarted=!0,this.terminate(new Error("CDP WebSocket closed"))},this.openPromise}send(t,a={},n={}){if(this.closed)return Promise.reject(this.terminalError??new Error("CDP session is closed"));if(!this.socketOpen||!this.socket)return Promise.reject(new Error("CDP session is not open"));if(typeof t!="string"||t.length===0)return Promise.reject(new TypeError("CDP method must be a non-empty string"));const o=X(n.timeoutMs??this.commandTimeoutMs,"timeoutMs"),r=this.nextRequestId++;return new Promise((s,c)=>{const i=setTimeout(()=>{this.pending.delete(r),c(new Error(`CDP ${t} timed out after ${o}ms`))},o);this.pending.set(r,{resolve:s,reject:c,timer:i});try{this.socket.send(JSON.stringify({id:r,method:t,params:a}))}catch(l){clearTimeout(i),this.pending.delete(r),c(new Error(`failed to send CDP ${t}: ${l.message}`))}})}async evaluate(t,a={}){var o,r,s;if(typeof t!="string")throw new TypeError("Runtime.evaluate expression must be a string");const n=await this.send("Runtime.evaluate",{expression:t,awaitPromise:!0,returnByValue:!0},a);if(n!=null&&n.exceptionDetails)throw new Error(`Runtime.evaluate failed: ${((o=n.exceptionDetails.exception)==null?void 0:o.description)??n.exceptionDetails.text??"unknown JavaScript exception"}`);if(((r=n==null?void 0:n.result)==null?void 0:r.type)!=="undefined")return(s=n==null?void 0:n.result)==null?void 0:s.value}async addScriptToEvaluateOnNewDocument(t){const a=await this.send("Page.addScriptToEvaluateOnNewDocument",{source:t});return a==null?void 0:a.identifier}async removeScriptToEvaluateOnNewDocument(t){await this.send("Page.removeScriptToEvaluateOnNewDocument",{identifier:t})}close(){this.closeStarted||(this.terminate(new Error("CDP session closed by client")),this.closeSocket())}handleMessage(t){if(typeof t.data!="string"){this.terminate(new Error("received a non-text CDP WebSocket message")),this.closeSocket();return}let a;try{a=JSON.parse(t.data)}catch(o){this.terminate(new Error(`received malformed CDP JSON: ${o.message}`)),this.closeSocket();return}if(!Number.isInteger(a==null?void 0:a.id))return;const n=this.pending.get(a.id);if(n){if(this.pending.delete(a.id),clearTimeout(n.timer),a.error){n.reject(new Error(`CDP error: ${a.error.message}`));return}n.resolve(a.result)}}terminate(t){if(this.terminalError)return;this.clearConnectTimer(),this.terminalError=t,this.closed=!0,this.socketOpen=!1;const a=this.rejectOpen;this.resolveOpen=null,this.rejectOpen=null,a==null||a(t);for(const{reject:n,timer:o}of this.pending.values())clearTimeout(o),n(t);this.pending.clear()}clearConnectTimer(){this.connectTimer!==null&&(clearTimeout(this.connectTimer),this.connectTimer=null)}closeSocket(){if(this.closeStarted||(this.closeStarted=!0,!this.socket||typeof this.socket.close!="function"))return;const t=this.WebSocketImpl.CLOSING??2,a=this.WebSocketImpl.CLOSED??3;this.socket.readyState===t||this.socket.readyState===a||this.socket.close()}}function ha(e,t){const a=[String(e.id??""),e.url,e.webSocketDebuggerUrl],n=[String(t.id??""),t.url,t.webSocketDebuggerUrl];for(let o=0;o<a.length;o++){if(a[o]<n[o])return-1;if(a[o]>n[o])return 1}return 0}function ga(){return d.join(T.app.getAppPath(),"themes")}function ct(){const e=d.join(T.app.getPath("userData"),"themes");return h.mkdirSync(e,{recursive:!0}),e}function ba(){return[ct(),ga()]}const Ye=new Map;function Ce(e){const t=[],a=new Set;for(const o of ba()){if(!h.existsSync(o))continue;const r=h.readdirSync(o,{withFileTypes:!0});for(const s of r){if(!s.isDirectory())continue;const c=d.join(o,s.name),i=d.join(c,"theme.json");if(h.existsSync(i))try{const l=JSON.parse(h.readFileSync(i,"utf-8")),m=$a(l);if(a.has(m.id))continue;const p=d.join(c,m.hero);if(!h.existsSync(p)||!h.statSync(p).isFile())throw new Error(`theme hero is missing: ${m.hero}`);if(e&&!fa(m,e))continue;a.add(m.id),t.push({id:m.id,name:m.name,author:m.author,path:c,manifest:m})}catch(l){console.error(`Failed to load theme ${s.name}:`,l)}}}const n=new Map;for(const o of t){const r=d.join(o.path,o.manifest.hero),s=Ne(r),c=`${o.name.trim().toLocaleLowerCase()}\0${o.author.trim().toLocaleLowerCase()}\0${s}`,i=n.get(c);(!i||wa(o.id,i.id))&&n.set(c,o)}return[...n.values()].sort((o,r)=>o.name.localeCompare(r.name))}function fa(e,t){var n,o;const a=(n=e.apps[t])==null?void 0:n.compat;return a!==void 0?a:((o=O(t))==null?void 0:o.acceptsGenericThemes)===!0}function Ne(e){const t=h.statSync(e),a=Ye.get(e);if(a&&a.size===t.size&&a.mtimeMs===t.mtimeMs)return a.hash;const n=Le.createHash("sha256").update(h.readFileSync(e)).digest("hex");return Ye.set(e,{size:t.size,mtimeMs:t.mtimeMs,hash:n}),n}function wa(e,t){const a=e.startsWith("custom-"),n=t.startsWith("custom-");return a!==n?!a:e.length<t.length||e.length===t.length&&e.localeCompare(t)<0}function lt(e,t){return Ce(t).find(a=>a.id===e)}function ka(e){const t=lt(e);if(!t)return;const a=d.resolve(t.path,t.manifest.hero);if(a.startsWith(`${d.resolve(t.path)}${d.sep}`))return a}function ya(e){return`theme-asset://local/${encodeURIComponent(e)}`}function xa(e){const t=d.join(e.path,e.manifest.hero),a=h.readFileSync(t);return`data:${Sa(e.manifest.hero)};base64,${a.toString("base64")}`}function va(e,t,a){const n=Ne(a);return Ce().some(o=>o.name.trim().toLowerCase()!==e.trim().toLowerCase()||o.author.trim().toLowerCase()!==t.trim().toLowerCase()?!1:Ne(d.join(o.path,o.manifest.hero))===n)}function $a(e){if(typeof e!="object"||e===null||Array.isArray(e))throw new Error("theme manifest must be an object");if(e.schemaVersion!==1)throw new Error(`unsupported theme schema ${e.schemaVersion}`);if(typeof e.id!="string"||!/^[a-z0-9-]+$/.test(e.id))throw new Error("theme id must use lowercase letters, numbers, and hyphens");if(typeof e.name!="string"||!e.name.trim())throw new Error("theme name must be a non-empty string");if(typeof e.author!="string")throw new Error("theme author must be a string");if(typeof e.hero!="string")throw new Error("theme hero must be a string");if(typeof e.colors!="object"||e.colors===null)throw new Error("theme colors must be an object");const t=["accent","secondary","surface","text"];for(const a of t)if(typeof e.colors[a]!="string"||!/^#[0-9a-fA-F]{6}$/.test(e.colors[a]))throw new Error(`theme color ${a} must be a hex color`);return{schemaVersion:1,id:e.id,name:e.name.trim(),author:e.author,hero:e.hero,colors:{accent:e.colors.accent,secondary:e.colors.secondary,surface:e.colors.surface,text:e.colors.text},copy:e.copy??void 0,apps:e.apps??{}}}function Sa(e){const t=d.extname(e).toLowerCase();return{".png":"image/png",".jpg":"image/jpeg",".jpeg":"image/jpeg",".webp":"image/webp",".gif":"image/gif"}[t]||"image/png"}const dt=5,Ca=32*1024*1024;let ue=null;const pe=new Map;function Te(){try{const e=JSON.parse(h.readFileSync(mt(),"utf8"));return He(e)}catch{return[]}}function Ta(e){const t=He(e),a=[...Te()];for(const o of t){const r=a.findIndex(s=>s.id===o.id);r>=0?a[r]=o:a.push(o)}const n=a.slice(0,dt);return Ue(n),n}function Me(e){if(!/^custom-[a-z0-9-]+$/i.test(e))throw new Error("Invalid custom theme id");const t=Te().filter(a=>a.id!==e);return Ue(t),console.log(`[custom-theme-store] Deleted ${e}; ${t.length} custom themes remain`),t}function _a(e,t,a,n=4){const o=pt()[e]??{};return[...t].sort((r,s)=>{if(r===a)return-1;if(s===a)return 1;const c=o[r]??{count:0,lastUsedAt:0},i=o[s]??{count:0,lastUsedAt:0};return i.count-c.count||i.lastUsedAt-c.lastUsedAt}).slice(0,n)}function je(e,t){if(!/^[a-z0-9-]+$/i.test(e)||!/^[a-z0-9-]+$/i.test(t))return;const a=pt(),n=a[e]??{},o=n[t]??{count:0};n[t]={count:o.count+1,lastUsedAt:Date.now()},a[e]=n,ht(ut(),a)}function _e(){return ue||(ue=new Promise((e,t)=>{const a=Le.randomBytes(24).toString("hex"),n=Re.createServer((o,r)=>{var i,l;if(r.setHeader("Access-Control-Allow-Origin","*"),r.setHeader("Access-Control-Allow-Headers","Authorization, Content-Type"),r.setHeader("Access-Control-Allow-Methods","GET, PUT, POST, DELETE, OPTIONS"),r.setHeader("Access-Control-Allow-Private-Network","true"),o.method==="OPTIONS"){r.writeHead(204).end();return}if(o.headers.authorization!==`Bearer ${a}`){r.writeHead(401).end("Unauthorized");return}if(o.url==="/theme-usage"&&o.method==="POST"){he(o,r,m=>{if(typeof(m==null?void 0:m.appId)!="string"||typeof(m==null?void 0:m.themeId)!="string")throw new Error("Invalid theme usage payload");je(m.appId,m.themeId),G(r,200,{success:!0})});return}const s=(i=o.url)==null?void 0:i.match(/^\/app-state\/([a-z0-9-]+)$/i);if(s){const m=s[1].toLowerCase();if(o.method==="GET"){G(r,200,pe.get(m)??null);return}if(o.method==="PUT"){he(o,r,p=>{if(typeof(p==null?void 0:p.themeId)!="string"||!Number.isFinite(Number(p==null?void 0:p.actionAt)))throw new Error("Invalid app state payload");const u={themeId:p.themeId,actionAt:Number(p.actionAt)},g=pe.get(m);(!g||u.actionAt>=g.actionAt)&&pe.set(m,u),G(r,200,pe.get(m))});return}r.writeHead(405).end("Method not allowed");return}if(o.url==="/custom-themes/delete"&&o.method==="POST"){he(o,r,m=>{if(typeof(m==null?void 0:m.themeId)!="string"||!/^custom-[a-z0-9-]+$/i.test(m.themeId))throw new Error("Invalid custom theme id");const p=Me(m.themeId);G(r,200,p)});return}const c=(l=o.url)==null?void 0:l.match(/^\/custom-themes\/([a-z0-9-]+)$/i);if(c&&o.method==="DELETE"){const m=decodeURIComponent(c[1]),p=Me(m);G(r,200,p);return}if(o.url!=="/custom-themes"){r.writeHead(404).end("Not found");return}if(o.method==="GET"){G(r,200,Te());return}if(o.method!=="PUT"){r.writeHead(405).end("Method not allowed");return}he(o,r,m=>{const p=He(m);Ue(p),G(r,200,p)})});n.once("error",t),n.listen(0,"127.0.0.1",()=>{const o=n.address();if(!o||typeof o=="string"){n.close(),t(new Error("Shared custom theme service did not expose a TCP port"));return}const r=`http://127.0.0.1:${o.port}`;e({endpoint:`${r}/custom-themes`,usageEndpoint:`${r}/theme-usage`,appStateEndpoint:`${r}/app-state`,token:a})})}),ue)}function mt(){return d.join(T.app.getPath("userData"),"custom-themes.json")}function ut(){return d.join(T.app.getPath("userData"),"theme-usage.json")}function Ue(e){ht(mt(),e)}function pt(){try{const e=JSON.parse(h.readFileSync(ut(),"utf8"));return e&&typeof e=="object"&&!Array.isArray(e)?e:{}}catch{return{}}}function ht(e,t){h.mkdirSync(d.dirname(e),{recursive:!0}),h.writeFileSync(e,`${JSON.stringify(t,null,2)}
+`)}function he(e,t,a){let n=0;const o=[];e.on("data",r=>{if(n+=r.length,n>Ca){t.writeHead(413).end("Payload too large"),e.destroy();return}o.push(r)}),e.on("end",()=>{if(!t.headersSent)try{a(JSON.parse(Buffer.concat(o).toString("utf8")))}catch(r){t.writeHead(400).end(r.message)}})}function He(e){if(!Array.isArray(e))throw new Error("Custom themes must be an array");return e.slice(0,dt).map((t,a)=>{var o;if(!t||typeof t!="object")throw new Error(`Invalid custom theme at index ${a}`);const n=t;if(typeof n.id!="string"||!/^custom-[a-z0-9-]+$/i.test(n.id))throw new Error(`Invalid custom theme id at index ${a}`);if(typeof n.name!="string"||!n.name.trim())throw new Error(`Invalid custom theme name at index ${a}`);if(typeof n.dataUrl!="string"||!/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(n.dataUrl))throw new Error(`Invalid custom theme image at index ${a}`);for(const r of["accent","secondary","surface","text"])if(typeof((o=n.colors)==null?void 0:o[r])!="string"||!/^#[0-9a-f]{6}$/i.test(n.colors[r]))throw new Error(`Invalid custom theme color ${r} at index ${a}`);return{id:n.id,name:n.name.trim(),dataUrl:n.dataUrl,colors:{accent:n.colors.accent,secondary:n.colors.secondary,surface:n.colors.surface,text:n.colors.text}}})}function G(e,t,a){e.writeHead(t,{"Content-Type":"application/json; charset=utf-8"}),e.end(JSON.stringify(a))}const P="dream-work-style",S="dream-work-menu",ce=new Map,ae=new Map,z=new Map,ke=new Map,Ae=new Map,ge=new Map,Oe=new Map,ye=new Map,V=new Map,xe=new Map,ne=new Map,oe=new Map,ve=new Map,re=new Map,F=new Map,le=new Map,se=new Map,ie=new Map,W="dream-work-theme:kimi:restored",Q="dream-work-theme:kimi:action-at",gt=new Set,y={id:"wb-dream-sentinel-id",hero:"data:image/png;base64,WBDREAMHEROSENTINEL",accent:"#010203",secondary:"#040506",surface:"#070809",text:"#0a0b0c"};let be=null;async function Ea(){if(!be)try{const e=d.resolve(__dirname,"manager","codex-dream-skin.css");be=await Dt.readFile(e,"utf-8")}catch(e){console.warn("[injector] Failed to load Codex base CSS:",e.message),be=""}return be}async function bt(e,t,a,n={}){var m,p;const o=O(e),r=((m=n.profile)==null?void 0:m.version)??(e==="monkeycode"?(p=await Ot(e))==null?void 0:p.version:void 0),s=e==="monkeycode"&&Ha(r)>=26082107,c=n.rendererUrlHint?[n.rendererUrlHint]:(o==null?void 0:o.rendererHints)??["renderer/index.html","index.html"];let i=[],l="No renderer targets found";for(const u of c)try{if(console.log(`[injector] Trying hint "${u}" on port ${a}`),i=await pa(a,u,{timeoutMs:2e4,pollMs:500}),i.length>0){console.log(`[injector] Found ${i.length} targets with hint "${u}"`);break}}catch(g){l=g.message,console.log(`[injector] Hint "${u}" failed: ${g.message}`)}if(e==="sparkdesk")try{const u=await de(a);u.length>0&&(i=u)}catch(u){console.log(`[injector] Failed to collect SparkDesk targets: ${u.message}`)}if(e==="stepfun")try{const u=await ze(a);u.length>0&&(i=u)}catch(u){console.log(`[injector] Failed to collect all StepFun targets: ${u.message}`)}if(e==="monkeycode")try{const u=await Ee(a);u.length>0&&(i=u,await Ja(i))}catch(u){console.log(`[injector] Failed to collect MonkeyCode main target: ${u.message}`)}if(e==="kimi")try{const u=await Ke(a);u.length>0&&(i=u),await Da(i)}catch(u){console.log(`[injector] Failed to collect all Kimi targets: ${u.message}`)}if(i.length===0&&e!=="monkeycode")try{console.log(`[injector] Strict hints failed, trying relaxed page-target fallback on port ${a}`);const g=await(await fetch(`http://127.0.0.1:${a}/json/list`,{signal:AbortSignal.timeout(5e3)})).json(),f=(Array.isArray(g)?g:[]).filter(We).sort((A,M)=>{const K=[String(A.id??""),A.url,A.webSocketDebuggerUrl],U=[String(M.id??""),M.url,M.webSocketDebuggerUrl];for(let j=0;j<K.length;j++){if(K[j]<U[j])return-1;if(K[j]>U[j])return 1}return 0});f.length>0&&(console.log(`[injector] Relaxed fallback found ${f.length} page targets`),i=f)}catch(u){console.log(`[injector] Relaxed fallback failed: ${u.message}`)}if(i.length===0)return{success:!1,applied:0,error:l};try{const u=Ce(e);if(console.log(`[injector] Loaded ${u.length} themes`),!u.some(b=>b.id===t))return{success:!1,applied:0,error:`Theme ${t} is not compatible with ${e}`};const g=_a(e,u.map(b=>b.id),t),f=new Map(u.map(b=>[b.id,b])),A=g.map(b=>f.get(b)).filter(Boolean),M=new Map;for(const b of A){const x=Ua(e,b);M.set(b.id,{name:b.name,css:et(e,b.manifest,xa(b),{monkeyCodeModern:s})+(x?Wa(b):""),surface:b.manifest.colors.surface})}const K=Array.from(M.entries()).map(([b,x])=>{var I;return{id:b,name:x.name,css:x.css,surface:x.surface,accent:((I=u.find(w=>w.id===b))==null?void 0:I.manifest.colors.accent)??"#24c9d7"}});let U=Te();if(U.length===0){const b=e==="workbuddy"?"dreamCustomThemes":"dreamCodexCustomThemes";for(const x of i){const I=new C(x.webSocketDebuggerUrl);try{await I.open();const w=await I.evaluate(`(() => localStorage.getItem(${JSON.stringify(b)}) || '[]')()`),_=JSON.parse(w).filter($=>!gt.has($==null?void 0:$.id));if(Array.isArray(_)&&_.length>0){U=Ta(_);break}}catch(w){console.warn(`[injector] Failed to import existing custom themes from ${e} target ${x.id}:`,w)}finally{I.close()}}}const j=await _e();if(e==="stepfun"){const b=Date.now();await fetch(`${j.appStateEndpoint}/stepfun`,{method:"PUT",headers:{Authorization:`Bearer ${j.token}`,"Content-Type":"application/json"},body:JSON.stringify({themeId:t,actionAt:b})}).catch(()=>{});for(const x of i.filter(I=>String(I.url).startsWith("app://chat-web/"))){const I=new C(x.webSocketDebuggerUrl);try{await I.open(),await I.evaluate(`(() => {
+            localStorage.setItem('dream-work-theme:stepfun:state', ${JSON.stringify(JSON.stringify({themeId:t,actionAt:b}))});
+          })()`)}catch{}finally{I.close()}}}e==="sparkdesk"&&await fetch(`${j.appStateEndpoint}/sparkdesk`,{method:"PUT",headers:{Authorization:`Bearer ${j.token}`,"Content-Type":"application/json"},body:JSON.stringify({themeId:t,actionAt:Date.now()})}).catch(()=>{});const B=e==="workbuddy"?mn({styleId:P,menuId:S,currentThemeId:t,themes:K,sharedCustomThemes:U,sharedCustomThemeService:j,cssTemplate:wt({id:y.id,colors:{accent:y.accent,secondary:y.secondary,surface:y.surface,text:y.text},copy:null},y.hero,{accent:y.accent,secondary:y.secondary,surface:y.surface,text:y.text})}):e==="hana-agent"?sn({styleId:P,menuId:S,currentThemeId:t,themes:K,sharedCustomThemes:U,sharedCustomThemeService:j,cssTemplate:ft({id:y.id,colors:{accent:y.accent,secondary:y.secondary,surface:y.surface,text:y.text}},y.hero,{accent:y.accent,secondary:y.secondary,surface:y.surface,text:y.text})}):un({styleId:P,menuId:S,currentThemeId:t,appId:e,monkeyCodeModern:s,themes:K,sharedCustomThemes:U,sharedCustomThemeService:j,cssTemplate:et(e,{id:y.id,colors:{accent:y.accent,secondary:y.secondary,surface:y.surface,text:y.text}},y.hero,{monkeyCodeModern:s})});let R=0;for(const b of i)try{console.log(`[injector] Injecting to target ${b.id}: ${b.url}`);const x=new C(b.webSocketDebuggerUrl);if(await x.open(),e==="workbuddy"){let w=!1;const _=Date.now()+15e3;for(;Date.now()<_&&(w=await x.evaluate(`(() => {
               const body = document.body;
               return body?.dataset.applicationName === 'workbuddy' && Boolean(
                 document.querySelector('[data-view-id], .teams-container, .conversation-list, .main-content')
               );
-            })()`).catch(()=>!1),!w);)await new Promise(S=>setTimeout(S,100));if(!w){console.warn(`[injector] Skipping non-WorkBuddy target ${f.id}: ${f.url}`),y.close();continue}}if(e==="codex"){const w=await Sn();w&&await y.evaluate(`(() => {
+            })()`).catch(()=>!1),!w);)await new Promise($=>setTimeout($,100));if(!w){console.warn(`[injector] Skipping non-WorkBuddy target ${b.id}: ${b.url}`),x.close();continue}}if(e==="codex"){const w=await Ea();w&&await x.evaluate(`(() => {
               const existing = document.getElementById('codex-dream-skin-base');
               if (!existing) {
                 const style = document.createElement('style');
@@ -30,14 +30,14 @@ if (Test-Path -LiteralPath $full -PathType Leaf) { Write-Output $full } else { e
             } else {
               inject();
             }
-          })()`,_=e==="hana-agent"?ie:e==="kimi"?ke:e==="doubao"?Oe:e==="stepfun"?xe:e==="sparkdesk"?ve:ce,S=_.get(f.id);S&&await y.removeScriptToEvaluateOnNewDocument(S).catch(()=>{});const q=await y.addScriptToEvaluateOnNewDocument(w);q&&_.set(f.id,q)}const A=await y.evaluate(e==="hana-agent"?`(() => { window.__dreamWorkForceApply = true; return ${B}; })()`:B);if(console.log(`[injector] Injection result for target ${f.id}:`,A),e==="hana-agent"){let w=!1;for(let _=0;_<20&&(w=await y.evaluate(`(() => {
-              const host = document.getElementById('${$}-host');
+          })()`,_=e==="hana-agent"?ce:e==="kimi"?ke:e==="doubao"?Oe:e==="stepfun"?xe:e==="sparkdesk"?ve:le,$=_.get(b.id);$&&await x.removeScriptToEvaluateOnNewDocument($).catch(()=>{});const q=await x.addScriptToEvaluateOnNewDocument(w);q&&_.set(b.id,q)}const I=await x.evaluate(e==="hana-agent"?`(() => { window.__dreamWorkForceApply = true; return ${B}; })()`:B);if(console.log(`[injector] Injection result for target ${b.id}:`,I),e==="hana-agent"){let w=!1;for(let _=0;_<20&&(w=await x.evaluate(`(() => {
+              const host = document.getElementById('${S}-host');
               return Boolean(
                 document.getElementById('${P}') &&
-                host?.shadowRoot?.getElementById('${$}') &&
+                host?.shadowRoot?.getElementById('${S}') &&
                 document.documentElement.dataset.dreamTheme
               );
-            })()`).catch(()=>!1),!w);_++)await new Promise(S=>setTimeout(S,100));if(!w){console.warn(`[injector] HanaAgent injection did not become ready for target ${f.id}`),y.close();continue}}if(e==="codex")for(let w=1;w<=4;w++){const _=await y.evaluate(`(() => {
+            })()`).catch(()=>!1),!w);_++)await new Promise($=>setTimeout($,100));if(!w){console.warn(`[injector] HanaAgent injection did not become ready for target ${b.id}`),x.close();continue}}if(e==="codex")for(let w=1;w<=4;w++){const _=await x.evaluate(`(() => {
               const shellMain = document.querySelector('main.main-surface') || document.querySelector('main');
               let homeCandidate = shellMain ? (shellMain.matches('[role="main"]') ? shellMain : shellMain.querySelector('[role="main"]')) : null;
               
@@ -75,7 +75,7 @@ if (Test-Path -LiteralPath $full -PathType Leaf) { Write-Output $full } else { e
                 isHomeContainer,
                 isFallback
               };
-            })`);if(_.homeClasses&&_.homeClasses.includes("dream-skin-home")){console.log(`[injector] Codex home detection for ${f.id}: attempt=${w}`,JSON.stringify(_));break}w<4&&await new Promise(S=>setTimeout(S,800))}if(e==="codex")try{const w=await y.evaluate(`(() => {
+            })`);if(_.homeClasses&&_.homeClasses.includes("dream-skin-home")){console.log(`[injector] Codex home detection for ${b.id}: attempt=${w}`,JSON.stringify(_));break}w<4&&await new Promise($=>setTimeout($,800))}if(e==="codex")try{const w=await x.evaluate(`(() => {
               const html = document.documentElement;
               const body = document.body;
               const style = document.getElementById('dream-work-style');
@@ -103,35 +103,35 @@ if (Test-Path -LiteralPath $full -PathType Leaf) { Write-Output $full } else { e
                 codexDreamSkinOnHtml: html.classList.contains('codex-dream-skin'),
                 dreamTheme: html.dataset.dreamTheme || null
               };
-            })()`);console.log(`[injector] Codex debug info for ${f.id}:`,JSON.stringify(w,null,2))}catch(w){console.error(`[injector] Failed to get debug info for ${f.id}:`,w)}y.close(),R++}catch(y){console.error(`[injector] Failed to inject to target ${f.id}:`,y)}if(e==="hana-agent"&&R>0){const f=new Set(s.map(_=>_.id)),y=Date.now()+2e4;let A="",w=0;for(;Date.now()<y;){let _=[];try{_=await Z(n,".hanako/artifacts/renderer/",{timeoutMs:2e3,quiet:!0})}catch{}const S=_[0];if(!S){A="",w=0,await new Promise(H=>setTimeout(H,250));continue}if(!f.has(S.id)){console.log(`[injector] HanaAgent created renderer target ${S.id}; injecting theme`);const H=new C(S.webSocketDebuggerUrl);try{await H.open();const xt=`(() => {
+            })()`);console.log(`[injector] Codex debug info for ${b.id}:`,JSON.stringify(w,null,2))}catch(w){console.error(`[injector] Failed to get debug info for ${b.id}:`,w)}x.close(),R++}catch(x){console.error(`[injector] Failed to inject to target ${b.id}:`,x)}if(e==="hana-agent"&&R>0){const b=new Set(i.map(_=>_.id)),x=Date.now()+2e4;let I="",w=0;for(;Date.now()<x;){let _=[];try{_=await Y(a,".hanako/artifacts/renderer/",{timeoutMs:2e3,quiet:!0})}catch{}const $=_[0];if(!$){I="",w=0,await new Promise(H=>setTimeout(H,250));continue}if(!b.has($.id)){console.log(`[injector] HanaAgent created renderer target ${$.id}; injecting theme`);const H=new C($.webSocketDebuggerUrl);try{await H.open();const $t=`(() => {
               const inject = () => ${B};
               if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', inject, { once: true });
               else inject();
-            })()`,Je=await H.addScriptToEvaluateOnNewDocument(xt);Je&&ie.set(S.id,Je),await H.evaluate(`(() => { window.__dreamWorkForceApply = true; return ${B}; })()`),f.add(S.id)}finally{H.close()}}const q=new C(S.webSocketDebuggerUrl);let ze=!1;try{await q.open(),ze=await q.evaluate(`(() => {
-            const host = document.getElementById('${$}-host');
-            return Boolean(document.getElementById('${P}') && host?.shadowRoot?.getElementById('${$}') && document.documentElement.dataset.dreamTheme);
-          })()`)}catch{}finally{q.close()}if(ze){if(A!==S.id)A=S.id,w=Date.now();else if(Date.now()-w>=2e3)return Nn(n,B,f),je(e,t),{success:!0,applied:1}}else A="",w=0;await new Promise(H=>setTimeout(H,250))}return{success:!1,applied:0,error:"HanaAgent renderer did not stabilize with the injected theme"}}return e==="kimi"&&R>0&&En(n,B,new Set(s.map(f=>f.id))),e==="doubao"&&R>0&&Tn(n,B),e==="sparkdesk"&&R>0&&$n(n,B),e==="stepfun"&&R>0&&Cn(n,B),e==="monkeycode"&&R>0&&Un(n,B),R>0&&je(e,t),{success:R>0,applied:R}}catch(m){return console.error("[injector] Injection failed:",m),{success:!1,applied:0,error:m.message}}}async function He(e){const t=await fetch(`http://127.0.0.1:${e}/json/list`,{signal:AbortSignal.timeout(2e3)});if(!t.ok)throw new Error(`HTTP ${t.status}`);const n=await t.json();return(Array.isArray(n)?n:[]).filter(a=>{if((a==null?void 0:a.type)!=="page"||!a.webSocketDebuggerUrl)return!1;const o=String(a.url??"");return o.startsWith("app://chat-web/")||o.startsWith("app://ui/pages/browser/")||o.startsWith("https://chat.stepfun.com/subscription")})}async function le(e){const t=await fetch(`http://127.0.0.1:${e}/json/list`,{signal:AbortSignal.timeout(2e3)});if(!t.ok)throw new Error(`HTTP ${t.status}`);const n=await t.json();return(Array.isArray(n)?n:[]).filter(a=>{if((a==null?void 0:a.type)!=="page"||!a.webSocketDebuggerUrl)return!1;const o=String(a.url??"");return/\/out\/renderer\/index\.html(?:#desk|#settings)?$/.test(o)})}function $n(e,t){const n=oe.get(e);n&&clearInterval(n);const a=(L.get(e)??0)+1;L.set(e,a);let o=!1;const r=setInterval(async()=>{if(!(o||L.get(e)!==a)){o=!0;try{const i=await le(e),l=await _e(),s=await fetch(`${l.appStateEndpoint}/sparkdesk`,{headers:{Authorization:`Bearer ${l.token}`},signal:AbortSignal.timeout(1e3)}).then(c=>c.ok?c.json():null).catch(()=>null);if(L.get(e)!==a)return;for(const c of i){if(L.get(e)!==a)return;const u=new C(c.webSocketDebuggerUrl);try{if(await u.open(),!await u.evaluate(`(() => Boolean(window.__dreamTheme?.activateTheme && document.getElementById('${P}')))()`).catch(()=>!1)){if(L.get(e)!==a)return;const m=await fetch(`${l.appStateEndpoint}/sparkdesk`,{headers:{Authorization:`Bearer ${l.token}`},signal:AbortSignal.timeout(1e3)}).then(E=>E.ok?E.json():null).catch(()=>null);if(!m||m.actionAt!==(s==null?void 0:s.actionAt)||m.themeId!==(s==null?void 0:s.themeId))continue;const g=`(() => {
+            })()`,Je=await H.addScriptToEvaluateOnNewDocument($t);Je&&ce.set($.id,Je),await H.evaluate(`(() => { window.__dreamWorkForceApply = true; return ${B}; })()`),b.add($.id)}finally{H.close()}}const q=new C($.webSocketDebuggerUrl);let Ge=!1;try{await q.open(),Ge=await q.evaluate(`(() => {
+            const host = document.getElementById('${S}-host');
+            return Boolean(document.getElementById('${P}') && host?.shadowRoot?.getElementById('${S}') && document.documentElement.dataset.dreamTheme);
+          })()`)}catch{}finally{q.close()}if(Ge){if(I!==$.id)I=$.id,w=Date.now();else if(Date.now()-w>=2e3)return Ra(a,B,b),je(e,t),{success:!0,applied:1}}else I="",w=0;await new Promise(H=>setTimeout(H,250))}return{success:!1,applied:0,error:"HanaAgent renderer did not stabilize with the injected theme"}}return e==="kimi"&&R>0&&Na(a,B,new Set(i.map(b=>b.id))),e==="doubao"&&R>0&&Pa(a,B),e==="sparkdesk"&&R>0&&Aa(a,B),e==="stepfun"&&R>0&&Ia(a,B),e==="monkeycode"&&R>0&&qa(a,B),R>0&&je(e,t),{success:R>0,applied:R}}catch(u){return console.error("[injector] Injection failed:",u),{success:!1,applied:0,error:u.message}}}async function ze(e){const t=await fetch(`http://127.0.0.1:${e}/json/list`,{signal:AbortSignal.timeout(2e3)});if(!t.ok)throw new Error(`HTTP ${t.status}`);const a=await t.json();return(Array.isArray(a)?a:[]).filter(n=>{if((n==null?void 0:n.type)!=="page"||!n.webSocketDebuggerUrl)return!1;const o=String(n.url??"");return o.startsWith("app://chat-web/")||o.startsWith("app://ui/pages/browser/")||o.startsWith("https://chat.stepfun.com/subscription")})}async function de(e){const t=await fetch(`http://127.0.0.1:${e}/json/list`,{signal:AbortSignal.timeout(2e3)});if(!t.ok)throw new Error(`HTTP ${t.status}`);const a=await t.json();return(Array.isArray(a)?a:[]).filter(n=>{if((n==null?void 0:n.type)!=="page"||!n.webSocketDebuggerUrl)return!1;const o=String(n.url??"");return/\/out\/renderer\/index\.html(?:#desk|#settings)?$/.test(o)})}function Aa(e,t){const a=re.get(e);a&&clearInterval(a);const n=(F.get(e)??0)+1;F.set(e,n);let o=!1;const r=setInterval(async()=>{if(!(o||F.get(e)!==n)){o=!0;try{const s=await de(e),c=await _e(),i=await fetch(`${c.appStateEndpoint}/sparkdesk`,{headers:{Authorization:`Bearer ${c.token}`},signal:AbortSignal.timeout(1e3)}).then(l=>l.ok?l.json():null).catch(()=>null);if(F.get(e)!==n)return;for(const l of s){if(F.get(e)!==n)return;const m=new C(l.webSocketDebuggerUrl);try{if(await m.open(),!await m.evaluate(`(() => Boolean(window.__dreamTheme?.activateTheme && document.getElementById('${P}')))()`).catch(()=>!1)){if(F.get(e)!==n)return;const u=await fetch(`${c.appStateEndpoint}/sparkdesk`,{headers:{Authorization:`Bearer ${c.token}`},signal:AbortSignal.timeout(1e3)}).then(A=>A.ok?A.json():null).catch(()=>null);if(!u||u.actionAt!==(i==null?void 0:i.actionAt)||u.themeId!==(i==null?void 0:i.themeId))continue;const g=`(() => {
               const inject = () => ${t};
               if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', inject, { once: true });
               else inject();
-            })()`,b=await u.addScriptToEvaluateOnNewDocument(g);b&&ve.set(c.id,b),await u.evaluate(t)}if(s){if(L.get(e)!==a)return;const m=await u.evaluate("(() => document.documentElement.dataset.dreamTheme || '')()");if(L.get(e)!==a)return;const g=await fetch(`${l.appStateEndpoint}/sparkdesk`,{headers:{Authorization:`Bearer ${l.token}`},signal:AbortSignal.timeout(1e3)}).then(b=>b.ok?b.json():null).catch(()=>null);if(!g||g.actionAt!==s.actionAt||g.themeId!==s.themeId)continue;s.themeId&&m!==s.themeId?await u.evaluate(`(() => window.__dreamTheme?.activateTheme(${JSON.stringify(s.themeId)}, ${s.actionAt}))()`):!s.themeId&&m&&await u.evaluate(`(() => window.__dreamTheme?.restoreNative(${s.actionAt}))()`)}}catch{}finally{u.close()}}}catch{await me(e)||(clearInterval(r),oe.delete(e))}finally{o=!1}}},500);r.unref(),oe.set(e,r)}function Cn(e,t){const n=ne.get(e);n&&clearInterval(n);const a=(ae.get(e)??0)+1;ae.set(e,a);let o=!1;const r=setInterval(async()=>{if(!(o||ae.get(e)!==a)){o=!0;try{const i=await He(e),l=await _e();let s=await fetch(`${l.appStateEndpoint}/stepfun`,{headers:{Authorization:`Bearer ${l.token}`},signal:AbortSignal.timeout(1e3)}).then(p=>p.ok?p.json():null).catch(()=>null),c=!1,u=!1;for(const p of i){const m=new C(p.webSocketDebuggerUrl);try{await m.open();const g=await m.evaluate(`(() => ({
+            })()`,f=await m.addScriptToEvaluateOnNewDocument(g);f&&ve.set(l.id,f),await m.evaluate(t)}if(i){if(F.get(e)!==n)return;const u=await m.evaluate("(() => document.documentElement.dataset.dreamTheme || '')()");if(F.get(e)!==n)return;const g=await fetch(`${c.appStateEndpoint}/sparkdesk`,{headers:{Authorization:`Bearer ${c.token}`},signal:AbortSignal.timeout(1e3)}).then(f=>f.ok?f.json():null).catch(()=>null);if(!g||g.actionAt!==i.actionAt||g.themeId!==i.themeId)continue;i.themeId&&u!==i.themeId?await m.evaluate(`(() => window.__dreamTheme?.activateTheme(${JSON.stringify(i.themeId)}, ${i.actionAt}))()`):!i.themeId&&u&&await m.evaluate(`(() => window.__dreamTheme?.restoreNative(${i.actionAt}))()`)}}catch{}finally{m.close()}}}catch{await me(e)||(clearInterval(r),re.delete(e))}finally{o=!1}}},500);r.unref(),re.set(e,r)}function Ia(e,t){const a=ne.get(e);a&&clearInterval(a);const n=(oe.get(e)??0)+1;oe.set(e,n);let o=!1;const r=setInterval(async()=>{if(!(o||oe.get(e)!==n)){o=!0;try{const s=await ze(e),c=await _e();let i=await fetch(`${c.appStateEndpoint}/stepfun`,{headers:{Authorization:`Bearer ${c.token}`},signal:AbortSignal.timeout(1e3)}).then(p=>p.ok?p.json():null).catch(()=>null),l=!1,m=!1;for(const p of s){const u=new C(p.webSocketDebuggerUrl);try{await u.open();const g=await u.evaluate(`(() => ({
             ready: Boolean(window.__dreamTheme?.activateTheme && document.getElementById('${P}')),
             themeId: document.documentElement.dataset.dreamTheme || '',
             restoring: Boolean(window.__dreamTheme?.restoring)
-          }))()`).catch(()=>({ready:!1,themeId:"",restoring:!1}));if(String(p.url).startsWith("app://chat-web/")&&g.restoring&&(u=!0),String(p.url).startsWith("app://chat-web/")&&g.ready&&!g.themeId&&(c=!0),!g.ready){const b=`(() => {
+          }))()`).catch(()=>({ready:!1,themeId:"",restoring:!1}));if(String(p.url).startsWith("app://chat-web/")&&g.restoring&&(m=!0),String(p.url).startsWith("app://chat-web/")&&g.ready&&!g.themeId&&(l=!0),!g.ready){const f=`(() => {
               const inject = () => ${t};
               if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', inject, { once: true });
               else inject();
-            })()`,E=await m.addScriptToEvaluateOnNewDocument(b);E&&xe.set(p.id,E),await m.evaluate(t)}}catch{}finally{m.close()}}if((u||c)&&(s={themeId:"",actionAt:Date.now()},await fetch(`${l.appStateEndpoint}/stepfun`,{method:"PUT",headers:{Authorization:`Bearer ${l.token}`,"Content-Type":"application/json"},body:JSON.stringify(s),signal:AbortSignal.timeout(1e3)}).catch(()=>{})),s)for(const p of i){const m=new C(p.webSocketDebuggerUrl);try{await m.open();const g=await m.evaluate("(() => document.documentElement.dataset.dreamTheme || '')()");s.themeId?g!==s.themeId&&await m.evaluate(`(() => window.__dreamTheme?.activateTheme(${JSON.stringify(s.themeId)}, ${s.actionAt}))()`):g&&await m.evaluate(`(() => window.__dreamTheme?.restoreNative(${s.actionAt}))()`)}catch{}finally{m.close()}}}catch{await me(e)||(clearInterval(r),ne.delete(e))}finally{o=!1}}},750);r.unref(),ne.set(e,r)}async function Ke(e){const t=await fetch(`http://127.0.0.1:${e}/json/list`,{signal:AbortSignal.timeout(2e3)});if(!t.ok)throw new Error(`HTTP ${t.status}`);const n=await t.json();return(Array.isArray(n)?n:[]).filter(a=>{if((a==null?void 0:a.type)!=="page"||!a.webSocketDebuggerUrl)return!1;const o=String(a.url??"");return o.includes("kimi-agent.html")||o.includes("kimichat.html")||/^https:\/\/(?:www\.)?kimi\.com\//.test(o)})}function Tn(e,t){var i;const n=ye.get(e);n&&clearInterval(n);const a=(V.get(e)??0)+1;V.set(e,a);let o=!1;const r=setInterval(async()=>{if(!(o||V.get(e)!==a)){o=!0;try{const l=await Z(e,"doubao://doubao-chat/chat",{timeoutMs:2e3,quiet:!0});for(const s of l){const c=new C(s.webSocketDebuggerUrl);try{await c.open();const u=await c.evaluate(`(() => ({
+            })()`,A=await u.addScriptToEvaluateOnNewDocument(f);A&&xe.set(p.id,A),await u.evaluate(t)}}catch{}finally{u.close()}}if((m||l)&&(i={themeId:"",actionAt:Date.now()},await fetch(`${c.appStateEndpoint}/stepfun`,{method:"PUT",headers:{Authorization:`Bearer ${c.token}`,"Content-Type":"application/json"},body:JSON.stringify(i),signal:AbortSignal.timeout(1e3)}).catch(()=>{})),i)for(const p of s){const u=new C(p.webSocketDebuggerUrl);try{await u.open();const g=await u.evaluate("(() => document.documentElement.dataset.dreamTheme || '')()");i.themeId?g!==i.themeId&&await u.evaluate(`(() => window.__dreamTheme?.activateTheme(${JSON.stringify(i.themeId)}, ${i.actionAt}))()`):g&&await u.evaluate(`(() => window.__dreamTheme?.restoreNative(${i.actionAt}))()`)}catch{}finally{u.close()}}}catch{await me(e)||(clearInterval(r),ne.delete(e))}finally{o=!1}}},750);r.unref(),ne.set(e,r)}async function Ke(e){const t=await fetch(`http://127.0.0.1:${e}/json/list`,{signal:AbortSignal.timeout(2e3)});if(!t.ok)throw new Error(`HTTP ${t.status}`);const a=await t.json();return(Array.isArray(a)?a:[]).filter(n=>{if((n==null?void 0:n.type)!=="page"||!n.webSocketDebuggerUrl)return!1;const o=String(n.url??"");return o.includes("kimi-agent.html")||o.includes("kimichat.html")||/^https:\/\/(?:www\.)?kimi\.com\//.test(o)})}function Pa(e,t){var s;const a=ye.get(e);a&&clearInterval(a);const n=(V.get(e)??0)+1;V.set(e,n);let o=!1;const r=setInterval(async()=>{if(!(o||V.get(e)!==n)){o=!0;try{const c=await Y(e,"doubao://doubao-chat/chat",{timeoutMs:2e3,quiet:!0});for(const i of c){const l=new C(i.webSocketDebuggerUrl);try{await l.open();const m=await l.evaluate(`(() => ({
             restored: document.documentElement.dataset.dreamThemeRestored === 'true' || (() => {
               try { return localStorage.getItem('dream-work-theme:doubao:restored') === '1'; } catch { return false; }
             })(),
             ready: Boolean(document.getElementById('${P}')?.textContent && document.documentElement.dataset.dreamTheme)
-          }))()`).catch(()=>({restored:!1,ready:!1}));!u.restored&&!u.ready&&(console.log(`[injector] Doubao renderer ${s.id} lost theme after navigation; reinjecting`),await c.evaluate(t))}finally{c.close()}}}catch(l){V.get(e)===a&&console.warn("[injector] Doubao watcher check failed:",l.message)}finally{o=!1}}},500);(i=r.unref)==null||i.call(r),ye.set(e,r)}async function _n(e){for(const t of e){const n=new C(t.webSocketDebuggerUrl);try{await n.open(),await n.evaluate(`(() => {
+          }))()`).catch(()=>({restored:!1,ready:!1}));!m.restored&&!m.ready&&(console.log(`[injector] Doubao renderer ${i.id} lost theme after navigation; reinjecting`),await l.evaluate(t))}finally{l.close()}}}catch(c){V.get(e)===n&&console.warn("[injector] Doubao watcher check failed:",c.message)}finally{o=!1}}},500);(s=r.unref)==null||s.call(r),ye.set(e,r)}async function Da(e){for(const t of e){const a=new C(t.webSocketDebuggerUrl);try{await a.open(),await a.evaluate(`(() => {
         try { localStorage.removeItem('${W}'); } catch {}
         delete document.documentElement.dataset.dreamThemeRestored;
         return true;
-      })()`)}finally{n.close()}}}function En(e,t,n){const a=Ae.get(e);a&&clearInterval(a);const o=(ge.get(e)??0)+1;ge.set(e,o);let r=!1;const i=setInterval(async()=>{var l;if(!(r||ge.get(e)!==o)){r=!0;try{const s=await Ke(e),c=[];for(const m of s){const g=new C(m.webSocketDebuggerUrl);try{await g.open();const b=await g.evaluate(`(() => {
+      })()`)}finally{a.close()}}}function Na(e,t,a){const n=Ae.get(e);n&&clearInterval(n);const o=(ge.get(e)??0)+1;ge.set(e,o);let r=!1;const s=setInterval(async()=>{var c;if(!(r||ge.get(e)!==o)){r=!0;try{const i=await Ke(e),l=[];for(const u of i){const g=new C(u.webSocketDebuggerUrl);try{await g.open();const f=await g.evaluate(`(() => {
             let storedRestored = false;
             let actionAt = 0;
             try {
@@ -146,89 +146,89 @@ if (Test-Path -LiteralPath $full -PathType Leaf) { Write-Output $full } else { e
               ready: Boolean(document.getElementById('${P}')?.textContent && themeId)
               ,deleteCustomThemeId: window.__dreamWorkDeleteCustomThemeId || ''
             };
-          })()`).catch(()=>({restored:!1,themeId:"",actionAt:0,ready:!1,deleteCustomThemeId:""}));c.push({target:m,...b})}finally{g.close()}}const u=(l=c.find(m=>m.deleteCustomThemeId))==null?void 0:l.deleteCustomThemeId;if(u){const m=Me(u);ht.add(u),await An(s,m,u)}const p=[...c].sort((m,g)=>g.actionAt-m.actionAt)[0];if(p!=null&&p.restored){console.log("[injector] Kimi watcher observed restore state; preserving menus without theme"),await In(s,t,n,p.actionAt);return}if(p!=null&&p.ready&&p.themeId&&c.some(m=>m.restored||!m.ready||m.themeId!==p.themeId)){console.log(`[injector] Kimi watcher synchronizing selected theme ${p.themeId} across targets`),await Pn(s,t,n,p.themeId,p.actionAt);return}for(const m of s){if(ge.get(e)!==o)return;const g=new C(m.webSocketDebuggerUrl);try{await g.open();const b=await g.evaluate(`(() => ({
+          })()`).catch(()=>({restored:!1,themeId:"",actionAt:0,ready:!1,deleteCustomThemeId:""}));l.push({target:u,...f})}finally{g.close()}}const m=(c=l.find(u=>u.deleteCustomThemeId))==null?void 0:c.deleteCustomThemeId;if(m){const u=Me(m);gt.add(m),await Ma(i,u,m)}const p=[...l].sort((u,g)=>g.actionAt-u.actionAt)[0];if(p!=null&&p.restored){console.log("[injector] Kimi watcher observed restore state; preserving menus without theme"),await ja(i,t,a,p.actionAt);return}if(p!=null&&p.ready&&p.themeId&&l.some(u=>u.restored||!u.ready||u.themeId!==p.themeId)){console.log(`[injector] Kimi watcher synchronizing selected theme ${p.themeId} across targets`),await Oa(i,t,a,p.themeId,p.actionAt);return}for(const u of i){if(ge.get(e)!==o)return;const g=new C(u.webSocketDebuggerUrl);try{await g.open();const f=await g.evaluate(`(() => ({
             ready: Boolean(document.getElementById('${P}') && document.documentElement.dataset.dreamTheme),
             restored: document.documentElement.dataset.dreamThemeRestored === 'true'
-          }))()`).catch(()=>({ready:!1,restored:!1}));if(b.ready||b.restored){n.add(m.id);continue}if(console.log(`[injector] Kimi watcher restoring theme on target ${m.id}: ${m.url}`),!n.has(m.id)){const E=`(() => {
+          }))()`).catch(()=>({ready:!1,restored:!1}));if(f.ready||f.restored){a.add(u.id);continue}if(console.log(`[injector] Kimi watcher restoring theme on target ${u.id}: ${u.url}`),!a.has(u.id)){const A=`(() => {
               const inject = () => ${t};
               if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', inject, { once: true });
               else inject();
-            })()`,N=await g.addScriptToEvaluateOnNewDocument(E);N&&ke.set(m.id,N)}await g.evaluate(t),n.add(m.id)}finally{g.close()}}}catch{await me(e)||(clearInterval(i),Ae.delete(e))}finally{r=!1}}},750);i.unref(),Ae.set(e,i)}async function An(e,t,n){const a=JSON.stringify(t);for(const o of e){const r=new C(o.webSocketDebuggerUrl);try{await r.open(),await r.evaluate(`(() => {
+            })()`,M=await g.addScriptToEvaluateOnNewDocument(A);M&&ke.set(u.id,M)}await g.evaluate(t),a.add(u.id)}finally{g.close()}}}catch{await me(e)||(clearInterval(s),Ae.delete(e))}finally{r=!1}}},750);s.unref(),Ae.set(e,s)}async function Ma(e,t,a){const n=JSON.stringify(t);for(const o of e){const r=new C(o.webSocketDebuggerUrl);try{await r.open(),await r.evaluate(`(() => {
         delete window.__dreamWorkDeleteCustomThemeId;
-        try { localStorage.setItem('dreamCodexCustomThemes', ${JSON.stringify(a)}); } catch {}
-        const host = document.getElementById('${$}-host');
-        const menu = host?.shadowRoot?.getElementById('${$}');
+        try { localStorage.setItem('dreamCodexCustomThemes', ${JSON.stringify(n)}); } catch {}
+        const host = document.getElementById('${S}-host');
+        const menu = host?.shadowRoot?.getElementById('${S}');
         for (const row of Array.from(menu?.querySelectorAll('div') || [])) {
-          if (row.dataset?.customThemeId === ${JSON.stringify(n)}) row.remove();
+          if (row.dataset?.customThemeId === ${JSON.stringify(a)}) row.remove();
         }
-        window.__dreamTheme?.replaceCustomThemes?.(${a});
+        window.__dreamTheme?.replaceCustomThemes?.(${n});
         return true;
-      })()`)}finally{r.close()}}}async function In(e,t,n,a){for(const o of e){const r=new C(o.webSocketDebuggerUrl);try{if(await r.open(),!ke.has(o.id)){const l=`(() => {
+      })()`)}finally{r.close()}}}async function ja(e,t,a,n){for(const o of e){const r=new C(o.webSocketDebuggerUrl);try{if(await r.open(),!ke.has(o.id)){const c=`(() => {
           const inject = () => ${t};
           if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', inject, { once: true });
           else inject();
-        })()`,s=await r.addScriptToEvaluateOnNewDocument(l);s&&ke.set(o.id,s)}await r.evaluate(`(() => {
+        })()`,i=await r.addScriptToEvaluateOnNewDocument(c);i&&ke.set(o.id,i)}await r.evaluate(`(() => {
         try { localStorage.setItem('${W}', '1'); } catch {}
-        try { localStorage.setItem('${Q}', '${a}'); } catch {}
+        try { localStorage.setItem('${Q}', '${n}'); } catch {}
         document.documentElement.dataset.dreamThemeRestored = 'true';
         return true;
       })()`),await r.evaluate(`(() => {
-        const host = document.getElementById('${$}-host');
-        return Boolean(host?.shadowRoot?.getElementById('${$}'));
+        const host = document.getElementById('${S}-host');
+        return Boolean(host?.shadowRoot?.getElementById('${S}'));
       })()`).catch(()=>!1)||await r.evaluate(t),await r.evaluate(`(() => {
         try { localStorage.setItem('${W}', '1'); } catch {}
-        try { localStorage.setItem('${Q}', '${a}'); } catch {}
+        try { localStorage.setItem('${Q}', '${n}'); } catch {}
         document.documentElement.dataset.dreamThemeRestored = 'true';
         const style = document.getElementById('${P}');
         if (style) style.textContent = '';
         delete document.documentElement.dataset.dreamTheme;
         delete document.documentElement.dataset.dreamShell;
         return true;
-      })()`),n.add(o.id)}finally{r.close()}}}async function Pn(e,t,n,a,o){for(const r of e){const i=new C(r.webSocketDebuggerUrl);try{await i.open(),await i.evaluate(`(() => {
+      })()`),a.add(o.id)}finally{r.close()}}}async function Oa(e,t,a,n,o){for(const r of e){const s=new C(r.webSocketDebuggerUrl);try{await s.open(),await s.evaluate(`(() => {
         try {
           localStorage.removeItem('${W}');
           localStorage.setItem('${Q}', '${o}');
         } catch {}
         delete document.documentElement.dataset.dreamThemeRestored;
         return true;
-      })()`),await i.evaluate("(() => Boolean(window.__dreamTheme?.activateTheme))()").catch(()=>!1)||await i.evaluate(t),await i.evaluate(`(() => window.__dreamTheme?.activateTheme(${JSON.stringify(a)}, ${o}))()`),n.add(r.id)}finally{i.close()}}}async function Dn(e,t,n={}){return Mn(e,t,n)}function Nn(e,t,n){const a=te.get(e);a&&clearInterval(a);const o=(K.get(e)??0)+1;K.set(e,o);let r=!1;const i=setInterval(async()=>{if(!r&&K.get(e)===o){r=!0;try{const s=(await Z(e,".hanako/artifacts/renderer/",{timeoutMs:1e3,quiet:!0}))[0];if(!s||K.get(e)!==o)return;const c=new C(s.webSocketDebuggerUrl);try{await c.open();const u=await c.evaluate(`(() => {
-          const host = document.getElementById('${$}-host');
+      })()`),await s.evaluate("(() => Boolean(window.__dreamTheme?.activateTheme))()").catch(()=>!1)||await s.evaluate(t),await s.evaluate(`(() => window.__dreamTheme?.activateTheme(${JSON.stringify(n)}, ${o}))()`),a.add(r.id)}finally{s.close()}}}async function Ba(e,t,a={}){return Fa(e,t,a)}function Ra(e,t,a){const n=ae.get(e);n&&clearInterval(n);const o=(z.get(e)??0)+1;z.set(e,o);let r=!1;const s=setInterval(async()=>{if(!r&&z.get(e)===o){r=!0;try{const i=(await Y(e,".hanako/artifacts/renderer/",{timeoutMs:1e3,quiet:!0}))[0];if(!i||z.get(e)!==o)return;const l=new C(i.webSocketDebuggerUrl);try{await l.open();const m=await l.evaluate(`(() => {
+          const host = document.getElementById('${S}-host');
           if (document.documentElement.dataset.dreamThemeRestored === 'true') return 'restored';
-          return document.getElementById('${P}') && host?.shadowRoot?.getElementById('${$}') && document.documentElement.dataset.dreamTheme
+          return document.getElementById('${P}') && host?.shadowRoot?.getElementById('${S}') && document.documentElement.dataset.dreamTheme
             ? 'ready'
             : 'missing';
-        })()`).catch(()=>"missing");if(u==="ready"||u==="restored"){n.add(s.id);return}if(console.log(`[injector] HanaAgent watcher restoring theme on renderer target ${s.id}`),K.get(e)!==o)return;const p=`(() => {
+        })()`).catch(()=>"missing");if(m==="ready"||m==="restored"){a.add(i.id);return}if(console.log(`[injector] HanaAgent watcher restoring theme on renderer target ${i.id}`),z.get(e)!==o)return;const p=`(() => {
           const inject = () => ${t};
           if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', inject, { once: true });
           else inject();
-        })()`;if(!n.has(s.id)){const m=await c.addScriptToEvaluateOnNewDocument(p);m&&ie.set(s.id,m)}if(await c.evaluate(t),K.get(e)!==o){await c.evaluate(`(() => {
+        })()`;if(!a.has(i.id)){const u=await l.addScriptToEvaluateOnNewDocument(p);u&&ce.set(i.id,u)}if(await l.evaluate(t),z.get(e)!==o){await l.evaluate(`(() => {
             document.getElementById('${P}')?.remove();
-            document.getElementById('${$}-host')?.remove();
+            document.getElementById('${S}-host')?.remove();
             clearInterval(window.__dreamWorkMenuGuard);
             delete window.__dreamWorkMenuGuard;
             delete document.documentElement.dataset.dreamTheme;
-          })()`).catch(()=>{});return}n.add(s.id)}finally{c.close()}}catch{await me(e)||(clearInterval(i),te.delete(e))}finally{r=!1}}},1e3);te.set(e,i)}async function me(e){try{return(await fetch(`http://127.0.0.1:${e}/json/version`,{signal:AbortSignal.timeout(500)})).ok}catch{return!1}}async function Mn(e,t,n={}){var l;const a=n.rendererUrlHint?[n.rendererUrlHint]:((l=O(e))==null?void 0:l.rendererHints)??["renderer/index.html","index.html"];let o=[];for(const s of a)try{if(o=await Z(t,s,{timeoutMs:1e3,quiet:!0}),o.length>0)break}catch{}if(e==="sparkdesk")try{const s=await le(t);s.length>0&&(o=s)}catch{}if(e==="monkeycode")try{o=await Ee(t)}catch{}if(o.length===0&&e!=="monkeycode")try{const c=await(await fetch(`http://127.0.0.1:${t}/json/list`,{signal:AbortSignal.timeout(5e3)})).json();o=(Array.isArray(c)?c:[]).filter(Fe).sort((u,p)=>{const m=[String(u.id??""),u.url,u.webSocketDebuggerUrl],g=[String(p.id??""),p.url,p.webSocketDebuggerUrl];for(let b=0;b<m.length;b++){if(m[b]<g[b])return-1;if(m[b]>g[b])return 1}return 0})}catch{}if(o.length===0)return{installed:!1,menu:!1,targets:0};const r=[];for(const s of o){const c=new C(s.webSocketDebuggerUrl);try{if(await c.open(),e==="workbuddy"&&!await c.evaluate("(() => document.body?.dataset.applicationName === 'workbuddy')()"))continue;const u=await c.evaluate(`(() => {
+          })()`).catch(()=>{});return}a.add(i.id)}finally{l.close()}}catch{await me(e)||(clearInterval(s),ae.delete(e))}finally{r=!1}}},1e3);ae.set(e,s)}async function me(e){try{return(await fetch(`http://127.0.0.1:${e}/json/version`,{signal:AbortSignal.timeout(500)})).ok}catch{return!1}}async function Fa(e,t,a={}){var c;const n=a.rendererUrlHint?[a.rendererUrlHint]:((c=O(e))==null?void 0:c.rendererHints)??["renderer/index.html","index.html"];let o=[];for(const i of n)try{if(o=await Y(t,i,{timeoutMs:1e3,quiet:!0}),o.length>0)break}catch{}if(e==="sparkdesk")try{const i=await de(t);i.length>0&&(o=i)}catch{}if(e==="monkeycode")try{o=await Ee(t)}catch{}if(o.length===0&&e!=="monkeycode")try{const l=await(await fetch(`http://127.0.0.1:${t}/json/list`,{signal:AbortSignal.timeout(5e3)})).json();o=(Array.isArray(l)?l:[]).filter(We).sort((m,p)=>{const u=[String(m.id??""),m.url,m.webSocketDebuggerUrl],g=[String(p.id??""),p.url,p.webSocketDebuggerUrl];for(let f=0;f<u.length;f++){if(u[f]<g[f])return-1;if(u[f]>g[f])return 1}return 0})}catch{}if(o.length===0)return{installed:!1,menu:!1,targets:0};const r=[];for(const i of o){const l=new C(i.webSocketDebuggerUrl);try{if(await l.open(),e==="workbuddy"&&!await l.evaluate("(() => document.body?.dataset.applicationName === 'workbuddy')()"))continue;const m=await l.evaluate(`(() => {
         const style = document.getElementById('${P}');
-        const menuHost = document.getElementById('${$}-host');
-        const menu = document.getElementById('${$}') || menuHost?.shadowRoot?.getElementById('${$}');
+        const menuHost = document.getElementById('${S}-host');
+        const menu = document.getElementById('${S}') || menuHost?.shadowRoot?.getElementById('${S}');
         return JSON.stringify({
           installed: Boolean(style),
           menu: Boolean(menu),
           themeId: document.documentElement.dataset.dreamTheme ?? undefined
         });
-      })()`),p=JSON.parse(u);r.push(p)}catch(u){console.warn(`[injector] Status check failed for ${e} target ${s.id}:`,u)}finally{c.close()}}const i=r.find(s=>s.installed&&s.themeId)??r.find(s=>s.installed);return{installed:r.some(s=>s.installed),menu:r.some(s=>s.menu),themeId:i==null?void 0:i.themeId,targets:r.length}}async function jn(e,t,n={}){var i;const a=Date.now();if(e==="hana-agent"){K.set(t,(K.get(t)??0)+1);const l=te.get(t);l&&clearInterval(l),te.delete(t)}if(e==="doubao"){V.set(t,(V.get(t)??0)+1);const l=ye.get(t);l&&clearInterval(l),ye.delete(t)}if(e==="stepfun"){ae.set(t,(ae.get(t)??0)+1);const l=ne.get(t);l&&clearInterval(l),ne.delete(t)}if(e==="sparkdesk"){L.set(t,(L.get(t)??0)+1);const l=oe.get(t);l&&clearInterval(l),oe.delete(t);const s=await _e();await fetch(`${s.appStateEndpoint}/sparkdesk`,{method:"PUT",headers:{Authorization:`Bearer ${s.token}`,"Content-Type":"application/json"},body:JSON.stringify({themeId:"",actionAt:a})}).catch(()=>{})}if(e==="monkeycode"){se.set(t,(se.get(t)??0)+1);const l=re.get(t);l&&clearInterval(l),re.delete(t)}const o=n.rendererUrlHint??((i=O(e))==null?void 0:i.rendererHints[0])??"renderer/index.html";let r=[];try{r=e==="kimi"?await Ke(t):e==="stepfun"?await He(t):e==="sparkdesk"?await le(t):e==="monkeycode"?await Ee(t):await Z(t,o)}catch{}if(r.length===0)try{const s=await(await fetch(`http://127.0.0.1:${t}/json/list`,{signal:AbortSignal.timeout(5e3)})).json();r=(Array.isArray(s)?s:[]).filter(Fe).sort((c,u)=>{const p=[String(c.id??""),c.url,c.webSocketDebuggerUrl],m=[String(u.id??""),u.url,u.webSocketDebuggerUrl];for(let g=0;g<p.length;g++){if(p[g]<m[g])return-1;if(p[g]>m[g])return 1}return 0})}catch{}if(r.length===0)return{success:!1};for(const l of e==="hana-agent"||e==="kimi"||e==="agnes-code"||e==="stepfun"||e==="sparkdesk"?r:r.slice(0,1)){const s=new C(l.webSocketDebuggerUrl);if(await s.open(),e==="hana-agent"){const c=ie.get(l.id);c&&(await s.removeScriptToEvaluateOnNewDocument(c).catch(()=>{}),ie.delete(l.id))}if(e==="doubao"){const c=Oe.get(l.id);c&&(await s.removeScriptToEvaluateOnNewDocument(c).catch(()=>{}),Oe.delete(l.id))}if(e==="stepfun"){const c=xe.get(l.id);c&&(await s.removeScriptToEvaluateOnNewDocument(c).catch(()=>{}),xe.delete(l.id))}if(e==="sparkdesk"){const c=ve.get(l.id);c&&(await s.removeScriptToEvaluateOnNewDocument(c).catch(()=>{}),ve.delete(l.id))}if(e==="monkeycode"){const c=ce.get(l.id);c&&(await s.removeScriptToEvaluateOnNewDocument(c).catch(()=>{}),ce.delete(l.id))}await s.evaluate(`(async () => {
-      ${e==="sparkdesk"?`await window.__dreamTheme?.restoreNative(${a});`:""}
+      })()`),p=JSON.parse(m);r.push(p)}catch(m){console.warn(`[injector] Status check failed for ${e} target ${i.id}:`,m)}finally{l.close()}}const s=r.find(i=>i.installed&&i.themeId)??r.find(i=>i.installed);return{installed:r.some(i=>i.installed),menu:r.some(i=>i.menu),themeId:s==null?void 0:s.themeId,targets:r.length}}async function La(e,t,a={}){var s;const n=Date.now();if(e==="hana-agent"){z.set(t,(z.get(t)??0)+1);const c=ae.get(t);c&&clearInterval(c),ae.delete(t)}if(e==="doubao"){V.set(t,(V.get(t)??0)+1);const c=ye.get(t);c&&clearInterval(c),ye.delete(t)}if(e==="stepfun"){oe.set(t,(oe.get(t)??0)+1);const c=ne.get(t);c&&clearInterval(c),ne.delete(t)}if(e==="sparkdesk"){F.set(t,(F.get(t)??0)+1);const c=re.get(t);c&&clearInterval(c),re.delete(t);const i=await _e();await fetch(`${i.appStateEndpoint}/sparkdesk`,{method:"PUT",headers:{Authorization:`Bearer ${i.token}`,"Content-Type":"application/json"},body:JSON.stringify({themeId:"",actionAt:n})}).catch(()=>{})}if(e==="monkeycode"){ie.set(t,(ie.get(t)??0)+1);const c=se.get(t);c&&clearInterval(c),se.delete(t)}const o=a.rendererUrlHint??((s=O(e))==null?void 0:s.rendererHints[0])??"renderer/index.html";let r=[];try{r=e==="kimi"?await Ke(t):e==="stepfun"?await ze(t):e==="sparkdesk"?await de(t):e==="monkeycode"?await Ee(t):await Y(t,o)}catch{}if(r.length===0)try{const i=await(await fetch(`http://127.0.0.1:${t}/json/list`,{signal:AbortSignal.timeout(5e3)})).json();r=(Array.isArray(i)?i:[]).filter(We).sort((l,m)=>{const p=[String(l.id??""),l.url,l.webSocketDebuggerUrl],u=[String(m.id??""),m.url,m.webSocketDebuggerUrl];for(let g=0;g<p.length;g++){if(p[g]<u[g])return-1;if(p[g]>u[g])return 1}return 0})}catch{}if(r.length===0)return{success:!1};for(const c of e==="hana-agent"||e==="kimi"||e==="agnes-code"||e==="stepfun"||e==="sparkdesk"?r:r.slice(0,1)){const i=new C(c.webSocketDebuggerUrl);if(await i.open(),e==="hana-agent"){const l=ce.get(c.id);l&&(await i.removeScriptToEvaluateOnNewDocument(l).catch(()=>{}),ce.delete(c.id))}if(e==="doubao"){const l=Oe.get(c.id);l&&(await i.removeScriptToEvaluateOnNewDocument(l).catch(()=>{}),Oe.delete(c.id))}if(e==="stepfun"){const l=xe.get(c.id);l&&(await i.removeScriptToEvaluateOnNewDocument(l).catch(()=>{}),xe.delete(c.id))}if(e==="sparkdesk"){const l=ve.get(c.id);l&&(await i.removeScriptToEvaluateOnNewDocument(l).catch(()=>{}),ve.delete(c.id))}if(e==="monkeycode"){const l=le.get(c.id);l&&(await i.removeScriptToEvaluateOnNewDocument(l).catch(()=>{}),le.delete(c.id))}await i.evaluate(`(async () => {
+      ${e==="sparkdesk"?`await window.__dreamTheme?.restoreNative(${n});`:""}
       ${e==="hana-agent"?`try { localStorage.setItem('dream-work-theme:hana-agent:restored', '1'); } catch {}
       document.documentElement.dataset.dreamThemeRestored = 'true';`:""}
       ${e==="doubao"?"document.documentElement.dataset.dreamThemeRestored = 'true';":""}
       ${e==="doubao"?"try { localStorage.setItem('dream-work-theme:doubao:restored', '1'); } catch {}":""}
       ${e==="kimi"?`try { localStorage.setItem('${W}', '1'); } catch {}
-      try { localStorage.setItem('${Q}', '${a}'); } catch {}
+      try { localStorage.setItem('${Q}', '${n}'); } catch {}
       document.documentElement.dataset.dreamThemeRestored = 'true';`:""}
       ${e==="kimi"?`const style = document.getElementById('${P}');
       if (style) style.textContent = '';`:`document.getElementById('${P}')?.remove();
-      document.getElementById('${$}')?.remove();
-      document.getElementById('${$}-host')?.remove();
+      document.getElementById('${S}')?.remove();
+      document.getElementById('${S}-host')?.remove();
       clearInterval(window.__dreamWorkMenuGuard);
       delete window.__dreamWorkMenuGuard;
       if (window.__dreamWorkOutsideClick) {
@@ -239,41 +239,41 @@ if (Test-Path -LiteralPath $full -PathType Leaf) { Write-Output $full } else { e
       delete document.documentElement.dataset.dreamTheme;
       delete document.documentElement.dataset.dreamShell;
       return true;
-    })`),s.close()}if(e==="sparkdesk"){await new Promise(s=>setTimeout(s,750));const l=await le(t).catch(()=>[]);for(const s of l){const c=new C(s.webSocketDebuggerUrl);try{await c.open(),await c.evaluate(`(async () => {
+    })`),i.close()}if(e==="sparkdesk"){await new Promise(i=>setTimeout(i,750));const c=await de(t).catch(()=>[]);for(const i of c){const l=new C(i.webSocketDebuggerUrl);try{await l.open(),await l.evaluate(`(async () => {
           await window.__dreamWorkRestoreNativeMode?.();
           document.getElementById('${P}')?.remove();
-          document.getElementById('${$}')?.remove();
-          document.getElementById('${$}-host')?.remove();
+          document.getElementById('${S}')?.remove();
+          document.getElementById('${S}-host')?.remove();
           clearInterval(window.__dreamWorkMenuGuard);
           delete window.__dreamWorkMenuGuard;
           delete document.documentElement.dataset.dreamTheme;
           delete document.documentElement.dataset.dreamShell;
           return true;
-        })()`)}finally{c.close()}}}return{success:!0}}function On(e){try{const t=d.join(e.path,"theme.css");return h.existsSync(t)?`
+        })()`)}finally{l.close()}}}return{success:!0}}function Wa(e){try{const t=d.join(e.path,"theme.css");return h.existsSync(t)?`
 /* theme.css */
-`+h.readFileSync(t,"utf-8"):""}catch(t){return console.warn(`[injector] Failed to read theme.css for ${e.id}:`,t),""}}function Bn(e,t){var o,r,i;return((o=O(e))==null?void 0:o.kind)!=="generic-work"?!1:((i=(r=t.manifest.apps)==null?void 0:r[e])==null?void 0:i.compat)!==!1}function Rn(e){const t=String(e??"").match(/^\s*(\d{8})/);return t?Number(t[1]):0}function Ze(e,t,n,a={}){var i,l,s,c;const o={accent:((i=t.colors)==null?void 0:i.accent)??"#24c9d7",secondary:((l=t.colors)==null?void 0:l.secondary)??"#ef8fd3",surface:((s=t.colors)==null?void 0:s.surface)??"#f7fbff",text:((c=t.colors)==null?void 0:c.text)??"#17344f"};if(e==="codex")return aa(t,n,o);const r=O(e);return(r==null?void 0:r.kind)==="vscode-work"?Ln(t,n,o):(r==null?void 0:r.kind)==="generic-work"?e==="hana-agent"?ft(t,n,o):e==="kimi"?Yn(t,n,o):Fn(e,t,n,o,a):bt({...t,copy:null},n,o)}function Ln(e,t,n){return`/* DREAM_THEME:${e.id} */
+`+h.readFileSync(t,"utf-8"):""}catch(t){return console.warn(`[injector] Failed to read theme.css for ${e.id}:`,t),""}}function Ua(e,t){var o,r,s;return((o=O(e))==null?void 0:o.kind)!=="generic-work"?!1:((s=(r=t.manifest.apps)==null?void 0:r[e])==null?void 0:s.compat)!==!1}function Ha(e){const t=String(e??"").match(/^\s*(\d{8})/);return t?Number(t[1]):0}function et(e,t,a,n={}){var s,c,i,l;const o={accent:((s=t.colors)==null?void 0:s.accent)??"#24c9d7",secondary:((c=t.colors)==null?void 0:c.secondary)??"#ef8fd3",surface:((i=t.colors)==null?void 0:i.surface)??"#f7fbff",text:((l=t.colors)==null?void 0:l.text)??"#17344f"};if(e==="codex")return dn(t,a,o);const r=O(e);return(r==null?void 0:r.kind)==="vscode-work"?za(t,a,o):(r==null?void 0:r.kind)==="generic-work"?e==="hana-agent"?ft(t,a,o):e==="kimi"?rn(t,a,o):Ka(e,t,a,o,n):wt({...t,copy:null},a,o)}function za(e,t,a){return`/* DREAM_THEME:${e.id} */
 :root {
   --vscode-editor-background: transparent !important;
-  --vscode-foreground: ${n.text} !important;
-  --vscode-sideBar-background: color-mix(in srgb, ${n.surface} 92%, transparent) !important;
+  --vscode-foreground: ${a.text} !important;
+  --vscode-sideBar-background: color-mix(in srgb, ${a.surface} 92%, transparent) !important;
   --vscode-panel-background: transparent !important;
-  --vscode-input-background: color-mix(in srgb, ${n.surface} 94%, transparent) !important;
-  --vscode-button-background: ${n.accent} !important;
+  --vscode-input-background: color-mix(in srgb, ${a.surface} 94%, transparent) !important;
+  --vscode-button-background: ${a.accent} !important;
   --vscode-button-foreground: #ffffff !important;
-  --vscode-focusBorder: ${n.accent} !important;
+  --vscode-focusBorder: ${a.accent} !important;
 }
 body.solo-lite {
-  background-color: ${n.surface} !important;
-  color: ${n.text} !important;
+  background-color: ${a.surface} !important;
+  color: ${a.text} !important;
 }
 body.solo-lite #root {
-  background-color: ${n.surface} !important;
+  background-color: ${a.surface} !important;
   background-image: url(${JSON.stringify(t)}) !important;
   background-position: center center !important;
   background-size: cover !important;
   background-repeat: no-repeat !important;
   background-attachment: fixed !important;
-  color: ${n.text} !important;
+  color: ${a.text} !important;
 }
 body.solo-lite #solo-lite-root {
   background-color: transparent !important;
@@ -284,7 +284,7 @@ body.solo-lite #solo-lite-root {
 .solo-lite-chat-panel-container {
   background-color: transparent !important;
   background-image: none !important;
-  color: ${n.text} !important;
+  color: ${a.text} !important;
 }
 .panel-content > *,
 .initial-chat-panel > *,
@@ -303,13 +303,13 @@ body.solo-lite #solo-lite-root {
   background-image: none !important;
 }
 .messageInputContainer {
-  background-color: color-mix(in srgb, ${n.surface} 76%, transparent) !important;
-  color: ${n.text} !important;
+  background-color: color-mix(in srgb, ${a.surface} 76%, transparent) !important;
+  color: ${a.text} !important;
   backdrop-filter: blur(12px) saturate(105%);
 }
 .messageInputContainer {
-  border-color: color-mix(in srgb, ${n.accent} 34%, transparent) !important;
-  box-shadow: 0 16px 44px color-mix(in srgb, ${n.surface} 34%, transparent) !important;
+  border-color: color-mix(in srgb, ${a.accent} 34%, transparent) !important;
+  box-shadow: 0 16px 44px color-mix(in srgb, ${a.surface} 34%, transparent) !important;
 }
 .messageInputContainer :where(
   .chat-input-v2-editor-part,
@@ -348,12 +348,12 @@ html body.solo-lite #root .solo-lite-chat-panel-content .messageInputContainer .
 }
 html body.solo-lite #root :where(.initial-chat-panel, .solo-lite-chat-panel-content) .messageInputContainer
   :where(button, button span, .messageInputPluginToolbarMore, .core-model-select-trigger, .rtcVoicePluginButton, .voiceCallButton, .inputBarButton-ncFFma) {
-  color: ${n.text} !important;
-  -webkit-text-fill-color: ${n.text} !important;
+  color: ${a.text} !important;
+  -webkit-text-fill-color: ${a.text} !important;
 }
 html body.solo-lite #root :where(.initial-chat-panel, .solo-lite-chat-panel-content) .messageInputContainer
   :where(button, [role="button"]) svg {
-  color: ${n.text} !important;
+  color: ${a.text} !important;
   fill: currentColor !important;
   stroke: currentColor !important;
 }
@@ -369,19 +369,19 @@ html body.solo-lite #root :where(.initial-chat-panel, .solo-lite-chat-panel-cont
   .voiceCallButton,
   .inputBarButton-ncFFma
 ) {
-  color: ${n.text} !important;
-  -webkit-text-fill-color: ${n.text} !important;
+  color: ${a.text} !important;
+  -webkit-text-fill-color: ${a.text} !important;
 }
 .messageInputContainer :where(button, [role="button"]) svg {
-  color: ${n.text} !important;
+  color: ${a.text} !important;
   fill: currentColor !important;
   stroke: currentColor !important;
 }
 .messageInputContainer :where(button, [role="button"]):hover {
-  background-color: color-mix(in srgb, ${n.accent} 16%, transparent) !important;
+  background-color: color-mix(in srgb, ${a.accent} 16%, transparent) !important;
 }
 .messageInputContainer .chat-input-v2-send-button:not(.disabled) {
-  background-color: ${n.accent} !important;
+  background-color: ${a.accent} !important;
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
 }
@@ -390,13 +390,13 @@ html body.solo-lite #root :where(.initial-chat-panel, .solo-lite-chat-panel-cont
 }
 .messageInputContainer .projectButtonPlaceholderWork-JV100D,
 .messageInputContainer [class*="Placeholder"] {
-  color: color-mix(in srgb, ${n.text} 66%, transparent) !important;
-  -webkit-text-fill-color: color-mix(in srgb, ${n.text} 66%, transparent) !important;
+  color: color-mix(in srgb, ${a.text} 66%, transparent) !important;
+  -webkit-text-fill-color: color-mix(in srgb, ${a.text} 66%, transparent) !important;
 }
 html[data-dream-shell="dark"] body.solo-lite #root .messageInputContainer
   :where(.inputBarButton-ncFFma, .inputBarButton-ncFFma *, .core-model-select-trigger, .core-model-select-trigger *) {
-  color: ${n.text} !important;
-  -webkit-text-fill-color: ${n.text} !important;
+  color: ${a.text} !important;
+  -webkit-text-fill-color: ${a.text} !important;
 }
 html[data-dream-shell="dark"] body.solo-lite #root
   :where(.task-list-base-content, .soloLiteMenubar, .task-list-base-footer)
@@ -418,8 +418,8 @@ html[data-dream-shell="dark"] body.solo-lite #root
     .menubar-menu-title,
     .menubar-menu-title *
   ) {
-  color: ${n.text} !important;
-  -webkit-text-fill-color: ${n.text} !important;
+  color: ${a.text} !important;
+  -webkit-text-fill-color: ${a.text} !important;
 }
 html[data-dream-shell="dark"] body.solo-lite #root
   :where(.task-list-heading, .task-list-group-title, .menubar-menu-title) {
@@ -427,7 +427,7 @@ html[data-dream-shell="dark"] body.solo-lite #root
 }
 html[data-dream-shell="dark"] body.solo-lite #root
   :where(.task-list-base-content, .soloLiteMenubar, .task-list-base-footer, .messageInputContainer) svg {
-  color: ${n.text} !important;
+  color: ${a.text} !important;
 }
 html[data-dream-shell="dark"] body.solo-lite #root
   :where(.task-list-base-content, .soloLiteMenubar, .task-list-base-footer, .messageInputContainer)
@@ -439,54 +439,572 @@ html[data-dream-shell="dark"] body.solo-lite #root
   :where(svg[stroke]:not([stroke="none"]), svg [stroke]:not([stroke="none"])) {
   stroke: currentColor !important;
 }
-`}function Fn(e,t,n,a,o={}){const r={"qoder-work":'#root > div, [class*="layout"], [class*="content-area"], [class*="main-content"]',catpaw:".main-area, .main-content-container, .main-content, .chat-content-area",zcode:'main, main > div, [class*="min-h-0"][class*="flex-1"]',"qwen-office":".agents-content-area, .agents-parchment-paper-surface","agnes-code":":not(*)","minimax-code":":not(*)",astronclaw:'.local-chat-shell, .local-chat-main, [class*="local-chat-content"]',stepfun:"#root",sparkdesk:".app-container","deepseek-harness":'[class*="_centerCol"]',monkeycode:"main"},i={"qoder-work":'[class*="sidebar"]',catpaw:".sidebar-wrapper, .sidebar",zcode:"#sidebar, aside","qwen-office":".agents-sidebar, .group\\/sidebar","agnes-code":":not(*)","minimax-code":":not(*)",astronclaw:'.local-chat-rail, [class*="local-chat-sidebar"]',sparkdesk:'.browser-header, [class*="left_side"], [class*="sidebar"]',monkeycode:"aside, #root > div > div > :first-child"},l=r[e]??'main, [role="main"], [class*="main-content"]',s=i[e]??'aside, nav, [class*="sidebar"]',c=e==="qoder-work"?ta(a):e==="catpaw"?na(n,a):e==="opencode"?Qn(a):e==="doubao"?Zn(a):e==="agnes-code"?Vn(n,a):e==="minimax-code"?Xn(n,a):e==="astronclaw"?qn(n,a):e==="stepfun"?Gn(n,a):e==="sparkdesk"?Jn(n,a):e==="deepseek-harness"?Hn(n,a):e==="monkeycode"?Kn(n,a,!!o.monkeyCodeModern):e==="zcode"?zn(n,a):"";return e==="sparkdesk"?`/* DREAM_THEME:${t.id} */
-${c}`:`/* DREAM_THEME:${t.id} */
+`}function Ka(e,t,a,n,o={}){const r={"qoder-work":'#root > div, [class*="layout"], [class*="content-area"], [class*="main-content"]',catpaw:".main-area, .main-content-container, .main-content, .chat-content-area",zcode:'main, main > div, [class*="min-h-0"][class*="flex-1"]',"qwen-office":".agents-content-area, .agents-parchment-paper-surface","agnes-code":":not(*)","minimax-code":":not(*)",astronclaw:'.local-chat-shell, .local-chat-main, [class*="local-chat-content"]',stepfun:"#root",sparkdesk:".app-container","deepseek-harness":'[class*="_centerCol"]',monkeycode:"main",autoclaw:".autoclaw-home, .autoclaw-shell"},s={"qoder-work":'[class*="sidebar"]',catpaw:".sidebar-wrapper, .sidebar",zcode:"#sidebar, aside","qwen-office":".agents-sidebar, .group\\/sidebar","agnes-code":":not(*)","minimax-code":":not(*)",astronclaw:'.local-chat-rail, [class*="local-chat-sidebar"]',sparkdesk:'.browser-header, [class*="left_side"], [class*="sidebar"]',monkeycode:"aside, #root > div > div > :first-child",autoclaw:'.autoclaw-shell aside, .autoclaw-shell nav, .autoclaw-shell [class*="sidebar"]'},c=r[e]??'main, [role="main"], [class*="main-content"]',i=s[e]??'aside, nav, [class*="sidebar"]',l=e==="qoder-work"?cn(n):e==="catpaw"?ln(a,n):e==="opencode"?nn(n):e==="doubao"?on(n):e==="agnes-code"?tn(a,n):e==="minimax-code"?an(a,n):e==="astronclaw"?en(a,n):e==="stepfun"?Ya(a,n):e==="sparkdesk"?Za(a,n):e==="deepseek-harness"?Va(a,n):e==="monkeycode"?Xa(a,n,!!o.monkeyCodeModern):e==="zcode"?Qa(a,n):e==="autoclaw"?Ga(a,n):"";return e==="sparkdesk"?`/* DREAM_THEME:${t.id} */
+${l}`:`/* DREAM_THEME:${t.id} */
 :root {
-  --dream-work-accent: ${a.accent};
-  --dream-work-secondary: ${a.secondary};
-  --dream-work-surface: ${a.surface};
-  --dream-work-text: ${a.text};
-  --catpaw-bg-primary: ${a.surface} !important;
-  --catpaw-text-primary: ${a.text} !important;
-  --catpaw-text-secondary: color-mix(in srgb, ${a.text} 72%, transparent) !important;
-  --agents-sidebar-material-bg: color-mix(in srgb, ${a.surface} 90%, transparent) !important;
-  --text-base-primary: ${a.text} !important;
-  --text-base-secondary: color-mix(in srgb, ${a.text} 72%, transparent) !important;
-  --bg-base: color-mix(in srgb, ${a.surface} 86%, transparent) !important;
+  --dream-work-accent: ${n.accent};
+  --dream-work-secondary: ${n.secondary};
+  --dream-work-surface: ${n.surface};
+  --dream-work-text: ${n.text};
+  --catpaw-bg-primary: ${n.surface} !important;
+  --catpaw-text-primary: ${n.text} !important;
+  --catpaw-text-secondary: color-mix(in srgb, ${n.text} 72%, transparent) !important;
+  --agents-sidebar-material-bg: color-mix(in srgb, ${n.surface} 90%, transparent) !important;
+  --text-base-primary: ${n.text} !important;
+  --text-base-secondary: color-mix(in srgb, ${n.text} 72%, transparent) !important;
+  --bg-base: color-mix(in srgb, ${n.surface} 86%, transparent) !important;
 }
-html, body, #root { background: ${a.surface} !important; color: ${a.text} !important; }
-${e==="zcode"||e==="deepseek-harness"||e==="monkeycode"?"":`:is(${s}) {
-  background: color-mix(in srgb, ${a.surface} 90%, transparent) !important;
-  color: ${a.text} !important;
+html, body, #root { background: ${n.surface} !important; color: ${n.text} !important; }
+${e==="zcode"||e==="deepseek-harness"||e==="monkeycode"?"":`:is(${i}) {
+  background: color-mix(in srgb, ${n.surface} 90%, transparent) !important;
+  color: ${n.text} !important;
   backdrop-filter: blur(20px) saturate(108%);
 }`}
-${e==="zcode"?`:is(${l}) {
-  color: ${a.text} !important;
-}`:`:is(${l}) {
-  background: linear-gradient(90deg, color-mix(in srgb, ${a.surface} 82%, transparent) 0 12%, transparent 42%), url(${JSON.stringify(n)}) center / cover no-repeat fixed !important;
-  color: ${a.text} !important;
+${e==="zcode"?`:is(${c}) {
+  color: ${n.text} !important;
+}`:`:is(${c}) {
+  background: linear-gradient(90deg, color-mix(in srgb, ${n.surface} 82%, transparent) 0 12%, transparent 42%), url(${JSON.stringify(a)}) center / cover no-repeat fixed !important;
+  color: ${n.text} !important;
 }`}
-:is(${l}) :where([class*="message"], [class*="chat"], [class*="composer"], [class*="editor"], [contenteditable="true"], textarea) {
-  color: ${a.text} !important;
+:is(${c}) :where([class*="message"], [class*="chat"], [class*="composer"], [class*="editor"], [contenteditable="true"], textarea) {
+  color: ${n.text} !important;
 }
-${e==="doubao"||e==="astronclaw"||e==="stepfun"||e==="zcode"||e==="deepseek-harness"||e==="monkeycode"?"":`:is(${l}) :where([class*="message"], [class*="bubble"], [class*="composer"], [class*="input-container"]) {
-  background-color: color-mix(in srgb, ${a.surface} 88%, transparent) !important;
+${e==="doubao"||e==="astronclaw"||e==="stepfun"||e==="zcode"||e==="deepseek-harness"||e==="monkeycode"?"":`:is(${c}) :where([class*="message"], [class*="bubble"], [class*="composer"], [class*="input-container"]) {
+  background-color: color-mix(in srgb, ${n.surface} 88%, transparent) !important;
   backdrop-filter: blur(16px) saturate(108%);
 }`}
-:is(${l}) :where(p, span, li, h1, h2, h3, h4, strong, em) { color: ${a.text} !important; }
-button[class*="bg-primary"], button[class*="bg-accent"] { background-color: ${a.accent} !important; color: #fff !important; }
-${c}`}async function Ee(e){const t=await fetch(`http://127.0.0.1:${e}/json/list`,{signal:AbortSignal.timeout(2e3)});if(!t.ok)throw new Error(`HTTP ${t.status}`);const n=await t.json();return(Array.isArray(n)?n:[]).filter(a=>(a==null?void 0:a.type)==="page"&&a.webSocketDebuggerUrl&&String(a.url)==="http://tauri.localhost/")}async function Wn(e){for(const t of e){const n=new C(t.webSocketDebuggerUrl);try{await n.open(),await n.evaluate(`(() => {
+:is(${c}) :where(p, span, li, h1, h2, h3, h4, strong, em) { color: ${n.text} !important; }
+button[class*="bg-primary"], button[class*="bg-accent"] { background-color: ${n.accent} !important; color: #fff !important; }
+${l}`}function Ga(e,t){const a=kt(t.surface),n=a?`color-mix(in srgb, ${t.surface} 84%, transparent)`:`color-mix(in srgb, ${t.surface} 78%, transparent)`,o=a?`color-mix(in srgb, ${t.surface} 94%, transparent)`:`color-mix(in srgb, ${t.surface} 90%, #000000)`,r=`color-mix(in srgb, ${t.accent} ${a?"14%":"24%"}, ${t.surface})`,s=`color-mix(in srgb, ${t.accent} ${a?"24%":"38%"}, ${t.surface})`,c=`color-mix(in srgb, ${t.text} ${a?"68%":"76%"}, transparent)`;return`
+html[data-dream-theme],
+html[data-dream-theme] body {
+  --autoclaw-bg-primary: ${t.surface} !important;
+  --autoclaw-bg-secondary: ${n} !important;
+  --autoclaw-bg-tertiary: ${o} !important;
+  --autoclaw-text-primary: ${t.text} !important;
+  --autoclaw-text-secondary: ${c} !important;
+  --autoclaw-border: color-mix(in srgb, ${t.text} 18%, transparent) !important;
+  --autoclaw-accent: ${t.accent} !important;
+  color: ${t.text} !important;
+}
+html[data-dream-theme] body::before {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  opacity: 0 !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html,
+body,
+#root,
+.autoclaw-home,
+.autoclaw-shell,
+.autoclaw-sidebar-left,
+.figma-session-sidebar,
+.autoclaw-chat-area,
+.autoclaw-generic-stage,
+.autoclaw-content-region,
+.chat-messages {
+  min-height: 100% !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#root {
+  position: relative !important;
+  isolation: isolate;
+}
+#root::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: ${t.surface} !important;
+  background-image: url(${JSON.stringify(e)}) !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+}
+.autoclaw-home,
+.autoclaw-shell {
+  width: 100vw !important;
+  min-height: 100vh !important;
+}
+#root .autoclaw-shell .autoclaw-sidebar-left,
+#root .autoclaw-shell .figma-session-sidebar,
+#root .autoclaw-shell .figma-sidebar-footer,
+#root .autoclaw-shell .sidebar-footer-entries,
+#root .autoclaw-shell .sidebar-footer-entry,
+#root .autoclaw-shell .sidebar-footer-entry *,
+#root .autoclaw-shell .autoclaw-left-sidebar-resizer,
+#root .autoclaw-shell > :first-child {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#root .autoclaw-shell .autoclaw-left-sidebar-resizer {
+  width: 4px !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+#root .autoclaw-shell .nested-agent-group,
+#root .autoclaw-shell .nested-group-list,
+#root .autoclaw-shell .nested-group-stack {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+#root .autoclaw-shell .nested-agent-group:hover {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+#root .autoclaw-shell .nested-agent-group:hover > :where(.nested-group-toggle, button:first-child) {
+  background: ${r} !important;
+  color: ${t.text} !important;
+}
+#root .autoclaw-shell :where(
+  .figma-topbar,
+  .figma-sidebar-tabs,
+  .new-chat-home-header,
+  .new-chat-home-header-actions,
+  .autoclaw-content-header,
+  [class*="topbar"],
+  [class*="titlebar"]
+) {
+  background-color: transparent !important;
+  background-image: none !important;
+  color: ${t.text} !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#root .autoclaw-shell :where(
+  .figma-top-collapse-btn,
+  .figma-sidebar-tab,
+  .nested-group-toggle,
+  .nested-group-create,
+  .nested-group-more,
+  .nested-group-expand,
+  .figma-session-main,
+  .figma-session-more-btn,
+  .sidebar-footer-entry,
+  .figma-footer-settings-btn,
+  .figma-footer-feedback-btn,
+  .figma-user-chip,
+  .new-chat-home-header-actions__button,
+  .new-chat-home-header-actions__points-value,
+  .new-chat-home-header-actions__purchase
+) {
+  color: ${t.text} !important;
+  text-shadow: none !important;
+}
+#root .autoclaw-shell .figma-sidebar-tab :where(
+  .figma-sidebar-tab-icon-frame,
+  .figma-sidebar-tab-img
+) {
+  color: ${t.text} !important;
+  opacity: 1 !important;
+}
+html[data-dream-theme] #root .autoclaw-home .figma-sidebar-tab .figma-sidebar-tab-icon-frame {
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 7px !important;
+  background: ${o} !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, ${t.text} 28%, transparent) !important;
+}
+html[data-dream-theme] #root .autoclaw-home .figma-sidebar-tab .figma-sidebar-tab-img {
+  width: 20px !important;
+  height: 20px !important;
+  filter: none !important;
+  opacity: 1 !important;
+  image-rendering: auto !important;
+}
+#root .autoclaw-shell .figma-sidebar-tab :where(svg, path) {
+  color: ${t.text} !important;
+  fill: currentColor !important;
+  stroke: currentColor !important;
+  opacity: 1 !important;
+}
+html[data-dream-theme] #root .autoclaw-home :where(
+  .auto-designer-main-header,
+  .auto-coder-main-header,
+  .new-chat-home-header,
+  .autoclaw-content-header,
+  [class*="main-header"]
+),
+html[data-dream-theme] #root .autoclaw-home :where(
+  .auto-designer-main-header,
+  .auto-coder-main-header,
+  .new-chat-home-header,
+  .autoclaw-content-header,
+  [class*="main-header"]
+)::before,
+html[data-dream-theme] #root .autoclaw-home :where(
+  .auto-designer-main-header,
+  .auto-coder-main-header,
+  .new-chat-home-header,
+  .autoclaw-content-header,
+  [class*="main-header"]
+)::after {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#root .autoclaw-shell :where(
+  .figma-sidebar-tab,
+  .nested-agent-group > .nested-group-toggle,
+  .figma-session-main,
+  .sidebar-footer-entry
+):hover {
+  background: ${r} !important;
+  color: ${t.text} !important;
+}
+#root .autoclaw-shell :where(
+  .figma-sidebar-tab.active,
+  .nested-agent-group.is-active > .nested-group-toggle,
+  .nested-agent-group.has-active-session > .nested-group-toggle,
+  .figma-session-main.active,
+  .figma-session-main.is-active,
+  .figma-session-item.active,
+  .figma-session-item.is-active,
+  [aria-selected="true"]
+) {
+  background: ${s} !important;
+  color: ${t.text} !important;
+}
+#root .autoclaw-shell :where(
+  .figma-sidebar-tab,
+  .nested-agent-group,
+  .nested-agent-group *,
+  .figma-session-main,
+  .figma-session-main *,
+  .figma-session-item,
+  .figma-session-item *,
+  .sidebar-footer-entry,
+  .sidebar-footer-entry *
+) {
+  border-color: color-mix(in srgb, ${t.text} 16%, transparent) !important;
+}
+#root .autoclaw-shell :where(
+  .figma-sidebar-tab:hover,
+  .figma-sidebar-tab.active,
+  .nested-agent-group > .nested-group-toggle:hover,
+  .nested-agent-group.is-active > .nested-group-toggle,
+  .nested-agent-group.has-active-session > .nested-group-toggle,
+  .figma-session-main:hover,
+  .figma-session-main.active,
+  .figma-session-main.is-active,
+  .figma-session-item:hover,
+  .figma-session-item.active,
+  .figma-session-item.is-active,
+  [aria-selected="true"]
+),
+#root .autoclaw-shell :where(
+  .figma-sidebar-tab:hover,
+  .figma-sidebar-tab.active,
+  .nested-agent-group > .nested-group-toggle:hover,
+  .nested-agent-group.is-active > .nested-group-toggle,
+  .nested-agent-group.has-active-session > .nested-group-toggle,
+  .figma-session-main:hover,
+  .figma-session-main.active,
+  .figma-session-main.is-active,
+  .figma-session-item:hover,
+  .figma-session-item.active,
+  .figma-session-item.is-active,
+  [aria-selected="true"]
+) * {
+  color: ${t.text} !important;
+  fill: currentColor !important;
+}
+.autoclaw-shell :where(
+  .chat-area,
+  .autoclaw-chat-area,
+  .autoclaw-generic-stage,
+  .autoclaw-content-region,
+  .chat-messages,
+  [class*="content"],
+  [class*="workspace"],
+  [class*="conversation"],
+  [class*="chat-container"],
+  [class*="message-list"]
+) {
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#root .autoclaw-shell :where(
+  .autoclaw-generic-stage,
+  .autoclaw-content-region,
+  .chat-messages
+) {
+  height: calc(100vh - 56px) !important;
+  min-height: 0 !important;
+  max-height: calc(100vh - 56px) !important;
+  box-sizing: border-box !important;
+}
+#root .autoclaw-shell .new-chat-empty-state {
+  min-height: 0 !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  box-sizing: border-box !important;
+  padding-bottom: max(20px, env(safe-area-inset-bottom)) !important;
+}
+#root .autoclaw-shell .chat-messages {
+  scroll-padding-bottom: 24px !important;
+}
+#root .autoclaw-shell .chat-messages > :where(.chat-empty-state, .agent-empty-state) {
+  min-height: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  box-sizing: border-box !important;
+  padding-bottom: 16px !important;
+}
+#root .autoclaw-shell .chat-messages .input-container {
+  position: sticky !important;
+  z-index: 8 !important;
+  bottom: 16px !important;
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  margin-top: auto !important;
+  padding-bottom: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#root .autoclaw-shell :where(
+  .input-container,
+  .input-composer-stack,
+  .new-chat-home-input,
+  .input-skill-strip,
+  .input-main,
+  .input-tools,
+  .input-tools-scroll
+) {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.autoclaw-shell :where(
+  .new-chat-empty-state__mode,
+  .new-chat-empty-state__mode *,
+  .new-chat-empty-state__title,
+  .new-chat-empty-state__subtitle,
+  .new-chat-home-header,
+  .new-chat-home-header *
+) {
+  color: ${t.text} !important;
+  text-shadow: none !important;
+}
+.autoclaw-shell .new-chat-empty-state__mode {
+  background: ${n} !important;
+  border-color: color-mix(in srgb, ${t.text} 18%, transparent) !important;
+}
+.autoclaw-shell .new-chat-empty-state__mode:hover {
+  background: ${r} !important;
+}
+.autoclaw-shell .new-chat-empty-state__mode.is-active {
+  background: ${s} !important;
+  color: ${t.text} !important;
+}
+.autoclaw-shell :where(
+  .input-composer-stack,
+  .new-chat-home-input
+) {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.autoclaw-shell .input-box {
+  background: ${o} !important;
+  border: 1px solid color-mix(in srgb, ${t.accent} 30%, transparent) !important;
+  box-shadow: 0 14px 36px color-mix(in srgb, ${t.surface} 34%, transparent) !important;
+  color: ${t.text} !important;
+}
+.autoclaw-shell :where(
+  .input-main,
+  .input-textarea-row,
+  .input-textarea,
+  .input-toolbar,
+  .input-footer
+) {
+  background: transparent !important;
+  color: ${t.text} !important;
+}
+.autoclaw-shell .input-textarea::placeholder {
+  color: ${c} !important;
+  opacity: 1 !important;
+}
+.autoclaw-shell :where(
+  .tool-btn,
+  .input-model-btn,
+  .input-expert-btn,
+  .goal-template-btn,
+  .input-agent-cluster-btn
+) {
+  background: transparent !important;
+  color: ${c} !important;
+}
+.autoclaw-shell :where(
+  .tool-btn,
+  .input-model-btn,
+  .input-expert-btn,
+  .goal-template-btn,
+  .input-agent-cluster-btn
+):hover {
+  background: ${r} !important;
+  color: ${t.text} !important;
+}
+.autoclaw-shell .send-btn {
+  background: ${t.accent} !important;
+  color: ${a?t.surface:"#ffffff"} !important;
+  border-color: transparent !important;
+}
+.autoclaw-shell .send-btn:disabled {
+  background: color-mix(in srgb, ${t.accent} 32%, ${t.surface}) !important;
+  color: ${t.text} !important;
+  border-color: color-mix(in srgb, ${t.accent} 36%, transparent) !important;
+  opacity: 1 !important;
+}
+.autoclaw-shell :where(
+  .new-chat-empty-state__quick-actions,
+  .new-chat-empty-state__suggestions,
+  .new-chat-empty-state__cards,
+  .new-chat-empty-state__actions,
+  .new-chat-empty-state__main > :last-child,
+  .new-chat-home-shortcuts,
+  [class*="quick-action"],
+  [class*="shortcut"],
+  [class*="suggestion"]
+) {
+  background: transparent !important;
+  color: ${t.text} !important;
+}
+.autoclaw-shell :where(
+  .new-chat-empty-state__quick-actions,
+  .new-chat-empty-state__suggestions,
+  .new-chat-empty-state__cards,
+  .new-chat-empty-state__actions,
+  .new-chat-empty-state__main > :last-child,
+  .new-chat-home-shortcuts,
+  [class*="quick-action"],
+  [class*="shortcut"],
+  [class*="suggestion"]
+) :where(button, [role="button"], a) {
+  background: ${o} !important;
+  color: ${t.text} !important;
+  border-color: color-mix(in srgb, ${t.text} 18%, transparent) !important;
+}
+.autoclaw-shell :where(
+  .new-chat-empty-state__quick-actions,
+  .new-chat-empty-state__suggestions,
+  .new-chat-empty-state__cards,
+  .new-chat-empty-state__actions,
+  .new-chat-empty-state__main > :last-child,
+  .new-chat-home-shortcuts,
+  [class*="quick-action"],
+  [class*="shortcut"],
+  [class*="suggestion"]
+) :where(button, [role="button"], a):hover {
+  background: ${r} !important;
+  color: ${t.text} !important;
+}
+.autoclaw-shell :where(
+  .chat-area,
+  .autoclaw-chat-area,
+  .chat-messages
+)::before,
+.autoclaw-shell :where(
+  .chat-area,
+  .autoclaw-chat-area,
+  .chat-messages
+)::after {
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#root .autoclaw-home .autoclaw-sidebar-left.collapsed + .autoclaw-chat-area,
+#root .autoclaw-home .autoclaw-sidebar-left.collapsed + .autoclaw-chat-area::before,
+#root .autoclaw-home .autoclaw-sidebar-left.collapsed + .autoclaw-chat-area::after,
+#root .autoclaw-home .autoclaw-sidebar-left.collapsed + .autoclaw-chat-area .autoclaw-generic-stage,
+#root .autoclaw-home .autoclaw-sidebar-left.collapsed + .autoclaw-chat-area .autoclaw-content-region {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.autoclaw-shell :where(
+  [class*="message-item"],
+  [class*="message-bubble"],
+  [class*="message-content"]
+) {
+  background-color: color-mix(in srgb, ${t.surface} 68%, transparent) !important;
+  backdrop-filter: blur(12px) saturate(108%);
+}
+.autoclaw-shell :where(
+  aside,
+  nav,
+  [class*="sidebar"],
+  [class*="sider"]
+) {
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.autoclaw-shell :where(
+  textarea,
+  [contenteditable="true"]
+) {
+  background-color: color-mix(in srgb, ${t.surface} 78%, transparent) !important;
+  color: ${t.text} !important;
+}
+`}async function Ee(e){const t=await fetch(`http://127.0.0.1:${e}/json/list`,{signal:AbortSignal.timeout(2e3)});if(!t.ok)throw new Error(`HTTP ${t.status}`);const a=await t.json();return(Array.isArray(a)?a:[]).filter(n=>(n==null?void 0:n.type)==="page"&&n.webSocketDebuggerUrl&&String(n.url)==="http://tauri.localhost/")}async function Ja(e){for(const t of e){const a=new C(t.webSocketDebuggerUrl);try{await a.open(),await a.evaluate(`(() => {
         try { localStorage.removeItem('dream-work-theme:monkeycode:restored'); } catch {}
         delete document.documentElement.dataset.dreamThemeRestored;
         return true;
-      })()`)}finally{n.close()}}}function Un(e,t){const n=re.get(e);n&&clearInterval(n);const a=(se.get(e)??0)+1;se.set(e,a);let o=!1;const r=setInterval(async()=>{if(!(o||se.get(e)!==a)){o=!0;try{const i=await Ee(e);for(const l of i){const s=new C(l.webSocketDebuggerUrl);try{await s.open();const c=await s.evaluate(`(() => ({
+      })()`)}finally{a.close()}}}function qa(e,t){const a=se.get(e);a&&clearInterval(a);const n=(ie.get(e)??0)+1;ie.set(e,n);let o=!1;const r=setInterval(async()=>{if(!(o||ie.get(e)!==n)){o=!0;try{const s=await Ee(e);for(const c of s){const i=new C(c.webSocketDebuggerUrl);try{await i.open();const l=await i.evaluate(`(() => ({
             ready: Boolean(window.__dreamTheme?.activateTheme && document.getElementById('${P}')),
             restored: (() => { try { return localStorage.getItem('dream-work-theme:monkeycode:restored') === '1'; } catch { return false; } })()
-          }))()`).catch(()=>({ready:!1,restored:!1}));if(c.ready||c.restored)continue;let u=!1;for(let b=0;b<20&&(u=await s.evaluate("(() => location.href === 'http://tauri.localhost/' && document.readyState !== 'loading')()").catch(()=>!1),!u);b++)await new Promise(E=>setTimeout(E,100));if(!u)continue;const p=ce.get(l.id);p&&await s.removeScriptToEvaluateOnNewDocument(p).catch(()=>{});const m=`(() => {
+          }))()`).catch(()=>({ready:!1,restored:!1}));if(l.ready||l.restored)continue;let m=!1;for(let f=0;f<20&&(m=await i.evaluate("(() => location.href === 'http://tauri.localhost/' && document.readyState !== 'loading')()").catch(()=>!1),!m);f++)await new Promise(A=>setTimeout(A,100));if(!m)continue;const p=le.get(c.id);p&&await i.removeScriptToEvaluateOnNewDocument(p).catch(()=>{});const u=`(() => {
             const inject = () => ${t};
             if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', inject, { once: true });
             else inject();
-          })()`,g=await s.addScriptToEvaluateOnNewDocument(m);g&&ce.set(l.id,g),await s.evaluate(t)}catch{}finally{s.close()}}}catch{await me(e)||(clearInterval(r),re.delete(e))}finally{o=!1}}},750);r.unref(),re.set(e,r)}function Hn(e,t){return`
+          })()`,g=await i.addScriptToEvaluateOnNewDocument(u);g&&le.set(c.id,g),await i.evaluate(t)}catch{}finally{i.close()}}}catch{await me(e)||(clearInterval(r),se.delete(e))}finally{o=!1}}},750);r.unref(),se.set(e,r)}function Va(e,t){return`
 html {
   background-color: ${t.surface} !important;
   background-image: none !important;
@@ -539,7 +1057,7 @@ body,
 ) {
   border-color: color-mix(in srgb, ${t.accent} 24%, transparent) !important;
 }
-`}function Kn(e,t,n){return`
+`}function Xa(e,t,a){return`
 :root {
   --color-base-100: color-mix(in srgb, ${t.surface} 78%, transparent) !important;
   --color-base-200: color-mix(in srgb, ${t.surface} 86%, transparent) !important;
@@ -606,7 +1124,7 @@ body,
 #root main [class~="dropdown"][class~="h-full"] :where(.dropdown-content, [role="menu"]) {
   background-color: color-mix(in srgb, ${t.surface} 94%, transparent) !important;
 }
-${n?`html[data-dream-monkeycode-modern="true"] #root :where(
+${a?`html[data-dream-monkeycode-modern="true"] #root :where(
   .mc-workbench-surface-100,
   .mc-workbench-surface-200,
   .mc-workbench-surface-300
@@ -627,7 +1145,7 @@ html[data-dream-monkeycode-modern="true"] #root .mc-workbench-surface-100 > :whe
 #root :where(button, [role="button"]) {
   border-color: color-mix(in srgb, ${t.accent} 22%, transparent) !important;
 }
-`}function zn(e,t){return`
+`}function Qa(e,t){return`
 html,
 body,
 #root,
@@ -659,7 +1177,7 @@ body,
   position: relative;
   z-index: 1;
 }
-`}function Jn(e,t){const n=parseInt(String(t.surface).replace("#",""),16),a=Number.isFinite(n)?.299*(n>>16&255)+.587*(n>>8&255)+.114*(n&255)>140:!0;return`
+`}function Za(e,t){const a=parseInt(String(t.surface).replace("#",""),16),n=Number.isFinite(a)?.299*(a>>16&255)+.587*(a>>8&255)+.114*(a&255)>140:!0;return`
 html,
 body,
 #root,
@@ -911,7 +1429,7 @@ textarea,
   stroke: ${t.text} !important;
 }
 [class*="right_operate_wrap"] > [class*="send"] img {
-  filter: ${a?"brightness(0)":"none"} !important;
+  filter: ${n?"brightness(0)":"none"} !important;
 }
 [class*="mainContainer"],
 [class*="mainContainer"] [class*="main_"],
@@ -965,9 +1483,9 @@ textarea,
   background-color: color-mix(in srgb, ${t.accent} 18%, ${t.surface}) !important;
 }
 [class*="mainContainer"] :where([class*="menu_icon"] img, [class*="menu_item_right"] img) {
-  filter: ${a?"none":"brightness(0) invert(1)"} !important;
+  filter: ${n?"none":"brightness(0) invert(1)"} !important;
 }
-`}function Gn(e,t){return`
+`}function Ya(e,t){return`
 :root {
   --bg-gold: transparent !important;
   --background: transparent !important;
@@ -1088,7 +1606,7 @@ body,
   color: ${t.text} !important;
   caret-color: ${t.accent} !important;
 }
-`}function qn(e,t){return`
+`}function en(e,t){return`
 :root {
   --background: ${t.surface} !important;
   --foreground: ${t.text} !important;
@@ -1184,7 +1702,7 @@ body,
 .local-chat-shell :where([class*="message"], [class*="dialog"], [class*="popover"], [class*="panel"]) {
   border-color: color-mix(in srgb, ${t.accent} 22%, transparent) !important;
 }
-`}function Vn(e,t){return`
+`}function tn(e,t){return`
 :root {
   --agnes-surface: transparent !important;
   --agnes-sidebar: transparent !important;
@@ -1277,7 +1795,7 @@ body,
 .agnes-shell :where(p, span, li, h1, h2, h3, h4, strong, em, label) {
   color: inherit;
 }
-`}function Xn(e,t){return`
+`}function an(e,t){return`
 :root {
   --color-bg-grouped-secondary: transparent !important;
   --color-bg-primary: transparent !important;
@@ -1368,7 +1886,7 @@ body div[class~="bg-bg_default_scrim"]:has(.message-input-home-container)
 #root :where(textarea, input, [contenteditable="true"]) {
   color: ${t.text} !important;
 }
-`}function Qn(e){return`
+`}function nn(e){return`
 :root {
   --v2-background-bg-deep: transparent !important;
   --v2-background-bg-base: transparent !important;
@@ -1405,7 +1923,7 @@ main form[class*="group/prompt-input"] :where([class*="toolbar"], [class*="foote
 }
 main form[class*="group/prompt-input"] :where(button, [role="button"]):hover {
   background-color: color-mix(in srgb, ${e.accent} 16%, transparent) !important;
-}`}function Zn(e){return`
+}`}function on(e){return`
 :root {
   --s-color-bg-body: transparent !important;
   --s-color-text-primary: ${e.text} !important;
@@ -1627,57 +2145,57 @@ nav[class*="panel-"] {
 #flow_chat_sidebar [class*="chat-item-"][data-active="true"] {
   background: color-mix(in srgb, ${e.accent} 22%, ${e.surface}) !important;
   color: ${e.text} !important;
-}`}function ft(e,t,n){return`/* DREAM_THEME:${e.id} */
+}`}function ft(e,t,a){return`/* DREAM_THEME:${e.id} */
 :root {
-  --dream-work-accent: ${n.accent};
-  --dream-work-secondary: ${n.secondary};
-  --dream-work-surface: ${n.surface};
-  --dream-work-text: ${n.text};
+  --dream-work-accent: ${a.accent};
+  --dream-work-secondary: ${a.secondary};
+  --dream-work-surface: ${a.surface};
+  --dream-work-text: ${a.text};
 }
 html, body, #react-root, .app-shell {
-  background-color: ${n.surface} !important;
+  background-color: ${a.surface} !important;
   background-image: url(${JSON.stringify(t)}) !important;
   background-position: center center !important;
   background-size: cover !important;
   background-repeat: no-repeat !important;
   background-attachment: fixed !important;
-  color: ${n.text} !important;
+  color: ${a.text} !important;
 }
 .titlebar, .app, .main-content, .chat-area, .input-area {
   background-color: transparent !important;
   background-image: none !important;
 }
 #sidebar, #jianSidebar .universal-card, #previewBody {
-  background: color-mix(in srgb, ${n.surface} 66%, transparent) !important;
-  border-color: color-mix(in srgb, ${n.accent} 24%, transparent) !important;
-  color: ${n.text} !important;
+  background: color-mix(in srgb, ${a.surface} 66%, transparent) !important;
+  border-color: color-mix(in srgb, ${a.accent} 24%, transparent) !important;
+  color: ${a.text} !important;
   backdrop-filter: blur(20px) saturate(110%) !important;
 }
 .titlebar {
-  background: color-mix(in srgb, ${n.surface} 62%, transparent) !important;
-  color: ${n.text} !important;
+  background: color-mix(in srgb, ${a.surface} 62%, transparent) !important;
+  color: ${a.text} !important;
   backdrop-filter: blur(18px) saturate(108%) !important;
 }
 [class*="input-wrapper"] {
-  background: color-mix(in srgb, ${n.surface} 78%, transparent) !important;
-  border-color: color-mix(in srgb, ${n.accent} 30%, transparent) !important;
-  color: ${n.text} !important;
-  box-shadow: 0 16px 42px color-mix(in srgb, ${n.surface} 28%, transparent) !important;
+  background: color-mix(in srgb, ${a.surface} 78%, transparent) !important;
+  border-color: color-mix(in srgb, ${a.accent} 30%, transparent) !important;
+  color: ${a.text} !important;
+  box-shadow: 0 16px 42px color-mix(in srgb, ${a.surface} 28%, transparent) !important;
   backdrop-filter: blur(18px) saturate(108%) !important;
 }
 [class*="input-wrapper"] :where(textarea, input, [contenteditable="true"]) {
   background: transparent !important;
-  color: ${n.text} !important;
-  caret-color: ${n.accent} !important;
+  color: ${a.text} !important;
+  caret-color: ${a.accent} !important;
 }
 #sidebar :where(button, [role="button"]):hover,
 #jianSidebar :where(button, [role="button"]):hover {
-  background-color: color-mix(in srgb, ${n.accent} 16%, transparent) !important;
+  background-color: color-mix(in srgb, ${a.accent} 16%, transparent) !important;
 }
 :where(button[class*="primary"], button[type="submit"]) {
-  background-color: ${n.accent} !important;
+  background-color: ${a.accent} !important;
   color: #ffffff !important;
-}`}function Yn(e,t,n){const a=n.accent;n.secondary;const o=n.surface,r=n.text;return`/* DREAM_THEME:${e.id} */
+}`}function rn(e,t,a){const n=a.accent;a.secondary;const o=a.surface,r=a.text;return`/* DREAM_THEME:${e.id} */
 html.dark, html {
   --Bg-Primary: color-mix(in srgb, ${o} 54%, transparent) !important;
   --Bg-Primary90: color-mix(in srgb, ${o} 48%, transparent) !important;
@@ -1693,11 +2211,11 @@ html.dark, html {
   --Labels-Secondary: color-mix(in srgb, ${r} 62%, transparent) !important;
   --Labels-Tertiary: color-mix(in srgb, ${r} 44%, transparent) !important;
   --Labels-Quaternary: color-mix(in srgb, ${r} 28%, transparent) !important;
-  --Colors-KMBlue: ${a} !important;
-  --Others-KMBlue10: color-mix(in srgb, ${a} 12%, transparent) !important;
-  --Others-BubbleBlue: color-mix(in srgb, ${a} 26%, ${o}) !important;
-  --Others-TextSelected: color-mix(in srgb, ${a} 22%, transparent) !important;
-  --Syntax-Mark: ${a} !important;
+  --Colors-KMBlue: ${n} !important;
+  --Others-KMBlue10: color-mix(in srgb, ${n} 12%, transparent) !important;
+  --Others-BubbleBlue: color-mix(in srgb, ${n} 26%, ${o}) !important;
+  --Others-TextSelected: color-mix(in srgb, ${n} 22%, transparent) !important;
+  --Syntax-Mark: ${n} !important;
 }
 html, body, .page {
   background-color: ${o} !important;
@@ -1721,7 +2239,7 @@ body {
 }
 .sidebar {
   background: color-mix(in srgb, ${o} 30%, transparent) !important;
-  border-right: 1px solid color-mix(in srgb, ${a} 18%, transparent) !important;
+  border-right: 1px solid color-mix(in srgb, ${n} 18%, transparent) !important;
   color: ${r} !important;
 }
 main.main-pane {
@@ -1744,7 +2262,7 @@ main.main-pane {
 }
 .app > .main .chat-editor-content {
   background: color-mix(in srgb, ${o} 42%, transparent) !important;
-  border-color: color-mix(in srgb, ${a} 24%, transparent) !important;
+  border-color: color-mix(in srgb, ${n} 24%, transparent) !important;
 }
 main.main-pane .conversation-tab,
 main.main-pane .conversation-view,
@@ -1754,7 +2272,7 @@ main.main-pane [class*="conversation"] {
 }
 main.main-pane :where([class*="message"], [class*="chat"], [class*="composer"], [class*="input"], [contenteditable="true"], textarea) {
   background-color: color-mix(in srgb, ${o} 66%, transparent) !important;
-  border-color: color-mix(in srgb, ${a} 30%, transparent) !important;
+  border-color: color-mix(in srgb, ${n} 30%, transparent) !important;
   color: ${r} !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
@@ -1777,17 +2295,17 @@ main.main-pane :where([class*="message"], [class*="chat"], [class*="composer"], 
 }
 [contenteditable="true"], textarea, input {
   color: ${r} !important;
-  caret-color: ${a} !important;
+  caret-color: ${n} !important;
 }
 :where(button[class*="primary"], button[mode="primary"]) {
-  background-color: ${a} !important;
+  background-color: ${n} !important;
   color: #ffffff !important;
 }
 .nav-item, .mode-tab, .sidebar-scroll a, .sidebar-scroll span, .sidebar-footer, .account {
   color: ${r} !important;
 }
 .nav-item:hover, .mode-tab:hover, [class*="nav-item"]:hover {
-  background-color: color-mix(in srgb, ${a} 18%, transparent) !important;
+  background-color: color-mix(in srgb, ${n} 18%, transparent) !important;
 }
 .win-titlebar-drag {
   background: transparent !important;
@@ -1796,10 +2314,10 @@ main.main-pane :where([class*="message"], [class*="chat"], [class*="composer"], 
 }
 .message-list-container:where(.top) {
   display: none !important;
-}`}function ea(e){return`(() => {
+}`}function sn(e){return`(() => {
     const themes = ${JSON.stringify(e.themes)};
     const cssTemplate = ${JSON.stringify(e.cssTemplate)};
-    const sentinels = ${JSON.stringify(k)};
+    const sentinels = ${JSON.stringify(y)};
     const restoreKey = 'dream-work-theme:hana-agent:restored';
     const customStorageKey = 'dreamCodexCustomThemes';
     const selectedKey = 'dream-work-theme:hana-agent:selected-theme';
@@ -2120,7 +2638,7 @@ main.main-pane :where([class*="message"], [class*="chat"], [class*="composer"], 
       else applyTheme('${e.currentThemeId}');
     }
     return true;
-  })()`}function ta(e){return`
+  })()`}function cn(e){return`
 /* QoderWork shell controls */
 body > #root > div:first-child > div:first-child button[aria-label] {
   background-color: transparent !important;
@@ -2182,7 +2700,7 @@ body > #root > div:first-child > div:first-child button[aria-label="Close"]:hove
 .agents-sidebar button svg,
 body > #root > div:first-child > div:first-child button[aria-label] svg {
   color: currentColor !important;
-}`}function na(e,t){return`
+}`}function ln(e,t){return`
 /* CatPaw new-task and conversation surfaces */
 html body #root .main-area {
   position: relative !important;
@@ -2232,12 +2750,12 @@ html body #root .catpaw-desk-inputBox :where(button, [role="button"]):hover {
 html body #root .catpaw-desk-inputBox :where(svg, svg *) {
   color: currentColor !important;
 }
-`}function Ye(e,t=""){return JSON.stringify(typeof e=="string"?e:t)}function bt(e,t,n){var o,r;return`/* DREAM_THEME:${String(e.id??"custom").replace(/[^a-z0-9_-]/gi,"")} */
+`}function tt(e,t=""){return JSON.stringify(typeof e=="string"?e:t)}function wt(e,t,a){var o,r;return`/* DREAM_THEME:${String(e.id??"custom").replace(/[^a-z0-9_-]/gi,"")} */
 body[data-application-name="workbuddy"] {
-  --wb-accent: ${n.accent};
-  --wb-secondary: ${n.secondary};
-  --wb-surface: ${n.surface};
-  --wb-text: ${n.text};
+  --wb-accent: ${a.accent};
+  --wb-secondary: ${a.secondary};
+  --wb-surface: ${a.surface};
+  --wb-text: ${a.text};
 
   /* 背景 */
   --cb-bg-primary: var(--wb-surface) !important;
@@ -2339,7 +2857,7 @@ body[data-application-name="workbuddy"] {
   z-index: 20;
   top: 60px;
   left: max(300px, 22vw);
-  content: ${Ye((o=e.copy)==null?void 0:o.brand)};
+  content: ${tt((o=e.copy)==null?void 0:o.brand)};
   color: var(--wb-accent);
   font: 800 clamp(16px, 2vw, 30px)/1.2 ui-rounded, system-ui;
   text-shadow: 0 2px 10px white;
@@ -2353,31 +2871,31 @@ body[data-application-name="workbuddy"] {
   top: 104px;
   left: max(300px, 22vw);
   max-width: 42vw;
-  content: ${Ye((r=e.copy)==null?void 0:r.headline)};
+  content: ${tt((r=e.copy)==null?void 0:r.headline)};
   color: var(--wb-text);
   font: 750 clamp(18px, 2.7vw, 42px)/1.15 ui-rounded, system-ui;
   text-shadow: 0 2px 12px white;
   pointer-events: none;
-}`}function aa(e,t,n){const a=oa(n.surface),o=a?`color-mix(in srgb, ${n.surface} 90%, transparent)`:`color-mix(in srgb, ${n.surface} 86%, transparent)`,r=a?`color-mix(in srgb, ${n.accent} 16%, ${n.surface})`:`color-mix(in srgb, ${n.accent} 42%, ${n.surface})`,i=a?"#172033":`color-mix(in srgb, ${n.surface} 72%, #000000)`,l="#f2f6ff",s=`/* DREAM_THEME:${e.id} */
+}`}function dn(e,t,a){const n=kt(a.surface),o=n?`color-mix(in srgb, ${a.surface} 90%, transparent)`:`color-mix(in srgb, ${a.surface} 86%, transparent)`,r=n?`color-mix(in srgb, ${a.accent} 16%, ${a.surface})`:`color-mix(in srgb, ${a.accent} 42%, ${a.surface})`,s=n?"#172033":`color-mix(in srgb, ${a.surface} 72%, #000000)`,c="#f2f6ff",i=`/* DREAM_THEME:${e.id} */
 :root.codex-dream-skin {
-  --ds-bg: ${n.surface};
-  --ds-panel: ${n.surface};
-  --ds-panel-2: ${n.surface};
-  --ds-surface: ${n.surface};
-  --ds-green: ${n.accent};
-  --ds-lime: ${n.secondary};
-  --ds-cyan: ${n.secondary};
-  --ds-purple: ${n.accent};
-  --ds-text: ${n.text};
-  --ds-muted: color-mix(in srgb, ${n.text} 82%, transparent);
-  --ds-line: color-mix(in srgb, ${n.accent} 22%, transparent);
+  --ds-bg: ${a.surface};
+  --ds-panel: ${a.surface};
+  --ds-panel-2: ${a.surface};
+  --ds-surface: ${a.surface};
+  --ds-green: ${a.accent};
+  --ds-lime: ${a.secondary};
+  --ds-cyan: ${a.secondary};
+  --ds-purple: ${a.accent};
+  --ds-text: ${a.text};
+  --ds-muted: color-mix(in srgb, ${a.text} 82%, transparent);
+  --ds-line: color-mix(in srgb, ${a.accent} 22%, transparent);
   --ds-hero-height: 252px;
   --ds-radius: 24px;
   --dream-skin-art: url(${JSON.stringify(t)});
-}`,c=`/* DREAM_THEME_BODY:${e.id} */
+}`,l=`/* DREAM_THEME_BODY:${e.id} */
 html.codex-dream-skin[data-dream-theme],
 html.codex-dream-skin[data-dream-theme] body {
-  background-color: ${n.surface} !important;
+  background-color: ${a.surface} !important;
   background-image: var(--dream-skin-art) !important;
   background-position: center center !important;
   background-size: cover !important;
@@ -2389,7 +2907,7 @@ html.codex-dream-skin[data-dream-theme] main.main-surface,
 html.codex-dream-skin[data-dream-theme] main.main-surface:not(.dream-skin-home-shell) {
   position: relative !important;
   isolation: isolate !important;
-  background-color: color-mix(in srgb, ${n.surface} 12%, transparent) !important;
+  background-color: color-mix(in srgb, ${a.surface} 12%, transparent) !important;
   background-image: none !important;
 }
 
@@ -2399,30 +2917,30 @@ html.codex-dream-skin[data-dream-theme] main.main-surface::before {
 }
 
 html.codex-dream-skin[data-dream-theme] aside.app-shell-left-panel {
-  background: color-mix(in srgb, ${n.surface} 30%, transparent) !important;
+  background: color-mix(in srgb, ${a.surface} 30%, transparent) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
 
 html.codex-dream-skin[data-dream-theme] main.main-surface > header.app-header-tint {
-  background: color-mix(in srgb, ${n.surface} 16%, transparent) !important;
+  background: color-mix(in srgb, ${a.surface} 16%, transparent) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
 
 html.codex-dream-skin main.main-surface [role="main"],
 html.codex-dream-skin main.main-surface .thread-scroll-container {
-  --color-token-conversation-body: ${n.text} !important;
-  --color-token-text-secondary: color-mix(in srgb, ${n.text} 76%, transparent) !important;
-  --color-token-text-tertiary: color-mix(in srgb, ${n.text} 58%, transparent) !important;
-  --color-token-conversation-summary-leading: color-mix(in srgb, ${n.text} 88%, transparent) !important;
-  --color-token-conversation-summary-trailing: color-mix(in srgb, ${n.text} 68%, transparent) !important;
-  --color-token-conversation-header: color-mix(in srgb, ${n.text} 78%, transparent) !important;
-  --color-token-description-foreground: color-mix(in srgb, ${n.text} 72%, transparent) !important;
-  --shimmer-text-secondary: color-mix(in srgb, ${n.text} 68%, transparent) !important;
-  --shimmer-contrast: ${n.text} !important;
+  --color-token-conversation-body: ${a.text} !important;
+  --color-token-text-secondary: color-mix(in srgb, ${a.text} 76%, transparent) !important;
+  --color-token-text-tertiary: color-mix(in srgb, ${a.text} 58%, transparent) !important;
+  --color-token-conversation-summary-leading: color-mix(in srgb, ${a.text} 88%, transparent) !important;
+  --color-token-conversation-summary-trailing: color-mix(in srgb, ${a.text} 68%, transparent) !important;
+  --color-token-conversation-header: color-mix(in srgb, ${a.text} 78%, transparent) !important;
+  --color-token-description-foreground: color-mix(in srgb, ${a.text} 72%, transparent) !important;
+  --shimmer-text-secondary: color-mix(in srgb, ${a.text} 68%, transparent) !important;
+  --shimmer-contrast: ${a.text} !important;
   background-color: transparent !important;
-  color: ${n.text} !important;
+  color: ${a.text} !important;
 }
 
 html.codex-dream-skin main.main-surface:not(.dream-skin-home-shell) {
@@ -2434,9 +2952,9 @@ html.codex-dream-skin main.main-surface:not(.dream-skin-home-shell) article,
 html.codex-dream-skin main.main-surface:not(.dream-skin-home-shell) .message,
 html.codex-dream-skin main.main-surface:not(.dream-skin-home-shell) [data-message-author-role],
 html.codex-dream-skin main.main-surface:not(.dream-skin-home-shell) [class*="surface"]:not(.composer-surface-chrome):not([class*="home-main-content"]) {
-  border-color: color-mix(in srgb, ${n.accent} 24%, transparent) !important;
+  border-color: color-mix(in srgb, ${a.accent} 24%, transparent) !important;
   background: ${o} !important;
-  color: ${n.text} !important;
+  color: ${a.text} !important;
   text-shadow: none !important;
   backdrop-filter: blur(18px) saturate(108%) !important;
 }
@@ -2444,7 +2962,7 @@ html.codex-dream-skin main.main-surface:not(.dream-skin-home-shell) [class*="sur
 html.codex-dream-skin main.main-surface:not(.dream-skin-home-shell) [data-message-author-role="user"],
 html.codex-dream-skin main.main-surface:not(.dream-skin-home-shell) [class*="bg-token-foreground"] {
   background: ${r} !important;
-  color: ${n.text} !important;
+  color: ${a.text} !important;
 }
 
 html.codex-dream-skin main.main-surface:not(.dream-skin-home-shell)
@@ -2455,7 +2973,7 @@ html.codex-dream-skin main.main-surface:not(.dream-skin-home-shell)
   .thread-scroll-container :where(.text-token-conversation-body, .text-token-text-secondary, .group/activity-header),
 html.codex-dream-skin main.main-surface:not(.dream-skin-home-shell)
   .thread-scroll-container .group/activity-header :where(span, svg) {
-  color: ${n.text} !important;
+  color: ${a.text} !important;
   text-shadow: none !important;
 }
 
@@ -2468,42 +2986,42 @@ html.codex-dream-skin main.main-surface:not(.dream-skin-home-shell)
     [data-message-author-role],
     [data-message-author-role] *
   ) {
-  color: ${n.text} !important;
+  color: ${a.text} !important;
   text-shadow: none !important;
 }
 
 html.codex-dream-skin main.main-surface:not(.dream-skin-home-shell)
   .thread-scroll-container * {
-  color: ${n.text} !important;
+  color: ${a.text} !important;
 }
 
 html.codex-dream-skin main.main-surface:not(.dream-skin-home-shell)
   .thread-scroll-container [class*="_markdownContent_"] a {
-  color: ${n.accent} !important;
+  color: ${a.accent} !important;
 }
 
 html.codex-dream-skin .composer-surface-chrome {
-  background: color-mix(in srgb, ${n.surface} 92%, transparent) !important;
-  color: ${n.text} !important;
+  background: color-mix(in srgb, ${a.surface} 92%, transparent) !important;
+  color: ${a.text} !important;
 }
 
 html.codex-dream-skin .composer-surface-chrome *,
 html.codex-dream-skin .composer-surface-chrome .ProseMirror {
-  color: ${n.text} !important;
-  caret-color: ${n.accent} !important;
+  color: ${a.text} !important;
+  caret-color: ${a.accent} !important;
 }
 
 html.codex-dream-skin main.main-surface pre,
 html.codex-dream-skin main.main-surface code,
 html.codex-dream-skin main.main-surface table,
 html.codex-dream-skin main.main-surface [data-testid*="code"] {
-  background: ${i} !important;
-  color: ${l} !important;
+  background: ${s} !important;
+  color: ${c} !important;
   text-shadow: none !important;
 }
 
 html.codex-dream-skin main.main-surface :where(pre, code, table) * {
-  color: ${l} !important;
+  color: ${c} !important;
 }
 
 /* The main surface already owns the full artwork; avoid a second hero image. */
@@ -2530,11 +3048,11 @@ html.codex-dream-skin main.main-surface [class*="container-name:home-main-conten
   backdrop-filter: none !important;
 }
 html.codex-dream-skin .dream-skin-home .composer-surface-chrome {
-  background-color: color-mix(in srgb, ${n.surface} 82%, transparent) !important;
+  background-color: color-mix(in srgb, ${a.surface} 82%, transparent) !important;
   backdrop-filter: blur(14px) saturate(106%) !important;
-}`;return s+`
-`+c}function oa(e){const t=/^#([0-9a-f]{6})$/i.exec(e);if(!t)return!0;const n=parseInt(t[1],16);return .299*(n>>16&255)+.587*(n>>8&255)+.114*(n&255)>140}function ra(e){return`(() => {
-  const data = ${JSON.stringify({styleId:e.styleId,menuId:e.menuId,activeId:e.currentThemeId,themes:e.themes,cssTemplate:e.cssTemplate,sentinels:k,storageKey:"dreamCustomThemes",selectedKey:"wb-dream-selected",sharedCustomThemes:e.sharedCustomThemes,sharedCustomThemeService:e.sharedCustomThemeService})};
+}`;return i+`
+`+l}function kt(e){const t=/^#([0-9a-f]{6})$/i.exec(e);if(!t)return!0;const a=parseInt(t[1],16);return .299*(a>>16&255)+.587*(a>>8&255)+.114*(a&255)>140}function mn(e){return`(() => {
+  const data = ${JSON.stringify({styleId:e.styleId,menuId:e.menuId,activeId:e.currentThemeId,themes:e.themes,cssTemplate:e.cssTemplate,sentinels:y,storageKey:"dreamCustomThemes",selectedKey:"wb-dream-selected",sharedCustomThemes:e.sharedCustomThemes,sharedCustomThemeService:e.sharedCustomThemeService})};
   const recordPresetUsage = (themeId) => fetch(data.sharedCustomThemeService.usageEndpoint, {
     method: "POST",
     headers: { Authorization: "Bearer " + data.sharedCustomThemeService.token, "Content-Type": "application/json" },
@@ -2854,12 +3372,12 @@ html.codex-dream-skin .dream-skin-home .composer-surface-chrome {
 
   window.__dreamTheme = { importFromDataUrl, setTheme, clearTheme, deleteCustom };
   return true;
-})()`}function sa(e){const t=JSON.stringify(e.themes),n=JSON.stringify(e.cssTemplate??""),a=e.appId,o=e.monkeyCodeModern===!0;return`(() => {
+})()`}function un(e){const t=JSON.stringify(e.themes),a=JSON.stringify(e.cssTemplate??""),n=e.appId,o=e.monkeyCodeModern===!0;return`(() => {
   const themes = ${t};
-  const cssTemplate = ${n};
-  const sentinels = ${JSON.stringify(k)};
+  const cssTemplate = ${a};
+  const sentinels = ${JSON.stringify(y)};
   const currentThemeId = '${e.currentThemeId}';
-  const appId = '${a}';
+  const appId = '${n}';
   if (appId === 'monkeycode') {
     document.documentElement.dataset.dreamMonkeycodeModern = ${JSON.stringify(o?"true":"false")};
   }
@@ -2910,10 +3428,28 @@ html.codex-dream-skin .dream-skin-home .composer-surface-chrome {
     const v = parseInt(m[1], 16);
     return (0.299 * ((v >> 16) & 255) + 0.587 * ((v >> 8) & 255) + 0.114 * (v & 255)) > 140;
   };
+  const syncAutoClawMode = (dark) => {
+    if (appId !== 'autoclaw') return;
+    const html = document.documentElement;
+    const body = document.body;
+    html.dataset.theme = dark ? 'dark' : 'light';
+    body.dataset.theme = dark ? 'dark' : 'light';
+    html.style.colorScheme = dark ? 'dark' : 'light';
+    body.style.colorScheme = dark ? 'dark' : 'light';
+    [html, body].forEach((target) => {
+      target.classList.toggle('dark', dark);
+      target.classList.toggle('vscode-dark', dark);
+      target.classList.toggle('cb-dark', dark);
+      target.classList.toggle('light', !dark);
+      target.classList.toggle('vscode-light', !dark);
+      target.classList.toggle('cb-light', !dark);
+    });
+  };
   const applyMode = (surface) => {
     const dark = !isLightSurface(surface);
     const body = document.body;
     const html = document.documentElement;
+    syncAutoClawMode(dark);
     html.dataset.dreamShell = dark ? "dark" : "light";
     body.dataset.vscodeThemeKind = dark ? "vscode-dark" : "vscode-light";
     body.dataset.vscodeThemeName = dark ? "IDE Dark" : "IDE Light";
@@ -2927,6 +3463,10 @@ html.codex-dream-skin .dream-skin-home .composer-surface-chrome {
     if (appId === 'monkeycode') {
       html.dataset.theme = dark ? 'dark' : 'light';
       html.style.background = surface;
+    }
+    if (appId === 'autoclaw') {
+      clearInterval(window.__dreamAutoClawModeGuard);
+      window.__dreamAutoClawModeGuard = setInterval(() => syncAutoClawMode(dark), 250);
     }
   };
   if (!window[nativeModeKey]) {
@@ -2948,6 +3488,9 @@ html.codex-dream-skin .dream-skin-home .composer-surface-chrome {
       monkeyCodeStoredTheme: appId === 'monkeycode' ? localStorage.getItem('mc.theme') : null,
       monkeyCodeStoredBackground: appId === 'monkeycode' ? localStorage.getItem('mc.themeBg') : null,
       stepFunTheme: appId === 'stepfun' ? localStorage.getItem('theme') : null,
+      autoClawHtmlTheme: appId === 'autoclaw' ? html.dataset.theme : undefined,
+      autoClawBodyTheme: appId === 'autoclaw' ? body.dataset.theme : undefined,
+      autoClawBodyColorScheme: appId === 'autoclaw' ? body.style.colorScheme : undefined,
     };
     if (appId === 'monkeycode' && !monkeyCodeNative) {
       try { localStorage.setItem(monkeyCodeNativeKey, JSON.stringify(window[nativeModeKey])); } catch {}
@@ -2958,6 +3501,14 @@ html.codex-dream-skin .dream-skin-home .composer-surface-chrome {
     if (!nativeMode) return;
     const html = document.documentElement;
     const body = document.body;
+    if (appId === 'autoclaw') {
+      clearInterval(window.__dreamAutoClawVisualGuard);
+      delete window.__dreamAutoClawVisualGuard;
+    }
+    if (appId === 'autoclaw') {
+      clearInterval(window.__dreamAutoClawModeGuard);
+      delete window.__dreamAutoClawModeGuard;
+    }
     let nativeDark = nativeMode.htmlClasses.includes('dark') || nativeMode.bodyClasses.includes('dark');
     if (appId === 'minimax-code' || appId === 'agnes-code' || appId === 'astronclaw' || appId === 'stepfun') {
       try {
@@ -3010,6 +3561,13 @@ html.codex-dream-skin .dream-skin-home .composer-surface-chrome {
           else localStorage.setItem('mc.themeBg', nativeMode.monkeyCodeStoredBackground);
           localStorage.removeItem(monkeyCodeNativeKey);
         } catch {}
+      }
+      if (appId === 'autoclaw') {
+        if (nativeMode.autoClawHtmlTheme === undefined) delete html.dataset.theme;
+        else html.dataset.theme = nativeMode.autoClawHtmlTheme;
+        if (nativeMode.autoClawBodyTheme === undefined) delete body.dataset.theme;
+        else body.dataset.theme = nativeMode.autoClawBodyTheme;
+        body.style.colorScheme = nativeMode.autoClawBodyColorScheme || '';
       }
     }
     delete html.dataset.dreamShell;
@@ -3087,6 +3645,22 @@ html.codex-dream-skin .dream-skin-home .composer-surface-chrome {
     void writeStepFunState(themeId, actionAt);
     void writeSparkDeskState(themeId, actionAt);
     if (appId !== 'hana-agent' && appId !== 'kimi' && appId !== 'stepfun') applyMode(theme.surface);
+    if (appId === 'autoclaw') {
+      const dark = !isLightSurface(theme.surface);
+      const iconImageCss = 'width:20px!important;height:20px!important;filter:none!important;opacity:1!important;';
+      const iconFrameCss = 'width:24px!important;height:24px!important;border-radius:7px!important;background:' + (dark ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.08)') + '!important;box-shadow:inset 0 0 0 1px ' + (dark ? 'rgba(255,255,255,.28)' : 'rgba(0,0,0,.18)') + '!important;';
+      const headerCss = 'background:transparent!important;background-color:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;';
+      const applyAutoClawInlineOverrides = () => {
+        document.querySelectorAll('.figma-sidebar-tab .figma-sidebar-tab-img').forEach((node) => { node.style.cssText += iconImageCss; });
+        document.querySelectorAll('.figma-sidebar-tab .figma-sidebar-tab-icon-frame').forEach((node) => { node.style.cssText += iconFrameCss; });
+        document.querySelectorAll('.auto-designer-main-header, .auto-coder-main-header, .new-chat-home-header, .autoclaw-content-header, [class*="main-header"]').forEach((node) => {
+          node.style.cssText += headerCss;
+        });
+      };
+      applyAutoClawInlineOverrides();
+      clearInterval(window.__dreamAutoClawVisualGuard);
+      window.__dreamAutoClawVisualGuard = setInterval(applyAutoClawInlineOverrides, 300);
+    }
     
     // Codex themes require the codex-dream-skin class on <html> for CSS selectors to match
     if (appId === 'codex') {
@@ -3525,23 +4099,23 @@ html.codex-dream-skin .dream-skin-home .composer-surface-chrome {
     appStateEndpoint: sharedCustomThemeService.appStateEndpoint,
   };
   ensureInjectedNodes();
-})()`}async function ia(e){try{return x.platform()==="win32"?ca(e):x.platform()==="darwin"?la(e):x.platform()==="linux"?da(e):{success:!1,error:`Unsupported platform: ${x.platform()}`}}catch(t){return{success:!1,error:t.message}}}function ca(e){const t=d.join(x.homedir(),"Desktop"),n=d.join(t,`${e.label}.lnk`),a=process.execPath,o=d.dirname(a),r=`
+})()`}async function pn(e){try{return k.platform()==="win32"?hn(e):k.platform()==="darwin"?gn(e):k.platform()==="linux"?bn(e):{success:!1,error:`Unsupported platform: ${k.platform()}`}}catch(t){return{success:!1,error:t.message}}}function hn(e){const t=d.join(k.homedir(),"Desktop"),a=d.join(t,`${e.label}.lnk`),n=process.execPath,o=d.dirname(n),r=`
     $WshShell = New-Object -comObject WScript.Shell
-    $Shortcut = $WshShell.CreateShortcut("${n.replace(/\\/g,"\\\\")}")
-    $Shortcut.TargetPath = "${a.replace(/\\/g,"\\\\")}"
+    $Shortcut = $WshShell.CreateShortcut("${a.replace(/\\/g,"\\\\")}")
+    $Shortcut.TargetPath = "${n.replace(/\\/g,"\\\\")}"
     $Shortcut.Arguments = "--launch=${e.appId}:${e.themeId}"
     $Shortcut.WorkingDirectory = "${o.replace(/\\/g,"\\\\")}"
     $Shortcut.Save()
-  `;return new Promise(i=>{require("child_process").exec(`powershell -Command "${r.replace(/"/g,'\\"')}"`,l=>{i(l?{success:!1,error:l.message}:{success:!0,path:n})})})}function la(e){const t=d.join(x.homedir(),"Desktop"),n=d.join(t,`${e.label}.app`),o=`
+  `;return new Promise(s=>{require("child_process").exec(`powershell -Command "${r.replace(/"/g,'\\"')}"`,c=>{s(c?{success:!1,error:c.message}:{success:!0,path:a})})})}function gn(e){const t=d.join(k.homedir(),"Desktop"),a=d.join(t,`${e.label}.app`),o=`
     tell application "Terminal"
       do script "'${process.execPath}' --launch=${e.appId}:${e.themeId}"
     end tell
-  `,r=d.join(t,`${e.id}.scpt`);return h.writeFileSync(r,o),new Promise(i=>{require("child_process").exec(`osacompile -o "${n}" "${r}"`,l=>{h.unlinkSync(r),i(l?{success:!1,error:l.message}:{success:!0,path:n})})})}async function da(e){const t=d.join(x.homedir(),".local","share","applications");h.existsSync(t)||h.mkdirSync(t,{recursive:!0});const n=d.join(t,`${e.id}.desktop`),a=process.execPath,o=`[Desktop Entry]
+  `,r=d.join(t,`${e.id}.scpt`);return h.writeFileSync(r,o),new Promise(s=>{require("child_process").exec(`osacompile -o "${a}" "${r}"`,c=>{h.unlinkSync(r),s(c?{success:!1,error:c.message}:{success:!0,path:a})})})}async function bn(e){const t=d.join(k.homedir(),".local","share","applications");h.existsSync(t)||h.mkdirSync(t,{recursive:!0});const a=d.join(t,`${e.id}.desktop`),n=process.execPath,o=`[Desktop Entry]
 Type=Application
 Name=${e.label}
-Exec="${a}" --launch=${e.appId}:${e.themeId}
+Exec="${n}" --launch=${e.appId}:${e.themeId}
 Icon=${e.icon||"utilities-terminal"}
 Terminal=false
 Categories=Utility;
-`;return h.writeFileSync(n,o),h.chmodSync(n,493),{success:!0,path:n}}const ma=Be.promisify(de.execFile),ua="https://api.dreamskin.cc",wt=`${ua}/v1/themes`,kt=32*1024*1024,Se=6;let Ie=0;async function pa(){const e=Ie,t=await ha(e),n=t.items;Ie=e+n.length>=t.total?0:e+Se;const a=it(),o={checked:n.length,imported:0,skipped:0,offset:e,page:Math.floor(e/Se)+1,total:t.total,nextOffset:Ie,failed:[]};for(const r of n){const i=ka(r.themeId);if(!r.applyCompatible||ct(i)){o.skipped++;continue}try{await ga(r,a,i)?o.imported++:o.skipped++}catch(l){o.failed.push({id:r.id,name:r.name,error:l.message})}}return o}async function ha(e){const t=`${wt}?limit=${Se}&offset=${e}&sort=recent`,n=await fetch(t,{signal:AbortSignal.timeout(3e4),redirect:"error"});if(!n.ok)throw new Error(`Theme list request failed: HTTP ${n.status}`);const a=await n.json();if(!Array.isArray(a.items)||a.items.length>Se||!Number.isInteger(a.total)||a.total<0)throw new Error("Theme list response is invalid");return{items:a.items,total:a.total}}async function ga(e,t,n){wa(e);const a=h.mkdtempSync(d.join(x.tmpdir(),"dream-work-theme-")),o=d.join(a,"theme.zip"),r=d.join(a,"extract"),i=d.join(t,`.updating-${n}-${process.pid}`);try{h.mkdirSync(r);const l=`${wt}/${e.id}/download`,s=await fetch(l,{signal:AbortSignal.timeout(12e4),redirect:"error"});if(!s.ok)throw new Error(`Theme download failed: HTTP ${s.status}`);const c=Buffer.from(await s.arrayBuffer());if(c.length!==e.packageBytes)throw new Error(`Downloaded size mismatch: expected ${e.packageBytes}, got ${c.length}`);if(c.length>kt)throw new Error("Theme package exceeds 32 MiB");if(Le.createHash("sha256").update(c).digest("hex")!==e.packageSha256)throw new Error("Downloaded SHA-256 does not match metadata");h.writeFileSync(o,c,{flag:"wx"}),await fa(o,r);const p=ba(r),m=JSON.parse(h.readFileSync(d.join(p,"theme.json"),"utf8")),g=m.image;if(typeof g!="string"||d.basename(g)!==g||!/\.(png|jpe?g|webp)$/i.test(g))throw new Error("Theme image name is invalid");const b=d.join(p,g),E=d.join(p,"theme.css");if(!h.existsSync(b)||!h.statSync(b).isFile())throw new Error("Theme image is missing");if(!h.existsSync(E)||!h.statSync(E).isFile())throw new Error("theme.css is missing");const N=ya(m,e,n,`hero${d.extname(g).toLowerCase()}`);return bn(N.name,N.author,b)?!1:(h.mkdirSync(i),h.copyFileSync(b,d.join(i,N.hero)),h.copyFileSync(E,d.join(i,"theme.css")),h.writeFileSync(d.join(i,"theme.json"),`${JSON.stringify(N,null,2)}
-`),h.renameSync(i,d.join(t,n)),!0)}finally{h.rmSync(i,{recursive:!0,force:!0}),h.rmSync(a,{recursive:!0,force:!0})}}async function fa(e,t){const{path7za:n}=require("7zip-bin");await ma(n,["x",e,`-o${t}`,"-y"],{windowsHide:!0,timeout:12e4})}function ba(e){const n=[e,...h.readdirSync(e,{withFileTypes:!0}).filter(a=>a.isDirectory()).map(a=>d.join(e,a.name))].filter(a=>h.existsSync(d.join(a,"theme.json"))&&h.existsSync(d.join(a,"theme.css")));if(n.length!==1)throw new Error("Theme ZIP must contain one theme root");return n[0]}function wa(e){if(!/^ver_[a-z0-9]{8,64}$/.test(e.id))throw new Error("Theme version ID is invalid");if(!Number.isInteger(e.packageBytes)||e.packageBytes<1||e.packageBytes>kt)throw new Error("Theme package size is invalid");if(!/^[a-f0-9]{64}$/.test(e.packageSha256))throw new Error("Theme package SHA-256 is invalid")}function ka(e){return String(e).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").replace(/-+/g,"-")||"community-theme"}function ya(e,t,n,a){const o=e.appearance==="dark"?"dark":"light",r=o==="dark"?"#10141c":"#f4f7fa",i=e.colors||{};return{schemaVersion:1,id:n,name:String(e.name||t.name||n).trim(),author:t.authorDisplayName||"DreamSkin Community",hero:a,colors:{accent:ee(i.accent,"#4f8cff",r),secondary:ee(i.secondary||i.accentAlt,"#7ba7d8",r),surface:ee(i.panelAlt||i.panel||i.background,r,r),text:ee(i.text,o==="dark"?"#eef2f7":"#1f2937",r)},copy:null,apps:Object.fromEntries(be.filter(l=>!l.acceptsGenericThemes).map(l=>[l.id,{compat:!0}]))}}function ee(e,t,n){if(typeof e!="string")return t;const a=e.trim().match(/^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i);if(a){let s=a[1];return s.length===3&&(s=s.split("").map(c=>c+c).join("")),`#${s.slice(0,6).toLowerCase()}`}const o=e.trim().match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*(0|1|0?\.\d+))?\s*\)$/i);if(!o)return t;const r=o[4]===void 0?1:Number(o[4]),i=ee(n,t,t).slice(1).match(/../g).map(s=>parseInt(s,16));return`#${[1,2,3].map(s=>Math.round(Number(o[s])*r+i[s-1]*(1-r))).map(s=>s.toString(16).padStart(2,"0")).join("")}`}let Pe=null;T.protocol.registerSchemesAsPrivileged([{scheme:"theme-asset",privileges:{standard:!0,secure:!0,supportFetchAPI:!0,stream:!0}}]);function yt(){Pe=new T.BrowserWindow({width:1200,height:800,webPreferences:{preload:d.join(__dirname,"preload.js"),contextIsolation:!0,nodeIntegration:!1}}),process.env.VITE_DEV_SERVER_URL?Pe.loadURL(process.env.VITE_DEV_SERVER_URL):Pe.loadFile(d.join(__dirname,"../renderer/dist/index.html"))}T.app.whenReady().then(()=>{T.protocol.handle("theme-asset",e=>{const t=decodeURIComponent(new URL(e.url).pathname.replace(/^\//,"")),n=hn(t);return n?new Response(h.readFileSync(n),{headers:{"Content-Type":xa(n),"Cache-Control":"public, max-age=3600"}}):new Response("Theme asset not found",{status:404})}),yt()});function xa(e){const t=d.extname(e).toLowerCase();return t===".jpg"||t===".jpeg"?"image/jpeg":t===".webp"?"image/webp":"image/png"}T.app.on("window-all-closed",()=>{process.platform!=="darwin"&&T.app.quit()});T.app.on("activate",()=>{T.BrowserWindow.getAllWindows().length===0&&yt()});const et=process.argv.find(e=>e.startsWith("--launch="));if(et){const[,e]=et.split("="),[t,n]=e.split(":");t&&n&&(console.log(`[main] Received launch args: ${t}:${n}`),setTimeout(async()=>{try{const a=await at(t,n);if(a.success){console.log(`[main] Launched ${t} with theme ${n} on port ${a.port}`),console.log(`[main] Starting theme injection for ${t}:${n} on port ${a.port}`);const o=await gt(t,n,a.port);console.log("[main] Injection result:",o)}else console.error(`[main] Failed to launch ${t}: ${a.error}`)}catch(a){console.error("[main] Launch error:",a)}},1e3))}T.ipcMain.handle("discover-apps",async()=>nt());T.ipcMain.handle("launch-app",async(e,t,n)=>at(t,n));T.ipcMain.handle("apply-theme",async(e,t,n,a)=>gt(t,n,a));T.ipcMain.handle("create-shortcut",async(e,t)=>{const n={...t,id:`${t.appId}-${t.themeId}-${Date.now()}`};return ia(n)});T.ipcMain.handle("list-themes",async(e,t)=>Ce(t).map(n=>({id:n.id,name:n.name,author:n.author,hero:gn(n.id)})));T.ipcMain.handle("update-themes",async()=>pa());T.ipcMain.handle("get-status",async(e,t,n)=>{var o;return await Rt(t)?{...await Dn(t,n||((o=O(t))==null?void 0:o.defaultPort)||9339),running:!0}:{installed:!1,menu:!1,targets:0,running:!1}});T.ipcMain.handle("remove-skin",async(e,t,n)=>jn(t,n));T.ipcMain.handle("debug-targets",async(e,t)=>{try{const a=await(await fetch(`http://127.0.0.1:${t}/json/list`,{signal:AbortSignal.timeout(5e3)})).json();return{success:!0,count:a.length,raw:a,targets:a.map(o=>({id:o.id,type:o.type,url:o.url,title:o.title,webSocketDebuggerUrl:o.webSocketDebuggerUrl}))}}catch(n){return{success:!1,error:n.message}}});
+`;return h.writeFileSync(a,o),h.chmodSync(a,493),{success:!0,path:a}}const fn=Be.promisify(Z.execFile),wn="https://api.dreamskin.cc",yt=`${wn}/v1/themes`,xt=32*1024*1024,$e=6;let Ie=0;async function kn(){const e=Ie,t=await yn(e),a=t.items;Ie=e+a.length>=t.total?0:e+$e;const n=ct(),o={checked:a.length,imported:0,skipped:0,offset:e,page:Math.floor(e/$e)+1,total:t.total,nextOffset:Ie,failed:[]};for(const r of a){const s=Cn(r.themeId);if(!r.applyCompatible||lt(s)){o.skipped++;continue}try{await xn(r,n,s)?o.imported++:o.skipped++}catch(c){o.failed.push({id:r.id,name:r.name,error:c.message})}}return o}async function yn(e){const t=`${yt}?limit=${$e}&offset=${e}&sort=recent`,a=await fetch(t,{signal:AbortSignal.timeout(3e4),redirect:"error"});if(!a.ok)throw new Error(`Theme list request failed: HTTP ${a.status}`);const n=await a.json();if(!Array.isArray(n.items)||n.items.length>$e||!Number.isInteger(n.total)||n.total<0)throw new Error("Theme list response is invalid");return{items:n.items,total:n.total}}async function xn(e,t,a){Sn(e);const n=h.mkdtempSync(d.join(k.tmpdir(),"dream-work-theme-")),o=d.join(n,"theme.zip"),r=d.join(n,"extract"),s=d.join(t,`.updating-${a}-${process.pid}`);try{h.mkdirSync(r);const c=`${yt}/${e.id}/download`,i=await fetch(c,{signal:AbortSignal.timeout(12e4),redirect:"error"});if(!i.ok)throw new Error(`Theme download failed: HTTP ${i.status}`);const l=Buffer.from(await i.arrayBuffer());if(l.length!==e.packageBytes)throw new Error(`Downloaded size mismatch: expected ${e.packageBytes}, got ${l.length}`);if(l.length>xt)throw new Error("Theme package exceeds 32 MiB");if(Le.createHash("sha256").update(l).digest("hex")!==e.packageSha256)throw new Error("Downloaded SHA-256 does not match metadata");h.writeFileSync(o,l,{flag:"wx"}),await vn(o,r);const p=$n(r),u=JSON.parse(h.readFileSync(d.join(p,"theme.json"),"utf8")),g=u.image;if(typeof g!="string"||d.basename(g)!==g||!/\.(png|jpe?g|webp)$/i.test(g))throw new Error("Theme image name is invalid");const f=d.join(p,g),A=d.join(p,"theme.css");if(!h.existsSync(f)||!h.statSync(f).isFile())throw new Error("Theme image is missing");if(!h.existsSync(A)||!h.statSync(A).isFile())throw new Error("theme.css is missing");const M=Tn(u,e,a,`hero${d.extname(g).toLowerCase()}`);return va(M.name,M.author,f)?!1:(h.mkdirSync(s),h.copyFileSync(f,d.join(s,M.hero)),h.copyFileSync(A,d.join(s,"theme.css")),h.writeFileSync(d.join(s,"theme.json"),`${JSON.stringify(M,null,2)}
+`),h.renameSync(s,d.join(t,a)),!0)}finally{h.rmSync(s,{recursive:!0,force:!0}),h.rmSync(n,{recursive:!0,force:!0})}}async function vn(e,t){const{path7za:a}=require("7zip-bin");await fn(a,["x",e,`-o${t}`,"-y"],{windowsHide:!0,timeout:12e4})}function $n(e){const a=[e,...h.readdirSync(e,{withFileTypes:!0}).filter(n=>n.isDirectory()).map(n=>d.join(e,n.name))].filter(n=>h.existsSync(d.join(n,"theme.json"))&&h.existsSync(d.join(n,"theme.css")));if(a.length!==1)throw new Error("Theme ZIP must contain one theme root");return a[0]}function Sn(e){if(!/^ver_[a-z0-9]{8,64}$/.test(e.id))throw new Error("Theme version ID is invalid");if(!Number.isInteger(e.packageBytes)||e.packageBytes<1||e.packageBytes>xt)throw new Error("Theme package size is invalid");if(!/^[a-f0-9]{64}$/.test(e.packageSha256))throw new Error("Theme package SHA-256 is invalid")}function Cn(e){return String(e).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").replace(/-+/g,"-")||"community-theme"}function Tn(e,t,a,n){const o=e.appearance==="dark"?"dark":"light",r=o==="dark"?"#10141c":"#f4f7fa",s=e.colors||{};return{schemaVersion:1,id:a,name:String(e.name||t.name||a).trim(),author:t.authorDisplayName||"DreamSkin Community",hero:n,colors:{accent:te(s.accent,"#4f8cff",r),secondary:te(s.secondary||s.accentAlt,"#7ba7d8",r),surface:te(s.panelAlt||s.panel||s.background,r,r),text:te(s.text,o==="dark"?"#eef2f7":"#1f2937",r)},copy:null,apps:Object.fromEntries(fe.filter(c=>!c.acceptsGenericThemes).map(c=>[c.id,{compat:!0}]))}}function te(e,t,a){if(typeof e!="string")return t;const n=e.trim().match(/^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i);if(n){let i=n[1];return i.length===3&&(i=i.split("").map(l=>l+l).join("")),`#${i.slice(0,6).toLowerCase()}`}const o=e.trim().match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*(0|1|0?\.\d+))?\s*\)$/i);if(!o)return t;const r=o[4]===void 0?1:Number(o[4]),s=te(a,t,t).slice(1).match(/../g).map(i=>parseInt(i,16));return`#${[1,2,3].map(i=>Math.round(Number(o[i])*r+s[i-1]*(1-r))).map(i=>i.toString(16).padStart(2,"0")).join("")}`}let Pe=null;T.protocol.registerSchemesAsPrivileged([{scheme:"theme-asset",privileges:{standard:!0,secure:!0,supportFetchAPI:!0,stream:!0}}]);function vt(){Pe=new T.BrowserWindow({width:1200,height:800,webPreferences:{preload:d.join(__dirname,"preload.js"),contextIsolation:!0,nodeIntegration:!1}}),process.env.VITE_DEV_SERVER_URL?Pe.loadURL(process.env.VITE_DEV_SERVER_URL):Pe.loadFile(d.join(__dirname,"../renderer/dist/index.html"))}T.app.whenReady().then(()=>{T.protocol.handle("theme-asset",e=>{const t=decodeURIComponent(new URL(e.url).pathname.replace(/^\//,"")),a=ka(t);return a?new Response(h.readFileSync(a),{headers:{"Content-Type":_n(a),"Cache-Control":"public, max-age=3600"}}):new Response("Theme asset not found",{status:404})}),vt()});function _n(e){const t=d.extname(e).toLowerCase();return t===".jpg"||t===".jpeg"?"image/jpeg":t===".webp"?"image/webp":"image/png"}T.app.on("window-all-closed",()=>{process.platform!=="darwin"&&T.app.quit()});T.app.on("activate",()=>{T.BrowserWindow.getAllWindows().length===0&&vt()});const at=process.argv.find(e=>e.startsWith("--launch="));if(at){const[,e]=at.split("="),[t,a]=e.split(":");t&&a&&(console.log(`[main] Received launch args: ${t}:${a}`),setTimeout(async()=>{try{const n=await ot(t,a);if(n.success){console.log(`[main] Launched ${t} with theme ${a} on port ${n.port}`),console.log(`[main] Starting theme injection for ${t}:${a} on port ${n.port}`);const o=await bt(t,a,n.port);console.log("[main] Injection result:",o)}else console.error(`[main] Failed to launch ${t}: ${n.error}`)}catch(n){console.error("[main] Launch error:",n)}},1e3))}T.ipcMain.handle("discover-apps",async()=>nt());T.ipcMain.handle("launch-app",async(e,t,a)=>ot(t,a));T.ipcMain.handle("apply-theme",async(e,t,a,n)=>bt(t,a,n));T.ipcMain.handle("create-shortcut",async(e,t)=>{const a={...t,id:`${t.appId}-${t.themeId}-${Date.now()}`};return pn(a)});T.ipcMain.handle("list-themes",async(e,t)=>Ce(t).map(a=>({id:a.id,name:a.name,author:a.author,hero:ya(a.id)})));T.ipcMain.handle("update-themes",async()=>kn());T.ipcMain.handle("get-status",async(e,t,a)=>{var o;return await Lt(t)?{...await Ba(t,a||((o=O(t))==null?void 0:o.defaultPort)||9339),running:!0}:{installed:!1,menu:!1,targets:0,running:!1}});T.ipcMain.handle("remove-skin",async(e,t,a)=>La(t,a));T.ipcMain.handle("debug-targets",async(e,t)=>{try{const n=await(await fetch(`http://127.0.0.1:${t}/json/list`,{signal:AbortSignal.timeout(5e3)})).json();return{success:!0,count:n.length,raw:n,targets:n.map(o=>({id:o.id,type:o.type,url:o.url,title:o.title,webSocketDebuggerUrl:o.webSocketDebuggerUrl}))}}catch(a){return{success:!1,error:a.message}}});

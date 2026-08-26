@@ -66,6 +66,8 @@ Dream Work Theme 是面向 Electron Work 类桌面应用的主题管理器。它
 
 ![Dream Work Theme 界面预览](preview20.png)
 
+![Dream Work Theme 界面预览](preview21.png)
+
 </details>
 
 ## 支持应用
@@ -89,9 +91,10 @@ Dream Work Theme 是面向 Electron Work 类桌面应用的主题管理器。它
 - StepFun（阶跃 AI）
 - DeepSeek Harness / DSH Desktop（基于 [anywhere-labs/deepseek-harness-desktop](https://github.com/anywhere-labs/deepseek-harness-desktop) 构建）
 - MonkeyCode（Tauri / WebView2）
+- AutoClaw
 - Codex / ChatGPT Desktop
 
-部分应用使用首选调试端口；QoderWork、千问办公、OpenCode Desktop 和阶跃 AI 通过 `DevToolsActivePort` 获取运行时端口。HanaAgent 首选 `9346`，Kimi Work 首选 `9347`，豆包 Desktop 首选 `9349`，AgnesCode 使用 `9350`，MiniMax Code 首选 `9351`，AstronClaw 首选 `9352`，阶跃 AI 配置首选 `9353`，讯飞星火使用 `9354`，DeepSeek Harness 首选 `9355`，MonkeyCode 首选 `9356`。阶跃客户端会写入并使用自己的动态端口；星火接受固定 `--remote-debugging-port=9354`。启动前会通过真实 TCP bind 检查端口；若首选端口被占用或处于 Windows 幽灵监听状态，普通应用会自动顺延到可用端口，并把真实端口用于后续注入、状态查询和还原。Dream Work Theme 也会等待易重建的 renderer 稳定，并在运行期间自动恢复丢失的主题。
+部分应用使用首选调试端口；QoderWork、千问办公、OpenCode Desktop 和阶跃 AI 通过 `DevToolsActivePort` 获取运行时端口。HanaAgent 首选 `9346`，Kimi Work 首选 `9347`，豆包 Desktop 首选 `9349`，AgnesCode 使用 `9350`，MiniMax Code 首选 `9351`，AstronClaw 首选 `9352`，阶跃 AI 配置首选 `9353`，讯飞星火使用 `9354`，DeepSeek Harness 首选 `9355`，MonkeyCode 首选 `9356`，AutoClaw 首选 `9357`。阶跃客户端会写入并使用自己的动态端口；星火接受固定 `--remote-debugging-port=9354`。启动前会通过真实 TCP bind 检查端口；若首选端口被占用或处于 Windows 幽灵监听状态，普通应用会自动顺延到可用端口，并把真实端口用于后续注入、状态查询和还原。Dream Work Theme 也会等待易重建的 renderer 稳定，并在运行期间自动恢复丢失的主题。
 
 AgnesCode 正式版会主动移除普通的 `--remote-debugging-port` 参数。Dream Work Theme 通过 AgnesCode 内置的 Playwright 调试入口开启 CDP，并显式保留正式安装包中的 `resources/bin/agnesd.exe` 后端路径。该调试入口会让 AgnesCode 将当前会话标记为开发模式，因此其日志中可能出现不影响主题和聊天功能的更新配置检查错误。
 
@@ -301,6 +304,16 @@ Vite 的 CJS API deprecation 当前只是警告，不会导致构建失败。
 - MonkeyCode 以 Windows EXE `ProductVersion` 做样式分支。`26082107` 之前继续使用旧版 rail/aside/章节导航规则；`26082107` 及以后会设置 `data-dream-monkeycode-modern="true"`，并额外透明化新版 `mc-workbench-surface-200` 左侧栏、`mc-workbench-surface-300` 工作台底层和 `mc-workbench-surface-100` pane，避免左右两侧的新 surface 遮挡 hero。
 - `26082107` 新建任务 pane 内还有一个直接全高 `bg-base-100` 滚动主体；新版规则只透明化 `mc-workbench-surface-100` 的该直接子层，不会清除居中的任务输入卡片、textarea、模型和运行环境控件的局部对比背景。
 - 该适配只使用进程环境变量、CDP 和运行时 CSS/JavaScript 注入，不修改 MonkeyCode EXE 或嵌入资源。
+
+### AutoClaw 说明
+
+- Windows 实机验证版本为 AutoClaw `1.17.7`，安装路径为 `D:\Program Files\AutoClaw\AutoClaw.exe`，主 renderer 为 `file:///.../resources/app.asar/out/renderer/index.html`，首选 CDP 端口为 `9357`。
+- AutoClaw 的 Windows manifest 声明 `requestedExecutionLevel="requireAdministrator"`。普通 Electron `spawn()` 会返回 `EACCES`，因此 Dream Work Theme 通过一次 UAC 提权流程按完整路径结束旧实例并携带调试参数启动新实例。启动完成标记用于避免误连即将退出的旧 CDP target。
+- AutoClaw 可能把请求端口顺延到后续端口。启动器会扫描候选端口，并同时校验 `/json/version` 的 AutoClaw User-Agent 和 `/json/list` 中的 `out/renderer/index.html`，再把真实端口交给注入器。
+- 专属 `buildAutoClawCss()` 将 hero 放在固定的 `#root::before` 全窗口底层，并透明化侧栏、会话列表、主体、标题栏、消息滚动层和输入框外层。只有实际输入卡片、消息卡片和必要控件保留局部主题 surface。
+- 主题 `surface` 亮度会同步 AutoClaw 的运行时 `data-theme`、`color-scheme` 和深浅 class。运行时守卫处理 AutoClaw React effect 对原生持久外观的回写，使深色主题保持暗色控件、亮色主题保持亮色控件；还原主题时停止守卫并恢复原生状态。
+- 已验证全窗口背景、右下角菜单、项目/会话 hover 与选中态、顶部三个 Tab 图标、透明右侧标题栏、折叠侧栏、首页和历史对话输入框，以及沉思小助手等页面的底部输入区不被裁剪。
+- AutoClaw 适配只使用 UAC 启动、CDP 和运行时 CSS/JavaScript 注入，不修改 AutoClaw 安装文件。
 
 ## 主题存储
 

@@ -10,7 +10,7 @@
 - 完整 Electron 项目
 - 默认 12 套主题
 - 自定义主题制作 SKILL
-- 当前注册 18 款主流 Work 工具
+- 当前注册 19 款主流 Work 工具
 - 每款工具支持创建"主题+应用"桌面快捷启动图标
 - 注入后右下角显示统一主题菜单按钮（切换/上传/还原）
 - 支持 macOS / Windows / Linux 三端
@@ -344,11 +344,11 @@ dream-work-theme/
 
 ## 9. 当前实现状态与实机适配分析
 
-> 本节记录 2026-08-02 至 2026-08-15 在 Windows 实机上的适配结果。前文是项目早期计划，其中应用数量、主题数量、目录结构、主题兼容模型和 CDP 端口策略已有变化；后续维护应以本节和当前代码为准。
+> 本节记录 2026-08-02 至 2026-08-26 在 Windows 实机上的适配结果。前文是项目早期计划，其中应用数量、主题数量、目录结构、主题兼容模型和 CDP 端口策略已有变化；后续维护应以本节和当前代码为准。
 
 ### 9.1 当前支持范围
 
-项目目前注册以下 18 款 Work 类桌面应用：
+项目目前注册以下 19 款 Work 类桌面应用：
 
 | 应用 ID | 显示名称 | 应用类型 | 默认 CDP 端口 | 当前状态 |
 |---------|----------|----------|---------------|----------|
@@ -369,11 +369,12 @@ dream-work-theme/
 | `sparkdesk` | SparkDesk（讯飞星火） | Electron 桌面应用，多 WebContents、固定端口、专属连续背景与深浅色控件映射 | `9354` | 已验证主壳、聊天/新建任务、多 Tab、星火设置页、深浅主题控件和多页面还原 |
 | `deepseek-harness` | DSH Desktop / DeepSeek Harness | `anywhere-labs/deepseek-harness-desktop` 构建，Electron 桌面壳、本地 HTTP renderer、专属透明层与原生 palette 同步 | `9355` | 已验证新版 `2.0.0` 与旧版 `0.1.0-rc.5` 的发现、启动、整窗背景、侧栏/主体透明层、输入区、居中设置浮层及深浅主题 token 同步 |
 | `monkeycode` | MonkeyCode | Tauri 2 + Rust + Wry + WebView2，环境变量开启 CDP，严格区分主窗口与桌宠 | `9356` | 已验证发现、启动、hero、深浅主题、原生还原、活跃主题 reload 恢复和桌宠隔离 |
+| `autoclaw` | AutoClaw | Electron 桌面应用，Windows 管理员权限启动、动态端口确认、专属全窗口背景与深浅模式同步 | 首选 `9357`，实际端口可能顺延 | 已验证 UAC 启动、主题/菜单注入、全窗口背景、侧栏/主体/输入区、深浅主题和折叠布局 |
 | `codex` | Codex | Codex 专用结构 | `9340` | 已适配 |
 
-源码 `themes/` 当前包含 403 份 `theme.json`。运行时会按主题名称、作者和 hero 内容去重，因此实际菜单/画廊数量可能略少于 manifest 数量。
+源码 `themes/` 当前包含 441 份 `theme.json`。运行时会按主题名称、作者和 hero 内容去重，因此实际菜单/画廊数量可能略少于 manifest 数量。
 
-主题兼容不再依赖为每个应用批量写入 `theme.json.apps`。`listThemes(appId)` 先读取 manifest 的显式 `compat`，未声明时再使用应用注册表的 `acceptsGenericThemes` 默认值。当前 18 款应用均接受通用主题；主题仍可用 `compat:false` 拒绝某款应用，或通过 `layout` 提供应用特例。
+主题兼容不再依赖为每个应用批量写入 `theme.json.apps`。`listThemes(appId)` 先读取 manifest 的显式 `compat`，未声明时再使用应用注册表的 `acceptsGenericThemes` 默认值。当前 19 款应用均接受通用主题；主题仍可用 `compat:false` 拒绝某款应用，或通过 `layout` 提供应用特例。
 
 ### 9.2 当前应用注册架构
 
@@ -710,6 +711,24 @@ D:\Program Files\DeepSeek Harness\DeepSeek Harness.exe
 
 DSH Desktop 和旧 DeepSeek Harness 均接受 `--remote-debugging-port=9355`。注册表优先 `D:\Program Files\DSH Desktop\DSH Desktop.exe`，并保留旧路径回退。Windows 使用 `windowsPathScopedKill`，按实际发现的完整可执行路径结束对应进程，因此新旧进程名均可安全处理。macOS/Linux 候选同步加入 DSH Desktop 名称，但尚未通过安装样本验证。该适配仅针对上述仓库构建的桌面端，不泛化到其他 DeepSeek 客户端。
 
+#### AutoClaw
+
+Windows 实机安装位置：
+
+```text
+D:\Program Files\AutoClaw\AutoClaw.exe
+```
+
+程序元数据与运行特征：
+
+- 验证版本：`1.17.7`
+- Electron 应用入口：`resources/app.asar`
+- 主 renderer：`file:///.../resources/app.asar/out/renderer/index.html`
+- 首选 CDP 端口：`9357`
+- Windows manifest：`requestedExecutionLevel="requireAdministrator"`
+
+AutoClaw 使用 `windowsPathScopedKill`，但普通权限主进程无法可靠结束或直接 `spawn()` 管理员进程；直接启动会返回 `EACCES`。Windows 启动器因此使用 PowerShell `Start-Process -Verb RunAs`，在同一次 UAC 提权流程中按完整 executable 路径结束旧实例并启动带调试参数的新实例。提权脚本通过一次性标记文件通知普通权限启动器“旧实例已结束且新实例已发起”，避免端口扫描误选即将退出的旧 target。macOS 注册候选为 `AutoClaw.app`，Linux 注册候选为 `autoclaw` / `AutoClaw` 和 `autoclaw.desktop`；非 Windows 候选尚待安装样本验证。
+
 ### 9.4 CDP 启动与端口差异
 
 所有应用仍采用 CDP 注入。除 Windows 版 AgnesCode 的受控原生标题栏补丁外，不修改目标应用安装包。普通应用的标准启动参数为：
@@ -735,9 +754,10 @@ DSH Desktop 和旧 DeepSeek Harness 均接受 `--remote-debugging-port=9355`。�
 - StepFun
 - SparkDesk
 - DeepSeek Harness
+- AutoClaw
 - Codex
 
-OpenCode 默认分配 `9348`，但实际运行端口通过 `%APPDATA%\ai.opencode.desktop\DevToolsActivePort` 读取和验证。豆包首选 `9349`，AgnesCode 使用 Playwright 调试入口绑定 `9350`，MiniMax Code 首选 `9351`，AstronClaw 首选 `9352`，StepFun 注册首选 `9353` 但实际运行端口通过 `%APPDATA%\stepfun-desktop\DevToolsActivePort` 读取，讯飞星火使用固定端口 `9354`，DeepSeek Harness 首选 `9355`，MonkeyCode WebView2 首选 `9356`。
+OpenCode 默认分配 `9348`，但实际运行端口通过 `%APPDATA%\ai.opencode.desktop\DevToolsActivePort` 读取和验证。豆包首选 `9349`，AgnesCode 使用 Playwright 调试入口绑定 `9350`，MiniMax Code 首选 `9351`，AstronClaw 首选 `9352`，StepFun 注册首选 `9353` 但实际运行端口通过 `%APPDATA%\stepfun-desktop\DevToolsActivePort` 读取，讯飞星火使用固定端口 `9354`，DeepSeek Harness 首选 `9355`，MonkeyCode WebView2 首选 `9356`，AutoClaw 首选 `9357`。
 
 Windows 可能出现 `netstat` 仍报告某端口由已不存在 PID 监听，但 TCP/HTTP 无法连接的幽灵监听状态。仅用 `connect()` 判断端口关闭会误认为该端口可复用。当前 `launcher.ts` 使用异步 `net.createServer().listen()` 真实尝试绑定端口；绑定失败时顺延扫描最多 100 个端口，并将实际端口返回前端。AstronClaw 实机回归中 `9352` 处于幽灵监听，启动器自动选择 `9353`，随后 `/json/version`、主 renderer 和主题注入均成功。
 
@@ -780,6 +800,8 @@ HanaAgent 首选端口为 `9346`，但其特殊点不是端口，而是 renderer
 
 Kimi Work 首选端口为 `9347`。启动器在 CDP 可用后执行约 `750ms` 的短稳定确认，用于捕获 Windows 父进程异常退出，但不再叠加前端 4 秒或主进程 3 秒固定等待。renderer 就绪后立即调用 `applyTheme()`。
 
+AutoClaw 可能在请求的 `9357` 不可用时自行顺延。启动器不会假设传入端口就是最终端口，而是从候选端口开始扫描 `/json/version`，要求 Browser/User-Agent 包含 `autoclaw`，再通过 `/json/list` 确认存在 `out/renderer/index.html` 主页面。只有通过身份和 renderer 双重校验的端口才返回注入器。提权脚本启动标记必须先完成，避免扫描到旧管理员实例的 CDP 后在 WebSocket 连接时发生 `ECONNREFUSED`。
+
 ### 9.5 渲染页面识别
 
 注入器不会向所有 page target 盲目注入，而是根据 `rendererHints` 匹配主页面 URL。
@@ -803,6 +825,7 @@ Kimi Work 首选端口为 `9347`。启动器在 CDP 可用后执行约 `750ms` �
 | SparkDesk | 宿主：`out/renderer/index.html`；聊天/新建任务：`#desk`；星火设置：`#settings` |
 | DSH Desktop / DeepSeek Harness | 新版 `?dsh-desktop-mode=compatibility&dsh-desktop-platform=win32`；旧版 `?dsh-desktop-platform=win32` |
 | MonkeyCode | 主窗口精确 `http://tauri.localhost/`；桌宠 `http://tauri.localhost/pet.html` 明确排除 |
+| AutoClaw | `app.asar/out/renderer/index.html`、`out/renderer/index.html` |
 | Codex | `index.html`、`renderer/index.html` |
 
 QoderWork 和千问办公还存在 `voice-overlay.html` 页面，ZCode 存在 Stripe iframe 和 worker target，CatPaw 存在 `about:blank` page。HanaAgent 会替换 renderer target；Kimi Work 的 Work 与 Chat 本来就是两个独立 target；豆包还存在 `doubao-launcher` 和 `doubao-background` 辅助页面；StepFun 还存在 `flow-widget`、`popup-menu` 等辅助目标；`SparkDesk` 还存在 `#floating-ball`、`#ai-chat-manager`、`#quickclient`、`#history-panel`、`#upload-panel` 和账号弹窗 `#settings-panel`。DSH Desktop / DeepSeek Harness 当前只暴露一个带 `dsh-desktop-platform=` 参数的主 page target。URL hint 可以避免菜单和主题被错误注入辅助页面，HanaAgent、Kimi、豆包、StepFun 和 SparkDesk 还需要在正确 URL hint 的基础上持续处理 target 创建、导航和更替。
@@ -1306,15 +1329,60 @@ CDP 启动差异：
 - `26082107` 引入新的多 pane 工作台结构。发现阶段只为 MonkeyCode 读取 EXE `ProductVersion`；`parseMonkeyCodeBuild()` 以 `26082107` 为阈值。旧版保持原样，新版页面标记 `data-dream-monkeycode-modern=true`，透明化 `mc-workbench-surface-200/300/100` 三层。实测左侧 `232×1004`、右侧底层 `1688×1004` 和 pane `1688×1004` 均恢复透明。
 - 新建任务 pane 内部另有一个 `mc-workbench-surface-100 > div.flex-1.bg-base-100` 全高滚动主体，原本仍为 72% 不透明。版本限定规则透明化该直接子层；居中 `544×191` 输入卡片和 textarea 继续保留 72%/90% surface。
 
+#### AutoClaw
+
+实机验证环境：
+
+```text
+版本：1.17.7
+主程序：D:\Program Files\AutoClaw\AutoClaw.exe
+主 renderer：file:///D:/Program Files/AutoClaw/resources/app.asar/out/renderer/index.html
+```
+
+启动与端口：
+
+- AutoClaw EXE 的 Windows manifest 要求管理员权限。普通 Electron `spawn()` 对有执行 ACL 且签名有效的文件仍稳定返回 `EACCES`，根因不是文件权限，而是 UAC execution level。
+- `launchElevatedDetached()` 将 executable、工作目录、参数和一次性完成标记编码进提权 PowerShell，不依赖 UAC 进程继承自定义环境变量。
+- 外层提权调用不能使用 `Start-Process -Wait` 等待整个提升进程树，否则 AutoClaw 运行期间启动流程永远不返回；当前流程只等待提权启动命令完成，再由普通权限主进程等待标记和 CDP。
+- AutoClaw 的管理员旧实例由同一提权脚本按完整路径结束。普通权限预清理对 AutoClaw 跳过，避免“日志显示已结束但进程仍存在”的假成功。
+- 一次性标记在旧实例结束、新实例已发起后写入；启动器随后扫描实际 CDP，避免匹配即将关闭的旧端口。
+
+专属 CSS 与全窗口背景：
+
+- 使用 `buildAutoClawCss()`。hero 挂载到固定 `#root::before`，覆盖侧栏和右侧主体的一套连续背景坐标。
+- `.autoclaw-home`、`.autoclaw-shell`、`.autoclaw-sidebar-left`、`.figma-session-sidebar`、`.autoclaw-chat-area`、`.autoclaw-generic-stage`、`.autoclaw-content-region` 和 `.chat-messages` 透明、无大面积 `backdrop-filter`。
+- 左侧项目分组 hover 只高亮标题行，`.nested-agent-group`、展开列表和底部账号入口本身保持透明；中间 resizer 从原生 `10px` 深色区域收窄为 `4px` 透明拖拽区。
+- 右侧 `.auto-designer-main-header` 和同类 main header 通过 CSS 与运行时内联守卫保持透明，React 重建后仍会清除纯白背景、阴影和模糊。
+- AutoClaw 暗色模式原生 `body::before` 环境光渐变会在侧栏折叠、主体扩展后形成半透明覆盖感；主题激活时禁用该全窗伪元素，并清除折叠态聊天区域的伪元素、阴影和滤镜。
+
+深浅模式与控件对比：
+
+- 主题 `surface` 亮度同步 `html/body[data-theme]`、`color-scheme`、`light/dark`、`vscode-*` 和 `cb-*` class。AutoClaw 自身 React effect 可能恢复原生持久外观，因此主题激活期间使用模式守卫维持匹配状态；还原时停止守卫并恢复原生快照。
+- 项目/会话 hover 和选中态、右侧顶部操作、三个模式 Tab、模型/附件/目标/Agent 控件、发送按钮、快捷按钮和输入区均从主题 surface/text/accent 派生亮暗配色。
+- 左上“智能体/聊天平台/定时”使用 data URI SVG 图片，不像底部四个内联 SVG 那样继承 `currentColor`。不能强制黑白滤镜；运行时视觉守卫保留图片原生颜色，将图标增大到 `20px`，并为图标框提供轻量主题对比底色和描边。
+
+输入区与页面高度：
+
+- 通用 `[class*="composer"]` / `[class*="input-container"]` 规则会给输入框外围重复铺底，造成圆角外层遮挡；AutoClaw 禁止该通配铺底，只让 `.input-box` 保留局部主题 surface。
+- `.autoclaw-content-region` 原生从 `y=56` 开始，若仍使用 `100vh` 会延伸到窗口底部之外并被 `overflow:hidden` 裁剪。专属规则使用 `calc(100vh - 56px)`，使内容区、消息区和新建页严格落在 viewport 内。
+- 已验证首页、已有会话和沉思小助手底部输入框完整显示；输入 container、skill strip 和工具栏外围透明，实际输入卡片保持局部对比。相同布局约束覆盖监控和浏览器助手类页面。
+
+实机结果：
+
+- 主题与右下角菜单注入返回 `success: true, applied: 1`。
+- 深色主题实测保持 `data-theme=dark`、`color-scheme=dark`；亮色主题保持 `data-theme=light`、`color-scheme=light`。
+- 全窗口 hero、侧栏透明层、项目/会话状态、顶部 Tab 图标、折叠侧栏、右侧 header、新建/对话输入框和助手页底部布局均完成计算样式与 DOM 可见性验证。
+- AutoClaw 安装文件未被修改。
+
 ### 9.7 CSS 生成器分层
 
-当前 `electron/manager/injector.ts` 中存在 16 个具体 CSS 生成器；`buildAppCss()` 负责分派，通用注册类型和应用专属分支共同覆盖当前应用：
+当前 `electron/manager/injector.ts` 在通用生成器之外包含多款应用专属 CSS 生成器；`buildAppCss()` 负责分派，通用注册类型和应用专属分支共同覆盖当前应用：
 
 | 生成器 | 应用 |
 |--------|------|
 | `buildWorkBuddyCss()` | WorkBuddy |
 | `buildVsCodeWorkCss()` | TRAE Work |
-| `buildGenericWorkCss()` | QoderWork、CatPaw、ZCode、千问办公、AgnesCode/MiniMax Code/AstronClaw/StepFun/SparkDesk/DeepSeek Harness 外壳入口 |
+| `buildGenericWorkCss()` | QoderWork、CatPaw、ZCode、千问办公及专属分支应用的通用外壳入口 |
 | `buildQoderWorkShellCss()` | QoderWork 额外壳层映射 |
 | `buildCatPawCss()` | CatPaw 额外页面映射 |
 | `buildHanaAgentCss()` | HanaAgent |
@@ -1327,6 +1395,8 @@ CDP 启动差异：
 | `buildStepFunCss()` | StepFun（阶跃 AI） |
 | `buildSparkDeskCss()` | SparkDesk（讯飞星火） |
 | `buildDeepSeekHarnessCss()` | DeepSeek Harness |
+| `buildMonkeyCodeCss()` | MonkeyCode |
+| `buildAutoClawCss()` | AutoClaw |
 | `buildCodexCss()` | Codex |
 
 通用主题语义仍由以下字段提供：
@@ -1406,6 +1476,7 @@ Codex、HanaAgent、Kimi 和其他非 WorkBuddy 应用使用 Shadow DOM host：
 | SparkDesk | 通过，固定端口 `9354` 并匹配宿主/`#desk`/`#settings` | 通过 | 通过，多聊天 Tab 与设置页自动补注入 | 通过，仅 `#desk` 显示 |
 | DSH Desktop / DeepSeek Harness | 通过，新版优先路径、旧版回退路径、首选端口 `9355` 并匹配 `dsh-desktop-platform=` | 通过 | 通过，整窗背景、透明层、设置浮层和深浅 palette | 通过 |
 | MonkeyCode | 通过，WebView2 环境变量端口 `9356`，精确匹配 Tauri 主窗口 | 通过 | 通过，活跃主题 reload 后自动恢复 | 通过，仅主窗口显示，桌宠排除 |
+| AutoClaw | 通过，UAC 提权启动、实际端口扫描并匹配 `out/renderer/index.html` | 通过 | 通过，全窗口背景、深浅模式与多页面输入区 | 通过 |
 | Codex / ChatGPT Desktop | 通过 | 通过 | 通过 | 通过 |
 
 构建验证：
@@ -1413,7 +1484,7 @@ Codex、HanaAgent、Kimi 和其他非 WorkBuddy 应用使用 Shadow DOM host：
 - `pnpm typecheck` 通过。
 - `pnpm build:app` 通过。
 - 根目录 `dist-electron/main.js` 与 Vite 最新 Electron 输出保持同步。
-- 18 款应用通过 `acceptsGenericThemes` 默认兼容和 manifest 显式覆盖模型读取主题，无 HanaAgent/Kimi/OpenCode/豆包/AgnesCode/MiniMax Code/AstronClaw/StepFun/SparkDesk/DeepSeek Harness/MonkeyCode 硬编码放行。
+- 19 款应用通过 `acceptsGenericThemes` 默认兼容和 manifest 显式覆盖模型读取主题，无 HanaAgent/Kimi/OpenCode/豆包/AgnesCode/MiniMax Code/AstronClaw/StepFun/SparkDesk/DeepSeek Harness/MonkeyCode/AutoClaw 硬编码放行。
 - Kimi Work 首次注入实测同时覆盖 Work 与 Chat，返回 `applied: 2`；两个 target 重载后均能恢复主题。
 - OpenCode Desktop 实测主题应用返回 `applied: 1`，浮动菜单切换和还原正常；主题重启不会终止同名 OpenCode CLI。
 - 豆包 Desktop 实测主题应用返回 `applied: 1`，菜单切换和还原正常；技能、新工作任务、AI 创作和历史对话导航后主题会自动恢复。
@@ -1433,10 +1504,12 @@ Codex、HanaAgent、Kimi 和其他非 WorkBuddy 应用使用 Shadow DOM host：
 - DSH Desktop `2.0.0` 已完成端到端验证：发现 `D:\Program Files\DSH Desktop\DSH Desktop.exe`，首选端口 `9355`，主 renderer 匹配 `dsh-desktop-mode=compatibility&dsh-desktop-platform=win32`，主题应用返回 `applied: 1`；旧 DeepSeek Harness `0.1.0-rc.5` 路径继续保留。
 - DeepSeek 整窗背景和浮层已验证：侧栏、`*_centerCol`、`*_composerSeat` 和 `*_composerStack` 透明无滤镜；设置 overlay 为全窗 `1440×920`，`800×800` panel 居中，不再受 `280px` 侧栏 containing block 限制。
 - DeepSeek 深浅 palette 已验证：深色主题添加 `body[data-ds-dark-theme]`，侧栏文字为 `rgb(249, 250, 251)`；浅色主题移除属性，侧栏文字为 `rgb(15, 17, 21)`；还原恢复注入前的原生属性状态。
+- AutoClaw `1.17.7` 已完成端到端验证：管理员权限 EXE 通过一次 UAC 提权结束旧实例并启动新实例；启动标记和 AutoClaw User-Agent/renderer 双重校验避免旧端口竞态，主题应用返回 `applied: 1`。
+- AutoClaw 全窗口背景、侧栏/主体透明层、项目与会话 hover/选中态、顶部三个 Tab 图标、透明右侧 header、折叠侧栏、首页/已有对话/沉思小助手输入区和右下角菜单已通过 DOM 与计算样式验证；深浅主题分别保持对应的 `data-theme` 和 `color-scheme`。
 - 高频快捷主题已通过实测：不再依赖固定主题 ID，可按应用统计菜单和管理器中的主动切换，并在主题缺失时只显示实际可用项。
 - 跨应用自定义图片共享已通过实测：集中图片库可被后续启动的其他受支持应用读取。
 
-这里的“通过”表示注入通道、target 选择和 DOM 挂载能力已经验证。OpenCode、豆包、AgnesCode、MiniMax Code、AstronClaw、StepFun、SparkDesk 与 DeepSeek Harness 已额外完成本报告所列页面和原生恢复的视觉验收；其他应用以及应用升级后的新 DOM 仍需继续检查空白首页、已有对话、设置页、文件预览和弹窗。
+这里的“通过”表示注入通道、target 选择和 DOM 挂载能力已经验证。OpenCode、豆包、AgnesCode、MiniMax Code、AstronClaw、StepFun、SparkDesk、DeepSeek Harness 与 AutoClaw 已额外完成本报告所列页面和原生恢复/运行时模式的视觉验收；其他应用以及应用升级后的新 DOM 仍需继续检查空白首页、已有对话、设置页、文件预览和弹窗。
 
 ### 9.10 已知风险与维护重点
 
@@ -1552,6 +1625,18 @@ HanaAgent 的 renderer 会在启动和部分界面切换期间被替换。维护
 - SparkDesk watcher 使用 `/app-state/sparkdesk`、generation 和写入前状态确认处理新 Tab 与还原竞态。还原时保留延迟后的幂等二次清理，防止在途 watcher 重新创建样式。
 - 星火更新后优先回归：宿主背景、Tab/导航、已有/新建聊天、真正的星火设置、账号弹窗排除、模型切换、四个右侧按钮、深浅主题矩阵、菜单唯一性和多目标还原。
 
+#### AutoClaw 管理员启动、运行时重建与布局
+
+- Windows manifest 的 `requireAdministrator` 是启动约束，不能退回普通 `spawn()`；UAC 取消应返回明确错误，不能成为 Electron 主进程未捕获异常。
+- 普通权限预清理不能用于 AutoClaw。旧实例结束、新实例启动和完成标记必须保持在同一提权脚本中；路径和参数使用 Base64 内嵌，不能依赖提权进程继承自定义环境变量。
+- 外层 PowerShell 不能对提升后的整个进程树使用 `-Wait`。启动器应等待一次性标记，再由 CDP 探测确认真正就绪。
+- 端口扫描必须同时验证 AutoClaw User-Agent 和 `out/renderer/index.html`，不能只接受第一个可用 Electron CDP；否则可能连接其他应用或即将退出的旧 AutoClaw。
+- AutoClaw React effect 会重写 `data-theme` 和组件样式。模式守卫与视觉守卫只在主题激活时运行；还原时必须停止定时器并恢复原生状态，避免主题样式重新出现。
+- 维护顶部 Tab 图标时注意其为 data URI 图片，不是可继承 `currentColor` 的内联 SVG。优先保留原图颜色并调整尺寸/对比框，不应重新强制黑白滤镜。
+- 内容区从原生 `56px` header 下方开始。任何 `100vh` 高度都会导致底部输入区被裁剪；更新后应重新测量 header 高度、聊天区 bottom、输入 container、skill strip 和工具栏。
+- 通用 `[class*="composer"]`、`[class*="input-container"]`、整块 `.nested-agent-group:hover` 和大面积 `backdrop-filter` 会重新引入输入框外围遮挡、分组 hover 遮挡或全窗模糊，AutoClaw 必须继续使用精确结构选择器。
+- AutoClaw 更新后优先回归：UAC 启动、旧实例清理、实际端口、主 renderer、全窗口背景、深浅模式、顶部 Tab 图标、右侧 header、项目/会话状态、侧栏折叠、首页/历史对话/沉思/监控/浏览器助手底部输入区和菜单。
+
 #### 视觉验收
 
 通用 Work 类适配目前重点保证：
@@ -1591,11 +1676,11 @@ HanaAgent 的 renderer 会在启动和部分界面切换期间被替换。维护
 
 | 文件 | 职责 |
 |------|------|
-| `electron/manager/app-registry.ts` | 18 款应用的三平台发现候选、启动、端口、类型、路径限定进程管理和默认主题兼容注册 |
+| `electron/manager/app-registry.ts` | 19 款应用的三平台发现候选、启动、端口、类型、路径限定进程管理和默认主题兼容注册 |
 | `electron/manager/discovery.ts` | 扫描 Windows 安装目录/版本目录/Codex Appx、macOS bundle 和 Linux desktop/executable |
-| `electron/manager/launcher.ts` | 结束旧进程、跨平台启动、真实 bind 探测与动态端口回退、等待首选端口或 `DevToolsActivePort` CDP，并处理 HanaAgent/Kimi renderer 稳定、Kimi Windows 父进程限制、StepFun 托盘后二次激活、OpenCode/豆包/AstronClaw/StepFun/DeepSeek Harness 路径限定进程管理以及 AgnesCode Playwright CDP、fuse wire 和原生标题栏补丁 |
+| `electron/manager/launcher.ts` | 结束旧进程、跨平台启动、真实 bind 探测与动态端口回退、等待首选端口或 `DevToolsActivePort` CDP，并处理 HanaAgent/Kimi renderer 稳定、Kimi Windows 父进程限制、StepFun 托盘后二次激活、AutoClaw UAC 提权/启动标记/实际端口扫描、路径限定进程管理以及 AgnesCode Playwright CDP、fuse wire 和原生标题栏补丁 |
 | `electron/manager/cdp.ts` | target 发现、WebSocket 会话和 Runtime.evaluate |
-| `electron/manager/injector.ts` | 主题 CSS 生成、target 筛选、菜单、自定义图片、HanaAgent/Kimi/豆包/StepFun/SparkDesk 守护、OpenCode/豆包/AgnesCode/MiniMax Code/AstronClaw/StepFun/SparkDesk/DeepSeek Harness 专属 CSS 和原生深浅模式还原 |
+| `electron/manager/injector.ts` | 主题 CSS 生成、target 筛选、菜单、自定义图片、应用 watcher/守护、OpenCode/豆包/AgnesCode/MiniMax Code/AstronClaw/StepFun/SparkDesk/DeepSeek Harness/MonkeyCode/AutoClaw 专属 CSS，以及 AutoClaw 运行时深浅模式和视觉守卫 |
 | `vite.config.ts` | Renderer、Electron main 和 preload 构建配置；main/preload 的 `vite.build.outDir` 固定为根 `dist-electron/`，与 `package.json.main` 保持一致 |
 | `electron/manager/custom-theme-store.ts` | 自定义图片集中存储、校验、本机共享同步服务和 StepFun/SparkDesk 跨 WebContents `/app-state` 状态端点 |
 | `app.getPath('userData')/theme-usage.json` | 各应用预置主题的切换次数和最近使用时间，用于生成四个快捷主题 |
@@ -1610,10 +1695,10 @@ HanaAgent 的 renderer 会在启动和部分界面切换期间被替换。维护
 
 | 早期计划 | 当前实现 |
 |----------|----------|
-| 默认 12 套主题 | 当前源码包含 403 份主题 manifest，运行时按内容去重 |
-| 支持至少 5 款主流应用 | 当前注册 18 款应用 |
-| 所有应用使用固定端口 | QoderWork、千问办公、OpenCode 和 StepFun 使用 `DevToolsActivePort`；SparkDesk 使用固定 `9354`；DeepSeek Harness 首选 `9355`；普通首选端口启动前真实 bind，不可绑定时自动顺延并回传实际端口 |
-| 每款应用单独 profile 文件 | 使用集中式 `app-registry.ts` + 4 类注册类型，并为 HanaAgent、Kimi、OpenCode、豆包、AgnesCode、MiniMax Code、AstronClaw、StepFun、SparkDesk、DeepSeek Harness 增加专属 CSS/生命周期分支 |
+| 默认 12 套主题 | 当前源码包含 441 份主题 manifest，运行时按内容去重 |
+| 支持至少 5 款主流应用 | 当前注册 19 款应用 |
+| 所有应用使用固定端口 | QoderWork、千问办公、OpenCode 和 StepFun 使用 `DevToolsActivePort`；SparkDesk 使用固定 `9354`；DeepSeek Harness/MonkeyCode/AutoClaw 分别首选 `9355`/`9356`/`9357`；AutoClaw 还会校验实际顺延端口；普通首选端口启动前真实 bind，不可绑定时自动顺延并回传实际端口 |
+| 每款应用单独 profile 文件 | 使用集中式 `app-registry.ts` + 4 类注册类型，并为 HanaAgent、Kimi、OpenCode、豆包、AgnesCode、MiniMax Code、AstronClaw、StepFun、SparkDesk、DeepSeek Harness、MonkeyCode、AutoClaw 增加专属 CSS/生命周期分支 |
 | 主题背景可统一铺 body | WorkBuddy/Codex/其他应用均根据主体 DOM 放置图片，避免侧栏和外壳错误铺图 |
 | 通用菜单挂到 body | 非 WorkBuddy 菜单使用 Shadow DOM host 和重挂载守护 |
 | 需调研 ZCode、千问办公、CatPaw | 已完成 Windows 实机 Electron、CDP、URL 和 DOM 探测 |

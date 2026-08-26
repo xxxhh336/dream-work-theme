@@ -26,6 +26,11 @@ doubao
 agnes-code
 minimax-code
 astronclaw
+sparkdesk
+stepfun
+deepseek-harness
+monkeycode
+autoclaw
 ```
 
 ## Output
@@ -83,6 +88,8 @@ The floating menu no longer contains fixed theme IDs. It shows up to four freque
 For HanaAgent compatibility, also test renderer recreation after startup: the theme should appear after the renderer stabilizes, and it must remain disabled for several seconds and across reloads or view changes after **Restore Theme** is selected.
 
 For AstronClaw compatibility, check New Task, existing conversations, My Skills, and the Inspiration Gallery. Generic `[class*="message"]`, `bg-card`, or `backdrop-filter` rules must not create large opaque overlays, and restore tests must cover native light, dark, and system preferences through AstronClaw's settings API.
+
+For AutoClaw compatibility, test both light and dark themes. The theme surface luminance must synchronize AutoClaw's runtime `data-theme` and `color-scheme`; verify the full-window hero, collapsed sidebar, project/session hover and selected states, top-tab icons, transparent main header, New Chat, existing conversations, Thinking/Monitor/Browser assistant composers, and the floating menu without full-screen surface or blur overlays.
 
 ## Validation Implemented by the App
 
